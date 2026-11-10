@@ -1,0 +1,43 @@
+name: Verify narrated MP4
+on:
+  push:
+    paths:
+      - 'render/**'
+      - '.github/workflows/verify-render.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          python -m pip install pillow edge-tts
+      - name: Generate narrated sample
+        run: |
+          python render/render.py --lang de --text "Guten Morgen! Ich gehe heute in den Supermarkt." --out output/sample.mp4
+      - name: Verify playable MP4 streams
+        run: |
+          ffprobe -v error -show_entries stream=codec_type,codec_name -of json output/sample.mp4 | tee output/probe.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('output/probe.json').read_text())
+          codecs={s['codec_type']:s['codec_name'] for s in p['streams']}
+          assert codecs.get('video')=='h264',codecs
+          assert codecs.get('audio')=='aac',codecs
+          assert Path('output/sample.mp4').stat().st_size>10000
+          print('PASS: H.264 + AAC MP4')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: narrated-mp4-smoke-test
+          path: output/
+          if-no-files-found: ignore
+          retention-days: 2
