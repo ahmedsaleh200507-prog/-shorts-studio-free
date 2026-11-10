@@ -3,17 +3,37 @@
 <h2>Sesli MP4 — iPhone test sürümü</h2><p>Bu sayfa deneysel bir sesli kayıt testidir. Ana uygulamanın yerine geçmez.</p>
 <textarea id="text">Guten Morgen! Heute gehen wir in den Supermarkt.</textarea><select id="lang"><option value="de">Almanca</option><option value="en">İngilizce</option></select><select id="voice"><option value="">Sesler yükleniyor...</option></select><button id="make">Sesli MP4 oluştur</button><p id="status">Sesler yükleniyor...</p><canvas id="c" width="540" height="960"></canvas><video id="preview" controls playsinline style="width:100%" hidden></video><a id="download" hidden>Sesli MP4 indir</a>
 <script type="module">
-import * as piper from 'https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.5/+esm';
+let piper=null;const libraryUrl='https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.5/+esm';
+async function loadPiper(){if(!piper)piper=await import(libraryUrl);return piper;}
+window.addEventListener('error',e=>status('JavaScript hatası: '+e.message));window.addEventListener('unhandledrejection',e=>status('Yükleme hatası: '+String(e.reason?.message||e.reason)));
 const $=id=>document.getElementById(id), c=$('c'),g=c.getContext('2d');let url='';
 const status=s=>$('status').textContent=s;
-async function voices(){try{const list=await piper.voices();$('voice').replaceChildren();for(const id of Object.keys(list).filter(id=>id.startsWith($('lang').value+'_'))){const o=new Option(id,id);$('voice').add(o)}status($('voice').length?'Ses seç ve oluştur. İlk kullanımda model indirilir.':'Bu dil için ses yok.')}catch(e){status('Ses listesi hatası: '+e.message)}}
+async function voices(){
+ $('voice').replaceChildren(new Option('Ses listesi yükleniyor...', ''));
+ $('make').disabled=true;
+ try{
+   status('Ses motoru yükleniyor...');
+   const engine=await loadPiper();
+   status('Sesler alınıyor...');
+   const list=await engine.voices();
+   const ids=Array.isArray(list)?list.map(v=>typeof v==='string'?v:v.id||v.key).filter(Boolean):Object.keys(list||{});
+   const matches=ids.filter(id=>id.startsWith($('lang').value+'_'));
+   $('voice').replaceChildren();
+   for(const id of matches)$('voice').add(new Option(id,id));
+   if(!matches.length){$('voice').add(new Option('Bu dilde ses bulunamadı',''));status('Bu dilde ses bulunamadı. Toplam ses: '+ids.length);}
+   else status(matches.length+' ses hazır. İlk kullanımda ses modeli indirilebilir.');
+ }catch(e){
+   $('voice').replaceChildren(new Option('Ses motoru yüklenemedi',''));
+   status('Ses motoru yüklenemedi: '+String(e?.message||e)+'\nSafari bağlantısı veya CDN erişimini kontrol et.');
+ }finally{$('make').disabled=false}
+}
 $('lang').onchange=voices;
 function paint(t,d){g.fillStyle='#17283f';g.fillRect(0,0,540,960);g.fillStyle='#7de3c5';g.beginPath();g.arc(270+Math.sin(t*3)*55,380,100,0,Math.PI*2);g.fill();g.fillStyle='white';g.font='bold 30px system-ui';g.textAlign='center';g.fillText('SHORTS STUDIO',270,140);g.font='24px system-ui';const words=$('text').value.split(/\s+/);let lines=[],line='';for(const word of words){const next=line?line+' '+word:word;if(g.measureText(next).width>470&&line){lines.push(line);line=word}else line=next}lines.push(line);lines.slice(0,5).forEach((v,i)=>g.fillText(v,270,730+i*34));g.fillStyle='#7de3c5';g.fillRect(0,940,540*Math.min(1,t/d),20)}
 function checkMp4(b){return b.arrayBuffer().then(buf=>{const a=new Uint8Array(buf);const has=s=>{const n=[...s].map(x=>x.charCodeAt(0));outer:for(let i=0;i<a.length-n.length;i++){for(let j=0;j<n.length;j++)if(a[i+j]!==n[j])continue outer;return true}return false};if(!has('ftyp')||!has('moov')||!has('soun')||!has('vide'))throw Error('MP4 içinde geçerli ses/video izi doğrulanamadı')})}
 $('make').onclick=async()=>{const btn=$('make');btn.disabled=true;$('download').hidden=true;$('preview').hidden=true;let audioCtx,stream,recorder,source;try{
 if(!$('voice').value)throw Error('Ses seç');if(!c.captureStream||!window.MediaRecorder)throw Error('Safari MediaRecorder desteklemiyor');
 const mime=['video/mp4;codecs="avc1.42E01E,mp4a.40.2"','video/mp4'].find(x=>MediaRecorder.isTypeSupported(x));if(!mime)throw Error('Bu cihazda MP4 sesli kayıt desteklenmiyor');
-status('Ses üretiliyor, lütfen bekle...');const wav=await piper.predict({text:$('text').value,voiceId:$('voice').value});const bytes=wav instanceof Blob?await wav.arrayBuffer():wav instanceof ArrayBuffer?wav:wav.buffer;
+status('Ses üretiliyor, lütfen bekle...');const engine=await loadPiper();const wav=await engine.predict({text:$('text').value,voiceId:$('voice').value});const bytes=wav instanceof Blob?await wav.arrayBuffer():wav instanceof ArrayBuffer?wav:wav.buffer;
 audioCtx=new AudioContext();await audioCtx.resume();const audio=await audioCtx.decodeAudioData(bytes.slice(0));if(audio.duration<.1)throw Error('Ses boş');
 const dest=audioCtx.createMediaStreamDestination();source=audioCtx.createBufferSource();source.buffer=audio;source.connect(dest);source.connect(audioCtx.destination);
 paint(0,audio.duration);stream=c.captureStream(30);const tracks=[...stream.getVideoTracks(),...dest.stream.getAudioTracks()];if(tracks.length!==2)throw Error('Ses ve görüntü kanalları eksik');recorder=new MediaRecorder(new MediaStream(tracks),{mimeType:mime,videoBitsPerSecond:2500000,audioBitsPerSecond:128000});const chunks=[];const done=new Promise((resolve,reject)=>{recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};recorder.onerror=e=>reject(Error(e.error?.message||'Kayıt hatası'));recorder.onstop=resolve});recorder.start(250);const start=audioCtx.currentTime+.1;source.start(start);while(audioCtx.currentTime-start<audio.duration+.15){const t=Math.max(0,audioCtx.currentTime-start);paint(t,audio.duration);status('Kaydediliyor: %'+Math.round(Math.min(1,t/audio.duration)*100));await new Promise(r=>setTimeout(r,34))}recorder.stop();await Promise.race([done,new Promise((_,reject)=>setTimeout(()=>reject(Error('Kayıt zaman aşımı')),15000))]);const blob=new Blob(chunks,{type:'video/mp4'});if(blob.size<5000)throw Error('Boş video');await checkMp4(blob);if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(blob);$('preview').src=url;$('preview').hidden=false;$('download').href=url;$('download').download='shorts-studio-audio-test.mp4';$('download').hidden=false;status('Ses izi olan MP4 hazır. Videoyu oynatıp sesi kontrol et.');}
