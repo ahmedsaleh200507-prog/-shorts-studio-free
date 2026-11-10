@@ -1,0 +1,1 @@
+Shorts Studio Free V7 experimental preview. This version is not verified on iPhone Safari. It attempts recordable Piper TTS and MP4 audio-track validation. Production remains at repository root. Never describe the beta as production-ready.
