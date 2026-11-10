@@ -1,0 +1,42 @@
+name: Render narrated 2D MP4
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'German or English text (up to 3000 characters)'
+        required: true
+        type: string
+      language:
+        description: 'Narration language'
+        required: true
+        default: de
+        type: choice
+        options:
+          - de
+          - en
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install renderer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          python -m pip install --disable-pip-version-check pillow edge-tts
+      - name: Render and verify audio/video
+        env:
+          SCRIPT: ${{ inputs.script }}
+          LANGUAGE: ${{ inputs.language }}
+        run: |
+          python render/render.py --text "$SCRIPT" --lang "$LANGUAGE" --out output/final.mp4
+          ffprobe -v error -show_entries stream=codec_name,codec_type -of json output/final.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shorts-studio-sesli-mp4
+          path: output/final.mp4
+          if-no-files-found: error
+          retention-days: 3
