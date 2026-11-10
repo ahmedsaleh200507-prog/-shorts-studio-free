@@ -3,5 +3,8 @@
   "name": "shorts-studio-free",
   "main": "backend/worker.js",
   "compatibility_date": "2026-11-10",
-  "workers_dev": true
+  "workers_dev": true,
+  "vars": {
+    "ALLOWED_ORIGIN": "https://ahmedsaleh200507-prog.github.io"
+  }
 }
