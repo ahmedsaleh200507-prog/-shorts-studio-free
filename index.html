@@ -1,205 +1,30 @@
-<!doctype html>
-<html lang="tr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Shorts Studio Free</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#0d1322;color:white;font:16px system-ui;padding:18px}
-main{max-width:560px;margin:auto}
-h1{color:#80e8ce;font-size:27px}
-textarea{width:100%;height:155px;background:#202b40;color:white;border:1px solid #53617a;border-radius:12px;padding:14px;font:16px system-ui}
-button{background:#7de8cc;color:#09231d;border:0;border-radius:10px;padding:13px;font-weight:bold;margin:5px}
-button:disabled{opacity:.4}
-canvas{display:block;width:min(100%,320px);aspect-ratio:9/16;margin:18px auto;background:#25304a;border-radius:12px}
-small{color:#b5c1d0}
-#status{padding:12px;color:#b7e6db}
-</style>
-</head>
-<body><main>
-<h1>🎬 Shorts Studio Free</h1>
-<p>Almanca hikâyeni yaz. Her cümle için hareketli sahne oluştur.</p>
-<textarea id="story">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea>
-<p>
-<button id="create">▶ Oluştur</button>
-<button id="voice">🔊 Seslendir</button>
-<button id="save">🎥 Video kaydet</button>
-</p>
-<div id="status">Hazır</div>
-<canvas id="canvas" width="540" height="960"></canvas>
-<small>Ücretsiz prototip. Görseller basit çizimlerden oluşur. Seslendirme cihazın Almanca seslerine bağlıdır. Video kaydı tarayıcı desteğine bağlıdır ve ses içermeyebilir.</small>
-</main>
-<script>
-const canvas=document.getElementById('canvas');
-const ctx=canvas.getContext('2d');
-const story=document.getElementById('story');
-const status=document.getElementById('status');
-let scenes=[],start=0,playing=false,recording=false;
-const W=540,H=960;
-function parse(){
- scenes=(story.value.match(/[^.!?]+[.!?]?/g)||[]).map(s=>s.trim()).filter(Boolean);
- return scenes;
-}
-function classify(s){
- s=s.toLowerCase();
- if(/supermarkt|laden|geschäft|kasse|apfel|einkauf/.test(s))return 'market';
- if(/bad|zahn|zähne|dusche/.test(s))return 'bath';
- if(/bett|schlaf|wach|morgen/.test(s))return 'bed';
- if(/küche|kaffee|essen|trink/.test(s))return 'kitchen';
- if(/schule|lehrer|unterricht/.test(s))return 'school';
- if(/krankenhaus|arzt|patient/.test(s))return 'hospital';
- if(/mond|weltall|planet|erde|weltraum/.test(s))return 'space';
- return 'street';
-}
-function rect(x,y,w,h,color){
- ctx.fillStyle=color;ctx.fillRect(x,y,w,h);
-}
-function circle(x,y,r,color){
- ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-}
-function line(x,y,xx,yy,color,width=10){
- ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';
- ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(xx,yy);ctx.stroke();
-}
-function sceneDraw(s,t){
- const kind=classify(s);
- const colors={market:'#c2e0d0',bath:'#b9e3ed',bed:'#c7c0df',kitchen:'#ead6b7',school:'#d9d2b8',hospital:'#c6e3e7',space:'#131b3b',street:'#b8d4ec'};
- rect(0,0,W,H,colors[kind]);
- if(kind==='space'){
- for(let i=0;i<35;i++)circle((i*137)%540,(i*211)%650,2,'white');
- circle(430,145,74,'#c9d0e2');
- }else{
- rect(0,690,540,270,'#8197a0');
- rect(0,680,540,14,'#e9eeee');
- }
- if(kind==='market'){
- for(let i=0;i<3;i++){
- rect(i*180+12,220,155,430,'#58796d');
- for(let j=0;j<4;j++){
- rect(i*180+22,250+j*90,135,24,'#dca46b');
- for(let k=0;k<3;k++)circle(i*180+42+k*40,240+j*90,13,'#d95c4d');
- }
- }
- }
- if(kind==='bath'){
- rect(300,180,185,290,'#effaff');
- rect(325,210,135,225,'#a6c7d2');
- rect(25,610,225,85,'#f8ffff');
- rect(80,570,100,45,'#f8ffff');
- }
- if(kind==='bed'){
- rect(30,580,460,125,'#5e7199');
- rect(50,540,130,60,'#f5f5ee');
- rect(180,560,285,75,'#e5a9a0');
- }
- if(kind==='kitchen'){
- rect(15,255,200,310,'#b18a69');
- rect(300,570,220,120,'#fff2dd');
- circle(385,555,32,'#eee');
- }
- if(kind==='school'){
- rect(35,180,470,250,'#426d57');
- rect(45,190,450,230,'#325b49');
- rect(40,615,460,75,'#ae825c');
- }
- if(kind==='hospital'){
- rect(25,230,490,390,'#e8f4f7');
- rect(250,255,35,155,'#d45b60');
- rect(195,310,145,35,'#d45b60');
- }
- if(kind==='street'){
- rect(25,280,165,400,'#a3a9bb');
- rect(355,190,160,490,'#d6b99f');
- for(let i=0;i<3;i++){
- rect(65,330+i*95,65,55,'#e6f0ff');
- rect(390,265+i*100,75,60,'#e6f0ff');
- }
- }
- const moving=Math.sin(t*3);
- const px=250+Math.sin(t*.9)*55;
- const py=450+Math.abs(moving)*7;
- circle(px,py,46,kind==='space'?'#f5f5f5':'#e9b18e');
- rect(px-40,py+48,80,155,kind==='space'?'#f1f1f1':'#3379a3');
- line(px-30,py+205,px-35+moving*22,py+345,'#26374a',23);
- line(px+30,py+205,px+35-moving*22,py+345,'#26374a',23);
- line(px-40,py+70,px-75-moving*13,py+175,'#26374a',18);
- line(px+40,py+70,px+75+moving*13,py+175,'#26374a',18);
- if(/apfel/.test(s.toLowerCase()))circle(px+75,py+170,23,'#e84743');
- if(/zahn|zähne/.test(s.toLowerCase()))line(px+30,py+18,px+68,py+15,'#f4f4f4',9);
- if(/kaffee/.test(s.toLowerCase()))rect(px+60,py+145,55,50,'#fff4e8');
- rect(0,807,540,153,'#101827');
- ctx.fillStyle='white';
- ctx.textAlign='center';
- ctx.font='bold 27px system-ui';
- const words=s.split(' '),rows=[];let row='';
- for(const word of words){
- if((row+' '+word).length>29){if(row)rows.push(row);row=word;}
- else row+=(row?' ':'')+word;
- }
- if(row)rows.push(row);
- rows.slice(0,4).forEach((r,i)=>ctx.fillText(r,270,848+i*32,505));
-}
-function frame(now){
- if(!playing)return;
- const elapsed=(now-start)/1000;
- const index=Math.floor(elapsed/4);
- if(index>=scenes.length){
- playing=false;
- status.textContent='Önizleme tamamlandı';
- return;
- }
- sceneDraw(scenes[index],elapsed);
- requestAnimationFrame(frame);
-}
-function play(){
- if(!parse().length){status.textContent='Önce metin yaz';return;}
- playing=true;start=performance.now();
- status.textContent=scenes.length+' sahne oluşturuluyor';
- requestAnimationFrame(frame);
-}
-document.getElementById('create').onclick=play;
-document.getElementById('voice').onclick=()=>{
- if(!('speechSynthesis' in window)){
- status.textContent='Seslendirme desteklenmiyor';return;
- }
- speechSynthesis.cancel();
- const u=new SpeechSynthesisUtterance(story.value);
- u.lang='de-DE';u.rate=.95;
- speechSynthesis.speak(u);
- status.textContent='Almanca seslendirme başlatıldı';
-};
-document.getElementById('save').onclick=()=>{
- if(!canvas.captureStream||!window.MediaRecorder){
- status.textContent='Bu tarayıcıda video kaydı desteklenmiyor';
- return;
- }
- if(recording)return;
- parse();if(!scenes.length)return;
- try{
- const stream=canvas.captureStream(30);
- const types=['video/mp4','video/webm;codecs=vp8','video/webm'];
- const mime=types.find(v=>MediaRecorder.isTypeSupported(v));
- if(!mime){status.textContent='Uygun video formatı bulunamadı';return;}
- const chunks=[];
- const recorder=new MediaRecorder(stream,{mimeType:mime});
- recording=true;
- recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
- recorder.onerror=()=>{recording=false;status.textContent='Kayıt hatası'};
- recorder.onstop=()=>{
- recording=false;stream.getTracks().forEach(t=>t.stop());
- const blob=new Blob(chunks,{type:mime});
- const url=URL.createObjectURL(blob);
- const a=document.createElement('a');
- a.href=url;a.download='shorts-studio.'+(mime.includes('mp4')?'mp4':'webm');
- a.click();status.textContent='Kayıt hazır';
- setTimeout(()=>URL.revokeObjectURL(url),60000);
- };
- recorder.start();play();
- status.textContent='Video kaydediliyor';
- setTimeout(()=>{if(recorder.state==='recording')recorder.stop()},scenes.length*4000+300);
- }catch(e){recording=false;status.textContent='Kayıt başlatılamadı: '+e.message;}
-};
-parse();sceneDraw(scenes[0]||'',0);
-</script>
-</body></html>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shorts Studio Free 2</title><style>*{box-sizing:border-box}body{margin:0;background:#0d1322;color:#f4f7ff;font:16px system-ui;padding:16px}main{max-width:680px;margin:auto}h1{color:#8ce6ce}textarea{width:100%;height:180px;background:#222c42;color:white;border:1px solid #63718a;border-radius:14px;padding:15px;font:16px system-ui}button,select{background:#91e5cf;color:#122b27;border:0;border-radius:10px;padding:12px;font-weight:700;margin:5px 3px}button:disabled{opacity:.45}canvas{display:block;width:min(100%,360px);aspect-ratio:9/16;margin:15px auto;background:#26324b;border-radius:12px}#status{color:#aee6d8;padding:12px}small{color:#aebbd1}a{color:#aee6d8}label{display:inline-block;margin:7px}</style></head><body><main><h1>🎬 Shorts Studio Free 2</h1><p>Almanca hikâyeni yaz. Her cümle için hareketli bir sahne oluştur.</p><textarea id="story">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea><div><label>Ses hızı <select id="rate"><option value="0.85">Yavaş</option><option value="1" selected>Normal</option><option value="1.15">Hızlı</option></select></label><label>Sahne süresi <select id="duration"><option value="3">3 sn</option><option value="5" selected>5 sn</option><option value="7">7 sn</option></select></label></div><div><button id="create">▶ Oluştur</button><button id="voice">🔊 Seslendir</button><button id="stop">■ Durdur</button><button id="save">🎥 Video kaydet</button></div><div id="status" role="status">Hazır</div><canvas id="canvas" width="540" height="960"></canvas><p><small>Bu sürüm ücretsiz ve tarayıcı içinde çalışır. Seslendirme cihazın Almanca sesine bağlıdır. Tarayıcı konuşma sesi videoya eklenemez; video kaydı cihaz desteğine göre MP4 veya WebM olur. iPhone'da kaydetme desteği değişebilir.</small></p></main><script>
+'use strict';
+const $=id=>document.getElementById(id),c=$('canvas'),x=c.getContext('2d'),W=540,H=960;
+let scenes=[],raf=0,started=0,playing=false,recorder=null,stream=null,stopAt=0;
+const status=s=>$('status').textContent=s;
+const R=(a,b,w,h,color)=>{x.fillStyle=color;x.fillRect(a,b,w,h)},C=(a,b,r,color)=>{x.fillStyle=color;x.beginPath();x.arc(a,b,r,0,7);x.fill()},L=(a,b,d,e,color,w=9)=>{x.strokeStyle=color;x.lineWidth=w;x.lineCap='round';x.beginPath();x.moveTo(a,b);x.lineTo(d,e);x.stroke()};
+function splitSentences(t){return (t.replace(/\s+/g,' ').trim().match(/[^.!?]+(?:[.!?]+|$)/g)||[]).map(s=>s.trim()).filter(Boolean)}
+function analyze(s,prev){const q=s.toLocaleLowerCase('de');let place=prev||'street';const places=[['market',/supermarkt|laden|geschäft|kasse|einkauf|regal|apfel/],['bath',/badezimmer|dusche|zahn|zähne|waschbecken/],['bed',/schlaf|bett|aufwach|schlafzimmer/],['kitchen',/küche|kochen|kaffee|frühstück/],['school',/schule|klassenzimmer|unterricht|lehrer/],['hospital',/krankenhaus|arzt|ärztin|patient|operation/],['space',/mond|planet|weltall|weltraum|astronaut/],['forest',/wald|baum|vogel|natur/],['office',/büro|computer|arbeit|schreibtisch/],['street',/straße|bus|auto|spazier|park/]];for(const [p,re] of places)if(re.test(q)){place=p;break}let action='idle';for(const [a,re] of [['brush',/putz.{0,18}zähn|zähneputz/],['pay',/bezahl|kasse/],['take',/nimmt|greift|holt|kauft/],['sleep',/schläft|schlafen|liegt|aufwach/],['walk',/geht|läuft|rennt|spazier|kommt|betritt/],['drink',/trinkt|kaffee/],['write',/schreibt|lernt|arbeitet/],['examine',/untersuch|behandelt/],['talk',/spricht|sagt|fragt|erzählt/]])if(re.test(q)){action=a;break}return {text:s,place,action,apple:/apfel/.test(q),doctor:/arzt|ärztin/.test(q),patient:/patient/.test(q)}}
+function prepare(){const a=splitSentences($('story').value);if(!a.length){status('Önce metin yaz.');return false}let p='street';scenes=a.map(s=>{const z=analyze(s,p);p=z.place;return z});return true}
+function background(s,t){const bg={market:'#c8e4d5',bath:'#c3e8f2',bed:'#c8c0df',kitchen:'#eed6b5',school:'#e1d9b9',hospital:'#d4edf0',space:'#121c3e',forest:'#a7d3ad',office:'#b8cbd8',street:'#b9d6ec'};R(0,0,W,H,bg[s.place]);if(s.place==='space'){for(let i=0;i<45;i++)C((i*137)%540,(i*211)%720,2+(i%3),'#fff');C(430,160,65,'#d8dce5')}else{R(0,685,540,275,'#8299a5');R(0,676,540,12,'#edf3f2')}
+if(s.place==='market'){for(let i=0;i<3;i++){R(15+i*180,230,155,430,'#638879');for(let j=0;j<4;j++){R(25+i*180,260+j*95,135,17,'#b98c5b');for(let k=0;k<3;k++)C(45+i*180+k*43,248+j*95,14,'#df6455')}}R(340,585,145,85,'#b3c5bf')}
+if(s.place==='bath'){R(300,165,175,305,'#f7ffff');R(315,185,145,255,'#9bc3d1');R(20,605,220,70,'#fff');R(80,565,100,45,'#fff');C(145,620,18,'#8bc1cb')}
+if(s.place==='bed'){R(25,575,475,130,'#596f9c');R(45,535,145,65,'#f5f5ed');R(185,550,295,100,'#e8a9a4')}
+if(s.place==='kitchen'){R(25,230,210,370,'#a98b6e');R(290,580,225,105,'#fff2dd');C(380,560,29,'#eee')}
+if(s.place==='school'){R(30,175,480,260,'#356a54');R(45,190,450,225,'#24533f');R(35,600,470,85,'#ad8663')}
+if(s.place==='hospital'){R(25,220,490,420,'#f2fafb');R(255,255,32,145,'#d8616a');R(198,312,145,30,'#d8616a');R(40,580,230,70,'#9bb8c3')}
+if(s.place==='forest'){for(let i=0;i<5;i++){const a=35+i*112;R(a,320,24,375,'#795c45');C(a+10,300,90,'#5b9f73')}}
+if(s.place==='office'){R(40,225,455,290,'#e8eff7');R(60,560,420,90,'#947c6c');R(195,390,170,150,'#3e596e')}
+if(s.place==='street'){R(20,260,180,425,'#a4a9bb');R(355,205,165,480,'#d8b89d');for(let i=0;i<3;i++){R(70,310+i*105,65,58,'#e7f3ff');R(395,270+i*110,70,62,'#e7f3ff')}}}
+function person(px,py,t,s,small=false){const scale=small?.7:1;x.save();x.translate(px,py);x.scale(scale,scale);const walk=s.action==='walk',wave=Math.sin(t*6),bob=walk?Math.abs(wave)*10:Math.sin(t*2)*3;x.translate(0,-bob);C(0,0,43,s.place==='space'?'#f4f5f8':'#e4ad8b');R(-37,48,74,145,s.doctor?'#f8ffff':s.place==='space'?'#eee':'#3e80aa');const leg=walk?wave*34:Math.sin(t*2)*5;L(-25,195,-30+leg,335,'#2a394f',22);L(25,195,30-leg,335,'#2a394f',22);let hand=s.action==='brush'?[-4,20]:s.action==='take'?[100,145]:s.action==='pay'?[100,130]:[75+wave*8,170];L(35,80,hand[0],hand[1],'#2a394f',18);L(-35,80,-75-wave*8,170,'#2a394f',18);if(s.action==='brush'){L(0,20,50,20,'#fff',10);C(50,20,9,'#54b5d0')}if(s.apple)C(95,145,22,'#d9413f');if(s.action==='drink'){R(72,125,50,52,'#fff5e9');L(120,137,135,137,'#fff',9)}x.restore()}
+function subtitle(text){R(0,790,540,170,'#101827');x.fillStyle='white';x.font='bold 27px system-ui';x.textAlign='center';const words=text.split(/\s+/),lines=[];let line='';for(const w of words){if(x.measureText(line+' '+w).width>480&&line){lines.push(line);line=w}else line+=(line?' ':'')+w}if(line)lines.push(line);x.font='bold '+(lines.length>4?21:27)+'px system-ui';const lineH=lines.length>4?26:34;lines.slice(0,6).forEach((z,i)=>x.fillText(z,270,815+i*lineH,505))}
+function draw(s,t){background(s,t);person(265+(s.action==='walk'?Math.sin(t*.7)*85:0),465,t,s);if(s.action==='examine'){person(415,545,t,{...s,doctor:false,action:'idle'},true)}if(s.action==='pay'){R(380,610,110,75,'#567a73');C(430,595,22,'#e0ac85')}subtitle(s.text)}
+function cancelPlayback(){playing=false;if(raf)cancelAnimationFrame(raf);raf=0}
+function tick(now){if(!playing)return;const d=Number($('duration').value),elapsed=(now-started)/1000,index=Math.floor(elapsed/d);if(index>=scenes.length){cancelPlayback();if(!recorder)status('Önizleme tamamlandı');return}draw(scenes[index],elapsed-index*d);raf=requestAnimationFrame(tick)}
+function play(){if(!prepare())return;cancelPlayback();playing=true;started=performance.now();status(scenes.length+' sahne oynatılıyor');raf=requestAnimationFrame(tick)}
+function speak(){if(!('speechSynthesis'in window)){status('Bu cihazda seslendirme desteklenmiyor');return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance($('story').value);u.lang='de-DE';u.rate=Number($('rate').value);u.onerror=()=>status('Seslendirme başlatılamadı. Almanca ses ayarlarını kontrol et.');speechSynthesis.speak(u);status('Almanca seslendirme oynatılıyor (videoya eklenmez)')}
+function cleanup(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}recorder=null;$('save').disabled=false}
+function record(){if(recorder){status('Kayıt zaten sürüyor');return}if(!prepare())return;if(!c.captureStream||!window.MediaRecorder){status('Bu tarayıcıda canvas video kaydı desteklenmiyor');return}const types=['video/mp4;codecs=avc1.42E01E','video/mp4','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];const mime=types.find(t=>MediaRecorder.isTypeSupported(t));if(!mime){status('Bu cihazda uygun kayıt biçimi yok');return}try{cancelPlayback();stream=c.captureStream(30);const chunks=[];recorder=new MediaRecorder(stream,{mimeType:mime});$('save').disabled=true;recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};recorder.onerror=()=>{status('Kayıt sırasında hata oluştu');cancelPlayback();cleanup()};recorder.onstop=()=>{cancelPlayback();const blob=new Blob(chunks,{type:mime});cleanup();if(!blob.size){status('Kayıt boş çıktı; farklı tarayıcı dene');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='shorts-studio.'+(mime.includes('mp4')?'mp4':'webm');a.textContent='Videoyu indir';a.style.display='block';a.style.padding='10px';a.style.color='#8ce6ce';$('status').replaceChildren(document.createTextNode('Kayıt hazır. '),a);a.click();setTimeout(()=>URL.revokeObjectURL(url),120000)};draw(scenes[0],0);recorder.start(500);playing=true;started=performance.now();raf=requestAnimationFrame(tick);stopAt=setTimeout(()=>{if(recorder&&recorder.state==='recording')recorder.stop()},scenes.length*Number($('duration').value)*1000+350);status('Video kaydediliyor (sessiz)')}catch(e){cancelPlayback();cleanup();status('Kayıt başlatılamadı: '+e.message)}}
+$('create').onclick=play;$('voice').onclick=speak;$('save').onclick=record;$('stop').onclick=()=>{speechSynthesis?.cancel();cancelPlayback();clearTimeout(stopAt);if(recorder&&recorder.state==='recording')recorder.stop();else status('Durduruldu')};prepare();draw(scenes[0],0);
+</script></body></html>
