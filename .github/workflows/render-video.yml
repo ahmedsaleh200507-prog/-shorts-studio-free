@@ -24,7 +24,7 @@ permissions:
   contents: read
 jobs:
   render:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -37,13 +37,10 @@ jobs:
       - name: Install FFmpeg and renderer
         run: |
           set -euo pipefail
-          if command -v ffmpeg >/dev/null 2>&1 && command -v ffprobe >/dev/null 2>&1; then
-            echo "Using preinstalled FFmpeg and FFprobe"
-          else
-            echo "FFmpeg/FFprobe missing; installing with network retries"
-            sudo apt-get -o Acquire::Retries=5 update -qq
-            sudo DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=5 install -y --no-install-recommends ffmpeg
-          fi
+          # GitHub-hosted Ubuntu runners include FFmpeg/FFprobe.
+          # Do not apt-get update/install: Ubuntu mirrors can fail (exit 100).
+          command -v ffmpeg || { echo "::error::ffmpeg missing on runner"; exit 1; }
+          command -v ffprobe || { echo "::error::ffprobe missing on runner"; exit 1; }
           ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
           python -m pip install --disable-pip-version-check --retries 5 --timeout 30 -r render/requirements.txt
