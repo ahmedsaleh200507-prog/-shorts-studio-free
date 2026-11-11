@@ -27,6 +27,25 @@ export default {async fetch(request,env){
    if(!res.ok)return send({error:'GitHub workflow dispatch failed',github_status:res.status},502);
    return send({accepted:true,job_id:jobId,status_url:'/status?job_id='+jobId},202);
   }
+
+  if(url.pathname==='/artifact'&&request.method==='GET'){
+   const runId=url.searchParams.get('run_id')||'';
+   if(!/^\d{1,20}$/.test(runId))return send({error:'Invalid run ID'},400);
+   const rr=await fetch(GH+'/actions/runs/'+runId,{headers:ghHeaders(env.GITHUB_TOKEN)});
+   if(!rr.ok)return send({error:'Run unavailable'},502);
+   const run=await rr.json();
+   if(run.event!=='workflow_dispatch'||run.name!=='Render narrated 2D MP4'||run.status!=='completed'||run.conclusion!=='success')return send({error:'Render incomplete'},409);
+   const ar=await fetch(GH+'/actions/runs/'+runId+'/artifacts',{headers:ghHeaders(env.GITHUB_TOKEN)});
+   if(!ar.ok)return send({error:'Artifacts unavailable'},502);
+   const data=await ar.json(),item=(data.artifacts||[]).find(a=>a.name==='shorts-studio-sesli-mp4'&&!a.expired);
+   if(!item)return send({error:'MP4 expired or missing'},404);
+   const redirect=await fetch(GH+'/actions/artifacts/'+item.id+'/zip',{headers:ghHeaders(env.GITHUB_TOKEN),redirect:'manual'});
+   const location=redirect.headers.get('location');
+   if(!location||!location.startsWith('https://'))return send({error:'Artifact redirect failed'},502);
+   const file=await fetch(location);
+   if(!file.ok)return send({error:'Archive unavailable'},502);
+   return new Response(file.body,{headers:{'content-type':'application/zip','cache-control':'no-store',...(origin===allowed?cors:{})}});
+  }
   if(url.pathname==='/status'&&request.method==='GET'){
    const jobId=url.searchParams.get('job_id')||'';
    if(!/^[0-9a-f-]{36}$/.test(jobId))return send({error:'Invalid job ID'},400);
