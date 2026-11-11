@@ -34,7 +34,9 @@ export default {async fetch(request,env){
    const rr=await fetch(GH+'/actions/runs/'+runId,{headers:ghHeaders(env.GITHUB_TOKEN)});
    if(!rr.ok)return send({error:'Run unavailable'},502);
    const run=await rr.json();
-   if(run.event!=='workflow_dispatch'||run.name!=='Render narrated 2D MP4'||run.status!=='completed'||run.conclusion!=='success')return send({error:'Render incomplete'},409);
+   if(run.event!=='workflow_dispatch')return send({error:'Invalid render event'},403);
+   if(run.status!=='completed')return send({error:'Render is still '+run.status,run_status:run.status,run_conclusion:run.conclusion},409);
+   if(run.conclusion!=='success')return send({error:'Render failed: '+(run.conclusion||'unknown'),run_status:run.status,run_conclusion:run.conclusion},409);
    const ar=await fetch(GH+'/actions/runs/'+runId+'/artifacts',{headers:ghHeaders(env.GITHUB_TOKEN)});
    if(!ar.ok)return send({error:'Artifacts unavailable'},502);
    const data=await ar.json(),item=(data.artifacts||[]).find(a=>a.name==='shorts-studio-sesli-mp4'&&!a.expired);
