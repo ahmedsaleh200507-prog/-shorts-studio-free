@@ -47,6 +47,8 @@ jobs:
           ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
           python -m pip install --disable-pip-version-check --retries 5 --timeout 30 -r render/requirements.txt
+      - name: Validate Python renderer syntax
+        run: python -m py_compile render/render.py render/motion2d.py
       - name: Render and verify audio/video
         env:
           SCRIPT: ${{ inputs.script }}
