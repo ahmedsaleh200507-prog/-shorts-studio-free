@@ -191,13 +191,25 @@ $('audioSave').onclick=async()=>{
    const res=await api('/status?job_id='+encodeURIComponent(job.job_id),key),state=await res.json();
    audioStatus('Sesli MP4: '+(state.status||'bekleniyor')+' ('+(attempt+1)+')');
    if(state.status==='completed'){
-    if(state.conclusion!=='success')throw Error('GitHub üretimi başarısız: '+(state.conclusion||'bilinmiyor'));
+    if(state.conclusion!=='success')throw Error('GitHub üretimi başarısız: '+(state.conclusion||'bilinmiyor')+(state.run_url?' — '+state.run_url:''));
     runId=state.run_id;break;
    }
   }
   if(!runId)throw Error('İşlem zaman aşımına uğradı.');
-  audioStatus('Sesli MP4 indiriliyor...');
-  const zip=await api('/artifact?run_id='+encodeURIComponent(runId),key);
+  audioStatus('Video tamamlandı. İndirme dosyası hazırlanıyor...');
+  let zip=null,lastArtifactError=null;
+  for(let retry=0;retry<12;retry++){
+   try{
+    zip=await api('/artifact?run_id='+encodeURIComponent(runId),key);
+    break;
+   }catch(error){
+    lastArtifactError=error;
+    if(!/Render incomplete|MP4 expired or missing|Artifacts unavailable|Run unavailable/i.test(error.message))throw error;
+    audioStatus('GitHub video dosyası hazırlanıyor, tekrar deneniyor ('+(retry+1)+'/12)...');
+    await delay(5000);
+   }
+  }
+  if(!zip)throw Error('MP4 henüz indirilemiyor: '+(lastArtifactError?.message||'bilinmeyen hata')+'. GitHub çalışması: https://github.com/ahmedsaleh200507-prog/-shorts-studio-free/actions/runs/'+runId);
   if(!window.JSZip)throw Error('ZIP açma kütüphanesi yüklenemedi.');
   const archive=await JSZip.loadAsync(await zip.arrayBuffer());
   const entry=Object.values(archive.files).find(file=>!file.dir&&file.name.toLowerCase().endsWith('.mp4'));
