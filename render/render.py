@@ -25,7 +25,9 @@ def wrap(draw, text, f, width):
 
 def scene(draw, w, h, sentence, index, count):
     low=sentence.lower()
-    if any(k in low for k in ('supermarkt','market','shop','laden')):
+    if any(k in low for k in ('blackout','stromausfall','power outage','dunkelheit','darkness','strom weg','kein strom')):
+        bg='#090f20';accent='#18263b';title='BLACKOUT'
+    elif any(k in low for k in ('supermarkt','market','shop','laden')):
         bg='#f8e5ca';accent='#b66c52';title='SUPERMARKT'
     elif any(k in low for k in ('bad','bath','zahn','tooth')):
         bg='#dceef0';accent='#6098a7';title='BAD'
@@ -36,10 +38,25 @@ def scene(draw, w, h, sentence, index, count):
     else:
         bg='#d9e9f2';accent='#587e9d';title='STORY'
     draw.rectangle((0,0,w,h),fill=bg)
-    draw.ellipse((w-170,85,w-70,185),fill='#ffe3a3')
+    if title=='BLACKOUT':
+        draw.ellipse((w-130,90,w-55,165),fill='#dce5f7')
+        for j in range(17):
+            x=(j*83+31)%w; y=(j*107+30)%300
+            draw.ellipse((x,y,x+2,y+2),fill='#a7b6d3')
+    else:
+        draw.ellipse((w-170,85,w-70,185),fill='#ffe3a3')
     draw.rectangle((0,630,w,820),fill=accent)
     draw.text((30,65),title,font=font(43),fill='#20364a')
-    if title=='SUPERMARKT':
+    if title=='BLACKOUT':
+        for j in range(7):
+            x=j*85-18; top=270+(j%3)*46
+            draw.rectangle((x,top,x+77,760),fill=['#1a273c','#202e45','#111c2d'][j%3])
+            for wy in range(top+30,720,57):
+                for wx in range(x+15,x+65,25):
+                    lit=(j*7+wy//57+wx//25+index)%5==0
+                    draw.rectangle((wx,wy,wx+13,wy+22),fill='#f1c969' if lit else '#0b1526')
+        draw.rectangle((0,750,w,820),fill='#0b1220')
+    elif title=='SUPERMARKT':
         for y in (220,345,470):
             draw.rectangle((45,y,495,y+15),fill='#95684e')
             for j in range(7):
@@ -57,14 +74,16 @@ def scene(draw, w, h, sentence, index, count):
         for j in range(5):
             x=30+j*105;draw.rectangle((x,240+j%2*60,x+88,630),fill='#84a5bc')
     # Person (fully 2D, no 3D assets)
-    draw.ellipse((205,345,330,470),fill='#efc5a1')
-    draw.pieslice((205,332,330,435),180,360,fill='#3e3543')
-    draw.rounded_rectangle((182,475,353,680),radius=38,fill='#416b9c')
-    draw.line((195,510,145,615),fill='#efc5a1',width=26)
-    draw.line((338,510,390,615),fill='#efc5a1',width=26)
-    draw.ellipse((240,403,250,413),fill='#243344')
-    draw.ellipse((286,403,296,413),fill='#243344')
-    draw.arc((247,420,292,446),0,180,fill='#8e554a',width=3)
+    if title!='BLACKOUT':
+        draw.ellipse((205,345,330,470),fill='#efc5a1')
+    if title!='BLACKOUT':
+        draw.pieslice((205,332,330,435),180,360,fill='#3e3543')
+        draw.rounded_rectangle((182,475,353,680),radius=38,fill='#416b9c')
+        draw.line((195,510,145,615),fill='#efc5a1',width=26)
+        draw.line((338,510,390,615),fill='#efc5a1',width=26)
+        draw.ellipse((240,403,250,413),fill='#243344')
+        draw.ellipse((286,403,296,413),fill='#243344')
+        draw.arc((247,420,292,446),0,180,fill='#8e554a',width=3)
     draw.rectangle((0,820,w,h),fill='#132239')
     f=font(31);lines=wrap(draw,sentence,f,w-55)
     if len(lines)>3:
