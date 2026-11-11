@@ -1,10 +1,16 @@
 name: Render narrated 2D MP4
+run-name: Shorts ${{ inputs.job_id }}
 on:
   workflow_dispatch:
     inputs:
       script:
         description: 'German or English text (up to 3000 characters)'
         required: true
+        type: string
+      job_id:
+        description: 'Unique render request identifier'
+        required: false
+        default: manual
         type: string
       language:
         description: 'Narration language'
