@@ -30,9 +30,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install renderer
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg fonts-dejavu-core
-          python -m pip install --disable-pip-version-check pillow edge-tts
+          command -v ffmpeg && command -v ffprobe
+          python -m pip install --disable-pip-version-check --quiet pillow edge-tts
       - name: Render and verify audio/video
         env:
           SCRIPT: ${{ inputs.script }}
