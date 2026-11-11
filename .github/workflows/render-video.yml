@@ -28,10 +28,16 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: render/requirements.txt
       - name: Install renderer
         run: |
           command -v ffmpeg && command -v ffprobe
-          python -m pip install --disable-pip-version-check --quiet pillow edge-tts
+          python -m pip install --disable-pip-version-check -r render/requirements.txt
       - name: Render and verify audio/video
         env:
           SCRIPT: ${{ inputs.script }}
