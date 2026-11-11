@@ -1,11 +1,34 @@
 <!doctype html>
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shorts Studio Free — Sesli MP4</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#0b1324;color:#f0f6ff;font:16px system-ui}main{max-width:650px;margin:auto;padding:18px}h1{font-size:25px;color:#9de7d2}textarea{width:100%;height:155px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:14px;padding:14px;font:16px system-ui}button,select{border:0;border-radius:12px;padding:13px;font:600 15px system-ui}button{background:#9de7d2;color:#06271e}button:disabled{opacity:.5}select{background:#283750;color:white;width:100%}.row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.field{display:grid;gap:5px;flex:1;min-width:145px}.field label{font-size:13px;color:#bed1e7}canvas{display:block;width:min(100%,350px);aspect-ratio:9/16;margin:15px auto;background:#14233a;border-radius:14px}#status{min-height:44px;color:#9de7d2}a{color:#9de7d2;display:inline-block;padding:12px}[hidden]{display:none!important}small{color:#b7c6dc;line-height:1.5;display:block}</style></head>
-<body><main><h1>🎬 Shorts Studio Free</h1><p>Metnini yaz, ses seç, oynat veya video oluştur.</p>
-<textarea id="story">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea>
+<style>
+:root{color-scheme:dark;--bg:#070c18;--panel:#111c30;--line:#31405a;--muted:#a8bdd5;--mint:#84f0d0;--white:#f5f8ff}
+*{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 15% 0%,#172d49 0%,transparent 55%),linear-gradient(165deg,#090f1d,#080d19 75%);color:var(--white);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+main{max-width:1080px;margin:auto;padding:clamp(16px,3vw,36px) max(16px,env(safe-area-inset-right)) 48px;display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,360px);gap:0 28px;align-items:start}
+h1{grid-column:1/-1;font-size:clamp(27px,5vw,42px);line-height:1.1;letter-spacing:-.035em;margin:10px 0 4px;color:#e9fff7}
+h1+p{grid-column:1/-1;margin:4px 0 25px;color:var(--muted);font-size:15px}
+textarea{grid-column:1;display:block;width:100%;height:210px;min-height:170px;resize:vertical;background:linear-gradient(160deg,#16243b,#101a2e);color:var(--white);border:1px solid var(--line);border-radius:20px;padding:20px;font:16px/1.65 inherit;box-shadow:0 14px 40px #0003}
+textarea:focus,input:focus,select:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+button,select,input{font:inherit}button,select{border:1px solid transparent;border-radius:14px;padding:13px 17px;font-weight:700}
+button{background:var(--mint);color:#06251e;cursor:pointer;min-height:48px;transition:transform .15s,filter .15s}button:active{transform:scale(.98)}button:hover:not(:disabled){filter:brightness(1.08)}button:disabled{opacity:.5;cursor:wait}
+#reset{background:#23334b;color:#e5efff;border-color:#3a4d69}
+#audioSave{width:100%;font-size:17px;min-height:58px;background:linear-gradient(110deg,#78e6c9,#a7f5df);box-shadow:0 10px 35px #42e0b126}
+select,input{background:#182840;color:#fff;width:100%;border:1px solid #3c506e}
+.row{grid-column:1;display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+.field{display:grid;gap:7px;flex:1;min-width:145px}.field label{font-size:13px;font-weight:700;color:#c3d6ed}
+canvas{grid-column:2;grid-row:3/span 8;display:block;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto 18px;background:#14233a;border:6px solid #253750;border-radius:27px;box-shadow:0 22px 70px #0009}
+#status,#audioStatus{grid-column:1;min-height:26px;color:var(--mint);overflow-wrap:anywhere;font-size:14px}
+#audioStatus:not(:empty){background:#142a33;border:1px solid #285b5d;border-radius:12px;padding:12px 14px;margin:5px 0}
+#audioDownload{grid-column:1;color:#081f19;background:var(--mint);font-weight:700;border-radius:12px;padding:12px 18px;text-align:center;text-decoration:none;margin:8px 0}
+small{grid-column:1;color:#a5b8cf;line-height:1.6;display:block;margin-top:12px}
+[hidden]{display:none!important}
+@media(max-width:760px){main{display:flex;flex-direction:column;gap:0;padding:18px 16px calc(35px + env(safe-area-inset-bottom))}h1{margin-top:6px}h1+p{margin-bottom:18px}textarea{height:175px}main>.row{width:100%}canvas{order:7;width:min(100%,330px);margin:18px auto}#status{order:6}#audioStatus{order:4;width:100%}#audioDownload{order:5;width:100%}small{order:8}#toggle,#reset{flex:1}#audioSave{width:100%}}
+@media(prefers-reduced-motion:reduce){button{transition:none}}
+</style></head>
+<body><main><h1>🎬 Shorts Studio <span style="color:#84f0d0">Free</span></h1><p>2D hikâyeni yaz · Sesli önizle · 9:16 MP4 olarak kaydet</p>
+<textarea id="story" maxlength="3000" aria-label="Video senaryosu">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea>
 <div class="row"><div class="field"><label for="language">Ses dili</label><select id="language"><option value="de-DE">🇩🇪 Almanca</option><option value="en-US">🇬🇧 İngilizce</option></select></div><div class="field"><label for="voice">Cihazdaki ses</label><select id="voice"><option value="">Sesler yükleniyor...</option></select></div></div>
 <div class="row"><button id="toggle">▶ Başlat</button><button id="reset">↺ Baştan</button></div>
-<div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div><div class="row"><button id="audioSave">📥 Videoyu kaydet</button></div><div id="audioStatus" role="status"></div><a id="audioDownload" hidden aria-hidden="true">İndirme bağlantısı</a><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas>
+<div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div><div class="row"><button id="audioSave">📥 Videoyu kaydet</button></div><div id="audioStatus" role="status" aria-live="polite"></div><a id="audioDownload" hidden aria-hidden="true">İndirme bağlantısı</a><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas>
 <small>▶ Başlat: sesli önizleme. 📥 Videoyu kaydet: otomatik seslendirmeli MP4 hazırlar ve indirmeyi başlatır. Cloudflare APP_KEY değeri gerekir; GitHub tokenını buraya girme.</small></main>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
@@ -155,6 +178,7 @@ $('audioSave').onclick=async()=>{
  const script=$('story').value.trim(),key=$('appkey').value.trim();
  if(!script){audioStatus('Önce metin yaz.');return}
  if(script.length>3000){audioStatus('En fazla 3000 karakter yaz.');return}
+ if(!window.JSZip){audioStatus('İndirme kütüphanesi yüklenemedi. İnternet bağlantını kontrol et.');return}
  if(!key){audioStatus('Kaydetmek için Cloudflare APP_KEY değerini girmen gerekiyor. Şifreyi unuttuysan Cloudflare Settings bölümünden yenisini oluştur.');$('appkey').focus();return}
  audioBusy=true;$('audioSave').disabled=true;$('audioDownload').hidden=true;$('audioDownload').setAttribute('aria-hidden','true');
  try{
@@ -182,7 +206,7 @@ $('audioSave').onclick=async()=>{
   const a=$('audioDownload');if(a.dataset.url)URL.revokeObjectURL(a.dataset.url);
   a.dataset.url=url;a.href=url;a.download='shorts-studio-sesli.mp4';a.hidden=false;a.removeAttribute('aria-hidden');
   a.click();
-  audioStatus('Sesli MP4 hazır. İndirme otomatik başlatıldı. iPhone indirmeyi engellerse aşağıdaki bağlantıya dokun.');
+  audioStatus('Sesli MP4 hazır. iPhone indirmeyi açmazsa aşağıdaki İndirme bağlantısına dokun.');
  }catch(error){audioStatus('Hata: '+error.message+(error.message==='Unauthorized'?' — Cloudflare APP_KEY ile buraya yazdığın değer eşleşmiyor.':'')+(error.message==='Origin not allowed'?' — Cloudflare ALLOWED_ORIGIN ayarını kontrol et.':''))}
  finally{audioBusy=false;$('audioSave').disabled=false}
 };
