@@ -76,7 +76,7 @@ def scene(draw, w, h, sentence, index, count):
 
 async def synth(text, voice, path):
     tts=edge_tts.Communicate(text,voice)
-    await tts.save(str(path))
+    await asyncio.wait_for(tts.save(str(path)), timeout=60)
 
 def duration(path):
     p=subprocess.run(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(path)],capture_output=True,text=True,check=True)
@@ -97,6 +97,7 @@ async def main():
         root=Path(tmp);segments=[]
         for i,s in enumerate(sentences):
             audio=root/f'a{i:03}.mp3'
+            print(f'Rendering scene {i+1}/{len(sentences)}',flush=True)
             await synth(s,voice,audio)
             d=duration(audio)
             image=root/f'i{i:03}.png'
@@ -104,7 +105,7 @@ async def main():
             scene(ImageDraw.Draw(im),540,960,s,i,len(sentences))
             im.save(image)
             seg=root/f's{i:03}.mp4'
-            run('ffmpeg','-hide_banner','-loglevel','error','-y','-loop','1','-framerate','30','-i',str(image),'-i',str(audio),'-t',str(d),'-c:v','libx264','-pix_fmt','yuv420p','-r','30','-c:a','aac','-b:a','128k','-movflags','+faststart',str(seg))
+            run('ffmpeg','-hide_banner','-loglevel','error','-y','-loop','1','-framerate','15','-i',str(image),'-i',str(audio),'-t',str(d),'-c:v','libx264','-preset','ultrafast','-crf','24','-threads','2','-pix_fmt','yuv420p','-r','15','-c:a','aac','-b:a','96k','-movflags','+faststart',str(seg))
             segments.append(seg)
         concat=root/'concat.txt'
         concat.write_text(''.join("file '"+str(seg)+"'\n" for seg in segments))
