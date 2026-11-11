@@ -34,21 +34,22 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: render/requirements.txt
-      - name: Install FFmpeg and renderer
+      - name: Verify FFmpeg and install renderer
         run: |
           set -euo pipefail
           # Use the tools bundled with GitHub-hosted Ubuntu runners.
           # Avoid apt mirrors that caused exit code 100.
           command -v ffmpeg || { echo "::error::FFmpeg is missing on this runner"; exit 1; }
           command -v ffprobe || { echo "::error::FFprobe is missing on this runner"; exit 1; }
-          ffmpeg -version | head -n 1
-          ffprobe -version | head -n 1
+          ffmpeg -version | sed -n '1p'
+          ffprobe -version | sed -n '1p'
           python -m pip install --disable-pip-version-check --retries 5 --timeout 30 -r render/requirements.txt
       - name: Check renderer syntax and FFmpeg codecs
         run: |
           python -m py_compile render/render.py
-          ffmpeg -hide_banner -encoders | grep -q 'libx264' || { echo '::error::H.264 encoder unavailable'; exit 1; }
-          ffmpeg -hide_banner -encoders | grep -q 'aac' || { echo '::error::AAC encoder unavailable'; exit 1; }
+          ffmpeg -hide_banner -encoders > /tmp/shorts-encoders.txt
+          grep -E '^[[:space:]]*V.*libx264([[:space:]]|$)' /tmp/shorts-encoders.txt || { echo '::error::H.264 encoder unavailable'; exit 1; }
+          grep -E '^[[:space:]]*A.*aac([[:space:]]|$)' /tmp/shorts-encoders.txt || { echo '::error::AAC encoder unavailable'; exit 1; }
       - name: Render and verify audio/video
         env:
           SCRIPT: ${{ inputs.script }}
