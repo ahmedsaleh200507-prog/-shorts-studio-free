@@ -94,8 +94,20 @@ def scene(draw, w, h, sentence, index, count):
     draw.rectangle((0,h-13,round(w*(index+1)/count),h),fill='#7de3c5')
 
 async def synth(text, voice, path):
-    tts=edge_tts.Communicate(text,voice)
-    await asyncio.wait_for(tts.save(str(path)), timeout=60)
+    errors=[]
+    for attempt in range(3):
+        try:
+            if path.exists(): path.unlink()
+            tts=edge_tts.Communicate(text,voice)
+            await asyncio.wait_for(tts.save(str(path)), timeout=75)
+            if not path.exists() or path.stat().st_size < 1024:
+                raise RuntimeError('TTS returned empty or incomplete audio')
+            return
+        except Exception as exc:
+            errors.append(f'{type(exc).__name__}: {exc}')
+            if attempt < 2:
+                await asyncio.sleep(2 * (attempt + 1))
+    raise RuntimeError('Narration failed after 3 attempts: ' + ' | '.join(errors))
 
 def duration(path):
     p=subprocess.run(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(path)],capture_output=True,text=True,check=True)
@@ -119,6 +131,8 @@ async def main():
             print(f'Rendering scene {i+1}/{len(sentences)}',flush=True)
             await synth(s,voice,audio)
             d=duration(audio)
+            if not math.isfinite(d) or d <= 0.1:
+                raise RuntimeError(f'Invalid narration duration for scene {i+1}: {d}')
             image=root/f'i{i:03}.png'
             im=Image.new('RGB',(540,960))
             scene(ImageDraw.Draw(im),540,960,s,i,len(sentences))
