@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shorts Studio Free 6.1</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#0b1324;color:#f0f6ff;font:16px system-ui}main{max-width:650px;margin:auto;padding:18px}h1{font-size:25px;color:#9de7d2}textarea{width:100%;height:155px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:14px;padding:14px;font:16px system-ui}button,select{border:0;border-radius:12px;padding:13px;font:600 15px system-ui}button{background:#9de7d2;color:#06271e}button:disabled{opacity:.5}select{background:#283750;color:white;width:100%}.row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.field{display:grid;gap:5px;flex:1;min-width:145px}.field label{font-size:13px;color:#bed1e7}canvas{display:block;width:min(100%,350px);aspect-ratio:9/16;margin:15px auto;background:#14233a;border-radius:14px}#status{min-height:44px;color:#9de7d2}a{color:#9de7d2;display:inline-block;padding:12px}small{color:#b7c6dc;line-height:1.5;display:block}</style></head>
+<style>*{box-sizing:border-box}body{margin:0;background:#0b1324;color:#f0f6ff;font:16px system-ui}main{max-width:650px;margin:auto;padding:18px}h1{font-size:25px;color:#9de7d2}textarea{width:100%;height:155px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:14px;padding:14px;font:16px system-ui}button,select{border:0;border-radius:12px;padding:13px;font:600 15px system-ui}button{background:#9de7d2;color:#06271e}button:disabled{opacity:.5}select{background:#283750;color:white;width:100%}.row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.field{display:grid;gap:5px;flex:1;min-width:145px}.field label{font-size:13px;color:#bed1e7}canvas{display:block;width:min(100%,350px);aspect-ratio:9/16;margin:15px auto;background:#14233a;border-radius:14px}#status{min-height:44px;color:#9de7d2}a{color:#9de7d2;display:inline-block;padding:12px}[hidden]{display:none!important}small{color:#b7c6dc;line-height:1.5;display:block}</style></head>
 <body><main><h1>🎬 Shorts Studio Free 6.1</h1><p>Metnini yaz, ses seç, oynat veya video oluştur.</p>
 <textarea id="story">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea>
 <div class="row"><div class="field"><label for="language">Ses dili</label><select id="language"><option value="de-DE">🇩🇪 Almanca</option><option value="en-US">🇬🇧 İngilizce</option></select></div><div class="field"><label for="voice">Cihazdaki ses</label><select id="voice"><option value="">Sesler yükleniyor...</option></select></div></div>
 <div class="row"><button id="toggle">▶ Başlat</button><button id="reset">↺ Baştan</button></div>
-<div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div><div class="row"><button id="audioSave">🔊 Sesli MP4 oluştur</button></div><div id="audioStatus" role="status"></div><a id="audioDownload" hidden>🔊 Sesli MP4 indir</a><div id="status" role="status">Hazır.</div><a id="download" hidden>Videoyu indir</a><canvas id="canvas" width="540" height="960"></canvas>
-<small>Önizleme cihaz sesini kullanır. İndirilen kayıt şu an SESSİZDİR. Sesli MP4 için üstteki ayrı düğmeyi kullan. Mikrofon izni istenmez.</small></main>
+<div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div><div class="row"><button id="audioSave">🔊 Sesli MP4 oluştur</button></div><div id="audioStatus" role="status"></div><a id="audioDownload" hidden aria-hidden="true">🔊 Sesli MP4 indir</a><div id="status" role="status">Hazır.</div><a id="download" hidden>Videoyu indir</a><canvas id="canvas" width="540" height="960"></canvas>
+<small>▶ Başlat: cihaz sesinden önizleme. 🔊 Sesli MP4 oluştur: Cloudflare ve GitHub Actions ile sesli MP4 üretir. APP_KEY, Cloudflare ayarlarındaki APP_KEY ile aynı olmalıdır. GitHub tokenını buraya girme. Mikrofon izni gerekmez.</small></main>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 'use strict';
@@ -155,8 +155,8 @@ $('audioSave').onclick=async()=>{
  const script=$('story').value.trim(),key=$('appkey').value.trim();
  if(!script){audioStatus('Önce metin yaz.');return}
  if(script.length>3000){audioStatus('En fazla 3000 karakter yaz.');return}
- if(!key){audioStatus('Cloudflare APP_KEY değerini gir. GitHub token değil.');return}
- audioBusy=true;$('audioSave').disabled=true;$('audioDownload').hidden=true;
+ if(!key){audioStatus('Önce Cloudflare Settings → APP_KEY için belirlediğin 20 karakterlik değeri buraya yaz. GitHub tokenını girme.');$('appkey').focus();return}
+ audioBusy=true;$('audioSave').disabled=true;$('audioDownload').hidden=true;$('audioDownload').setAttribute('aria-hidden','true');
  try{
   audioStatus('Sesli video işi başlatılıyor...');
   const response=await api('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script,language:$('language').value.startsWith('de')?'de':'en'})});
@@ -180,9 +180,9 @@ $('audioSave').onclick=async()=>{
   if(!entry)throw Error('Arşivde MP4 bulunamadı.');
   const bytes=await entry.async('blob'),url=URL.createObjectURL(new Blob([bytes],{type:'video/mp4'}));
   const a=$('audioDownload');if(a.dataset.url)URL.revokeObjectURL(a.dataset.url);
-  a.dataset.url=url;a.href=url;a.download='shorts-studio-sesli.mp4';a.hidden=false;
+  a.dataset.url=url;a.href=url;a.download='shorts-studio-sesli.mp4';a.hidden=false;a.removeAttribute('aria-hidden');
   audioStatus('Sesli MP4 hazır! İndir bağlantısına dokun.');
- }catch(error){audioStatus('Hata: '+error.message)}
+ }catch(error){audioStatus('Hata: '+error.message+(error.message==='Unauthorized'?' — Cloudflare APP_KEY ile buraya yazdığın değer eşleşmiyor.':'')+(error.message==='Origin not allowed'?' — Cloudflare ALLOWED_ORIGIN ayarını kontrol et.':''))}
  finally{audioBusy=false;$('audioSave').disabled=false}
 };
 prepare();controls();
