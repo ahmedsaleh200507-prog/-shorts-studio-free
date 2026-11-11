@@ -4,6 +4,7 @@ import argparse, asyncio, json, math, re, subprocess, tempfile
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 import edge_tts
+from motion2d import write_frames, FPS
 
 def run(*args):
     subprocess.run(args,check=True)
@@ -119,12 +120,16 @@ async def main():
             print(f'Rendering scene {i+1}/{len(sentences)}',flush=True)
             await synth(s,voice,audio)
             d=duration(audio)
-            image=root/f'i{i:03}.png'
-            im=Image.new('RGB',(540,960))
-            scene(ImageDraw.Draw(im),540,960,s,i,len(sentences))
-            im.save(image)
+            frames=root/f'frames_{i:03}'
+            nframes=write_frames(s,i,len(sentences),d,frames)
+            print(f'Animated 2D frames: {nframes} at {FPS} fps',flush=True)
             seg=root/f's{i:03}.mp4'
-            run('ffmpeg','-hide_banner','-loglevel','error','-y','-loop','1','-framerate','15','-i',str(image),'-i',str(audio),'-filter_complex',f'[0:v]zoompan=z=\'min(zoom+0.0006,1.055)\':x=\'iw/2-(iw/zoom/2)\':y=\'ih/2-(ih/zoom/2)\':d=1:s=540x960:fps=15,format=yuv420p[v]','-map','[v]','-map','1:a:0','-t',str(d),'-c:v','libx264','-preset','ultrafast','-crf','24','-threads','2','-pix_fmt','yuv420p','-r','15','-c:a','aac','-b:a','96k','-movflags','+faststart',str(seg))
+            run('ffmpeg','-hide_banner','-loglevel','error','-y',
+                '-framerate',str(FPS),'-i',str(frames/'frame_%05d.png'),
+                '-i',str(audio),'-t',str(d),
+                '-c:v','libx264','-preset','ultrafast','-crf','25',
+                '-threads','2','-pix_fmt','yuv420p','-r',str(FPS),
+                '-c:a','aac','-b:a','96k','-movflags','+faststart',str(seg))
             segments.append(seg)
         concat=root/'concat.txt'
         concat.write_text(''.join("file '"+str(seg)+"'\n" for seg in segments))
