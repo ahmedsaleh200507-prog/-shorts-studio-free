@@ -34,9 +34,12 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: render/requirements.txt
-      - name: Install renderer
+      - name: Install FFmpeg and renderer
         run: |
-          command -v ffmpeg && command -v ffprobe
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          command -v ffmpeg
+          command -v ffprobe
           python -m pip install --disable-pip-version-check -r render/requirements.txt
       - name: Render and verify audio/video
         env:
