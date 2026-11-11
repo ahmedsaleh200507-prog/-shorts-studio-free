@@ -24,7 +24,7 @@ permissions:
   contents: read
 jobs:
   render:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -36,11 +36,14 @@ jobs:
           cache-dependency-path: render/requirements.txt
       - name: Install FFmpeg and renderer
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg
-          command -v ffmpeg
-          command -v ffprobe
-          python -m pip install --disable-pip-version-check -r render/requirements.txt
+          set -euo pipefail
+          # Use the tools bundled with GitHub-hosted Ubuntu runners.
+          # Avoid apt mirrors that caused exit code 100.
+          command -v ffmpeg || { echo "::error::FFmpeg is missing on this runner"; exit 1; }
+          command -v ffprobe || { echo "::error::FFprobe is missing on this runner"; exit 1; }
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+          python -m pip install --disable-pip-version-check --retries 5 --timeout 30 -r render/requirements.txt
       - name: Render and verify audio/video
         env:
           SCRIPT: ${{ inputs.script }}
