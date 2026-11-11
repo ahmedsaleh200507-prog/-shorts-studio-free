@@ -111,7 +111,19 @@ async def main():
         concat.write_text(''.join("file '"+str(seg)+"'\n" for seg in segments))
         run('ffmpeg','-hide_banner','-loglevel','error','-y','-f','concat','-safe','0','-i',str(concat),'-c','copy','-movflags','+faststart',str(out))
     probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-of','json',str(out)]))
-    types={s['codec_type'] for s in probe['streams']}
-    if not {'audio','video'}<=types:raise RuntimeError('MP4 lacks audio/video stream')
-    print('PASS:',out,'streams=',types,'bytes=',out.stat().st_size)
+    streams=probe.get('streams', [])
+    videos=[s for s in streams if s.get('codec_type')=='video']
+    audios=[s for s in streams if s.get('codec_type')=='audio']
+    if not videos or not audios:
+        raise RuntimeError('MP4 lacks audio/video stream: '+json.dumps(streams))
+    if videos[0].get('codec_name')!='h264':
+        raise RuntimeError('Video must be H.264, got '+str(videos[0].get('codec_name')))
+    if audios[0].get('codec_name')!='aac':
+        raise RuntimeError('Audio must be AAC, got '+str(audios[0].get('codec_name')))
+    if out.stat().st_size < 10000:
+        raise RuntimeError('MP4 is unexpectedly small')
+    final_duration=duration(out)
+    if not math.isfinite(final_duration) or final_duration <= 0:
+        raise RuntimeError('Invalid final MP4 duration')
+    print('PASS:',out,'video=h264 audio=aac duration=',round(final_duration,2),'bytes=',out.stat().st_size,flush=True)
 if __name__=='__main__':asyncio.run(main())
