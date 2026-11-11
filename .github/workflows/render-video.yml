@@ -44,6 +44,11 @@ jobs:
           ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
           python -m pip install --disable-pip-version-check --retries 5 --timeout 30 -r render/requirements.txt
+      - name: Check renderer syntax and FFmpeg codecs
+        run: |
+          python -m py_compile render/render.py
+          ffmpeg -hide_banner -encoders | grep -q 'libx264' || { echo '::error::H.264 encoder unavailable'; exit 1; }
+          ffmpeg -hide_banner -encoders | grep -q 'aac' || { echo '::error::AAC encoder unavailable'; exit 1; }
       - name: Render and verify audio/video
         env:
           SCRIPT: ${{ inputs.script }}
