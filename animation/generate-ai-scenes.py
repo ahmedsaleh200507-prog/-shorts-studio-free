@@ -1,67 +1,109 @@
-"""Generate real AI scene artwork with Pollinations, only when a server-side key is configured."""
-import json, os, pathlib, re, urllib.parse, urllib.request, urllib.error
-ROOT=pathlib.Path(__file__).resolve().parent
-script=os.environ.get("SCRIPT","").strip()
+"""Generate a bounded number of AI illustrations for a narrated short or long film.
+
+The scene-to-image manifest repeats each generated illustration across its story
+segment. This limits free-tier image calls; it is not native AI video generation.
+"""
+import json
+import math
+import os
+import pathlib
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
+
+ROOT = pathlib.Path(__file__).resolve().parent
+script = os.environ.get("SCRIPT", "").strip()
+landscape = os.environ.get("ASPECT_RATIO", "9:16") == "16:9"
 if script.startswith("[[ASPECT_16_9]]"):
-    script=script[len("[[ASPECT_16_9]]"):].strip()
-    landscape=True
-else:
-    landscape=False
-key=os.environ.get("POLLINATIONS_KEY","").strip()
+    script = script[len("[[ASPECT_16_9]]"):].strip()
+    landscape = True
+
+key = os.environ.get("POLLINATIONS_KEY", "").strip()
 if not key.startswith("sk_"):
-    raise SystemExit("AI image mode requires a Pollinations sk_ key in GitHub Actions secret POLLINATIONS_KEY.")
-sentences=[s.strip() for s in re.findall(r"[^.!?\n]+[.!?]?",script) if s.strip()]
-if not sentences or len(sentences)>60: raise SystemExit("Invalid script")
-out=ROOT/"public"/"ai-scenes";out.mkdir(parents=True,exist_ok=True)
-uris=[]
-# Shared visual bible for the whole story; this improves prompt consistency,
-# but does not guarantee identity without image-reference support.
-story_context=script[:1400]
-character_bible=("Keep one recurring protagonist across scenes: same face, hairstyle, "
-                  "clothes, age and proportions, unless the script explicitly changes them. ")
-previous_scene=""
-for i,sentence in enumerate(sentences):
-    prompt=(("Horizontal 16:9 wide cinematic frame, " if landscape else "Vertical 9:16 frame, ")+ "richly detailed hand-painted 2D animated film still, flat illustrated 2D only, "
-            "cohesive character design, expressive cinematic lighting, vivid environment, clean outlines, "
-            "no letters, no subtitles, no watermarks, no 3D, no photorealism. Scene: "+sentence)
-    prompt += (" Entire story context: "+story_context+
-               ". "+character_bible+
-               (" Previous scene: "+previous_scene+". Preserve visual continuity." if previous_scene else ""))
-    previous_scene=sentence
-    models=[m.strip() for m in os.environ.get("AI_IMAGE_MODELS","black-forest-labs/flux.1-schnell").split(",") if m.strip()][:3]
-    if not models: raise SystemExit("No image model configured")
-    query=urllib.parse.urlencode({"model":models[0],"width":1024 if landscape else 576,"height":576 if landscape else 1024,"seed":42})
-    url="https://gen.pollinations.ai/image/"+urllib.parse.quote(prompt,safe="")+"?"+query
-    req=urllib.request.Request(url,headers={"Authorization":"Bearer "+key,"Accept":"image/*","User-Agent":"ShortsStudioFree/1.0"})
-    try:
-        with urllib.request.urlopen(req,timeout=180) as resp:
-            data=resp.read(12_000_001)
-            mime=resp.headers.get("Content-Type","").split(";")[0].strip().lower()
-    except urllib.error.HTTPError as exc:
-        if exc.code in (401,402,403,429):
-            raise SystemExit(f"AI provider unavailable (HTTP {exc.code}); check key, balance or quota.") from None
-        if exc.code not in (400,404,500,502,503,504) or len(models)<2: raise
-        data=None
-        for fallback in models[1:]:
-            print(f"Model unavailable (HTTP {exc.code}); trying {fallback}",flush=True)
-            query=urllib.parse.urlencode({"model":fallback,"width":576,"height":1024,"seed":42})
-            url="https://gen.pollinations.ai/image/"+urllib.parse.quote(prompt,safe="")+"?"+query
-            req=urllib.request.Request(url,headers={"Authorization":"Bearer "+key,"Accept":"image/*","User-Agent":"ShortsStudioFree/1.0"})
-            try:
-                with urllib.request.urlopen(req,timeout=180) as resp:
-                    data=resp.read(12_000_001)
-                    mime=resp.headers.get("Content-Type","").split(";")[0].strip().lower()
-                break
-            except urllib.error.HTTPError as fallback_exc:
-                if fallback_exc.code in (401,402,403,429):
-                    raise SystemExit(f"AI provider unavailable (HTTP {fallback_exc.code}); quota or key issue.") from None
-                if fallback_exc.code not in (400,404,500,502,503,504): raise
-        if data is None: raise SystemExit("All configured image models failed")
-    if len(data)>12_000_000 or len(data)<1000 or mime not in ("image/jpeg","image/png","image/webp"):
-        raise SystemExit(f"Invalid AI image response for scene {i+1}: {mime}")
-    ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[mime]
-    filename=f"scene-{i}.{ext}"
-    (out/filename).write_bytes(data)
-    uris.append("/ai-scenes/"+filename)
-(ROOT/"ai-scene-images.mjs").write_text("export const aiSceneImages = "+json.dumps(uris)+";\n",encoding="utf-8")
-print("Generated",len(uris),"real AI images",flush=True)
+    raise SystemExit("Missing POLLINATIONS_KEY GitHub Actions secret")
+
+sentences = [s.strip() for s in re.findall(r"[^.!?\n]+[.!?]?", script) if s.strip()]
+if not sentences or len(sentences) > 180 or len(script) > 12000:
+    raise SystemExit("Invalid script: maximum 12000 characters / 180 scenes")
+
+max_images = max(1, min(24, int(os.environ.get("AI_MAX_IMAGES", "18"))))
+image_count = min(len(sentences), max_images)
+models = [m.strip() for m in os.environ.get(
+    "AI_IMAGE_MODELS", "black-forest-labs/flux.1-schnell"
+).split(",") if m.strip()][:3]
+if not models:
+    raise SystemExit("No image models configured")
+
+width, height = (1024, 576) if landscape else (576, 1024)
+out = ROOT / "public" / "ai-scenes"
+out.mkdir(parents=True, exist_ok=True)
+manifest = []
+context = script[:1200]
+prior_segment = ""
+
+def fetch_image(prompt):
+    """Try alternative models only on model/server errors, never on quotas."""
+    for index, model in enumerate(models):
+        query = urllib.parse.urlencode({
+            "model": model, "width": width, "height": height, "seed": 42
+        })
+        url = "https://gen.pollinations.ai/image/" + urllib.parse.quote(
+            prompt, safe=""
+        ) + "?" + query
+        req = urllib.request.Request(url, headers={
+            "Authorization": "Bearer " + key,
+            "Accept": "image/*",
+            "User-Agent": "ShortsStudioFree/1.0",
+        })
+        try:
+            with urllib.request.urlopen(req, timeout=180) as resp:
+                data = resp.read(12_000_001)
+                mime = resp.headers.get("Content-Type", "").split(";")[0].strip().lower()
+            if len(data) < 1000 or len(data) > 12_000_000:
+                raise RuntimeError("Invalid image size")
+            if mime not in ("image/jpeg", "image/png", "image/webp"):
+                raise RuntimeError("AI provider did not return an image")
+            return data, mime
+        except urllib.error.HTTPError as exc:
+            if exc.code in (401, 402, 403, 429):
+                raise SystemExit(
+                    f"AI quota/auth error HTTP {exc.code}; no key rotation or retries"
+                ) from None
+            if exc.code not in (400, 404, 500, 502, 503, 504) or index == len(models) - 1:
+                raise
+            print(f"Model error HTTP {exc.code}; trying another configured model", flush=True)
+    raise RuntimeError("No image generated")
+
+for i in range(image_count):
+    start = i * len(sentences) // image_count
+    end = (i + 1) * len(sentences) // image_count
+    segment = " ".join(sentences[start:end])
+    prompt = (
+        ("Wide horizontal 16:9 cinematic composition. " if landscape else
+         "Vertical 9:16 cinematic composition. ")
+        + "Rich hand-painted 2D animation still, flat illustrated 2D only, "
+        "expressive characters, detailed scenery, coherent lighting, clean outlines, "
+        "no text, no subtitles, no watermark, no 3D, no photorealism. "
+        "One continuous story with recurring character appearance, same facial "
+        "features, hairstyle, costume and proportions when the character returns. "
+        "Only change location when the story does. Overall context: "
+        + context + ". "
+        + ("Previous story segment: " + prior_segment[-320:] + ". " if prior_segment else "")
+        + "Current story segment: " + segment[:1200]
+    )
+    data, mime = fetch_image(prompt)
+    ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}[mime]
+    filename = f"scene-{i}.{ext}"
+    (out / filename).write_bytes(data)
+    manifest.extend(["/ai-scenes/" + filename] * (end - start))
+    prior_segment = segment
+    print(f"AI illustration {i+1}/{image_count} ready", flush=True)
+
+if len(manifest) != len(sentences):
+    raise RuntimeError("Scene manifest mismatch")
+(ROOT / "ai-scene-images.mjs").write_text(
+    "export const aiSceneImages = " + json.dumps(manifest) + ";\n",
+    encoding="utf-8",
+)
+print(f"Generated {image_count} AI images for {len(sentences)} scenes", flush=True)
