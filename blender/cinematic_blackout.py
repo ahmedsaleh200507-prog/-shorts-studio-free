@@ -89,8 +89,11 @@ for i in range(5):
  bulb=circle('street lamp bulb',x,-1.22,.065,.15,gold);show(bulb,1,72)
  for j in range(3):
   glow=circle('street lamp glow',x,-1.22,.12+j*.08,.12-j*.01,deep);show(glow,1,72)
-for i in range(7):
- band=rect('foreground pavement',0,-3.35+i*.045,7,.02,.2,steel);show(band,1,72)
+for i in range(3):
+ band=rect('foreground pavement',0,-3.35+i*.09,7,.025,.2,steel);show(band,1,72)
+for i in range(10):
+ x=-2.8+i*.61
+ roof=rect('roof silhouette',x,-.95+((i*5)%3)*.19,.29,.08,.16,shadow);show(roof,1,72)
 t=label('BLACKOUT',0,1.15,.5,.68,white);show(t,1,72);scale_in(t,1,17)
 bar=rect('headline accent',0,.96,2.9,.028,.6,red);show(bar,12,72)
 t2=label('WENN DIE STADT VERSTUMMT',0,.55,.5,.19,cyan);show(t2,1,72)
@@ -104,9 +107,9 @@ notch=rect('speaker notch',0,2.48,.52,.055,.97,soft);show(notch,73,144)
 clock=label('23:47',-.78,2.14,1,.16,white);show(clock,73,144)
 status=label('LTE   98%',.78,2.14,1,.13,white);show(status,73,144)
 for i in range(3):
- pulse=circle('alert pulse',0,1.48,.46+i*.15,.94-i*.01,red);show(pulse,88+i*9,99+i*9)
+ pulse=circle('alert pulse',0,1.48,.20+i*.06,.92-i*.01,red);show(pulse,88+i*9,99+i*9)
 ex=label('!',0,1.26,1,.58,white);show(ex,73,144)
-tx=label('NOTFALLWARNUNG',0,.45,1,.28,white);show(tx,73,144)
+tx=label('NOTFALLWARNUNG',0,.45,1,.205,white);show(tx,73,144)
 tx2=label('STROMAUSFALL',0,-.05,1,.33,gold);show(tx2,73,144)
 tx3=label('BLEIB RUHIG',0,-.65,1,.22,cyan);show(tx3,73,144)
 for i in range(3):
@@ -125,7 +128,7 @@ for i in range(7):
    ob=rect('city parcel',x,y,.40+(i%3)*.06,.34+(j%3)*.04,0,deep if (i+j)%2 else steel);show(ob,145,240)
    roof=rect('roof detail',x+.07,y+.04,.13,.08,.08,mid);show(roof,145,240)
 for i in range(2):
- river=segment('diagonal waterway',-3.4,-1.8+i*.14,3.4,2.3+i*.14,.17,.12,cyan);show(river,145,240)
+ river=segment('diagonal waterway',-3.4,-1.8+i*.14,3.4,2.3+i*.14,-.08,.075,steel);show(river,145,240)
 route=[(-2.2,-2.6),(-1.3,-2.6),(-1.3,-.2),(.5,-.2),(.5,1.5),(1.4,1.5)]
 for i in range(len(route)-1):
  a,b=route[i],route[i+1]
