@@ -43,9 +43,10 @@ canvas{display:none!important}.legacy-actions{display:none!important}
 <body><main><h1>Shorts <span style="color:#84f0d0">Studio</span></h1><p>Hikâyeni yaz. AI sahnelerini oluştur. Videonu indir.</p>
 <textarea id="story" maxlength="3000" aria-label="Video senaryosu">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea>
 <div class="row"><div class="field"><label for="language">Ses dili</label><select id="language"><option value="de-DE">🇩🇪 Almanca</option><option value="en-US">🇬🇧 İngilizce</option></select></div><div class="field"><label for="voice">Cihazdaki ses</label><select id="voice"><option value="">Sesler yükleniyor...</option></select></div></div>
+<div class="row"><div class="field"><label for="aspect">Video formatı</label><select id="aspect"><option value="9:16">📱 Dikey · 9:16</option><option value="16:9">🖥️ Yatay · 16:9</option></select></div></div>
 <div class="row legacy-actions" hidden><button id="toggle">▶ Başlat</button><button id="reset">↺ Baştan</button></div>
 <details class="advanced"><summary>⚙️ Bağlantı ayarları</summary><div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div></details><div class="row primary-action"><button id="audioSave">✨ AI videoyu oluştur</button></div><div id="audioStatus" role="status" aria-live="polite"></div><a id="audioDownload" hidden aria-hidden="true">📥 MP4 dosyasını indir</a><button id="iosShare" hidden type="button">📱 iPhone’da Paylaş / Dosyalara Kaydet</button><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
-<small>iPhone Safari uyumlu · 9:16 sesli MP4 · AI görselleri · Ücretsiz servislerin kullanım kotası olabilir. Bağlantı anahtarını kimseyle paylaşma.</small></main>
+<small>iPhone Safari uyumlu · 9:16 / 16:9 sesli MP4 · AI görselleri · Ücretsiz servislerin kullanım kotası olabilir. Bağlantı anahtarını kimseyle paylaşma.</small></main>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 'use strict';
@@ -59,7 +60,7 @@ function invalidate(){requestVersion++;if(cache){URL.revokeObjectURL(cache.url);
 async function request(path,key,options={}){const response=await fetch(WORKER+path,{...options,headers:{'x-app-key':key,...(options.headers||{})}});if(!response.ok){let reason='HTTP '+response.status;try{const body=await response.json();reason=body.error||body.message||reason}catch{}throw Error(reason)}return response}
 async function generate(download=false){
  if(busy)return;
- const script=el('story').value.trim(),key=el('appkey').value.trim(),lang=el('language').value.startsWith('de')?'de':'en',signature=JSON.stringify([script,lang]),version=requestVersion;
+ const script=el('story').value.trim(),key=el('appkey').value.trim(),lang=el('language').value.startsWith('de')?'de':'en',aspect=el('aspect').value,signature=JSON.stringify([script,lang,aspect]),version=requestVersion;
  if(!script){setStatus('Önce metin yaz.');return}
  if(cache?.signature===signature){displayVideo(cache.url);if(download){el('iosShare').hidden=false;setStatus('MP4 hazır. iPhone’da paylaş veya indir.')}else{el('renderedVideo').play().catch(()=>{});setStatus('Video hazır. ▶ ile oynatabilirsin.')}return}
  if(!key){setStatus('Cloudflare APP_KEY girmen gerekiyor.');el('appkey').focus();return}
@@ -67,7 +68,7 @@ async function generate(download=false){
  busy=true;el('toggle').disabled=true;el('audioSave').disabled=true;el('toggle').textContent='⏳ Hazırlanıyor...';
  try{
   setStatus('⏳ Video oluşturma isteği gönderiliyor...');
-  const response=await request('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script,language:lang})});
+  const response=await request('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script,language:lang,aspect_ratio:aspect})});
   const job=await response.json();if(!job.job_id)throw Error('GitHub iş kimliği alınamadı');
   let runId=null;
   for(let attempt=0;attempt<100;attempt++){
@@ -112,6 +113,7 @@ el('toggle').addEventListener('click',()=>generate(false));
 el('audioSave').addEventListener('click',()=>generate(true));
 el('reset').addEventListener('click',()=>{if(cache){displayVideo(cache.url);el('renderedVideo').currentTime=0;setStatus('Video başa alındı.')}else setStatus('Henüz video oluşturulmadı. ▶ Başlat düğmesine bas.')});
 el('story').addEventListener('input',()=>{invalidate();setStatus('Metin değişti. Yeni video için ▶ Başlat düğmesine bas.')});
+el('aspect').addEventListener('change',()=>{invalidate();setStatus('Video formatı değişti. Yeni video oluşturabilirsin.')});
 el('language').addEventListener('change',()=>{invalidate();setStatus('Dil değişti. Yeni video için ▶ Başlat düğmesine bas.')});
 el('voice').innerHTML='<option>Otomatik seslendirme</option>';
 el('canvas').hidden=true;
