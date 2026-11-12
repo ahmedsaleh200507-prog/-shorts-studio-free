@@ -6,6 +6,12 @@ on:
       - 'blender/**'
       - '.github/workflows/blender-pilot.yml'
   workflow_dispatch:
+    inputs:
+      script:
+        description: 'German or English script for scene planning (pilot supports city, phone, map only)'
+        required: false
+        type: string
+        default: 'Die Stadt ist dunkel. Das Handy zeigt eine Warnung. Die Karte zeigt den Weg.'
 permissions:
   contents: read
 jobs:
@@ -22,6 +28,14 @@ jobs:
           ldconfig -p | grep 'libEGL.so.1'
           blender --version | head -n 2
           ffmpeg -version | head -n 1
+      - name: Test and inspect script-to-scene planner
+        env:
+          SCRIPT: ${{ inputs.script || 'Die Stadt ist dunkel. Das Handy zeigt eine Warnung. Die Karte zeigt den Weg.' }}
+        run: |
+          python -m unittest discover -s blender -p 'test_*.py' -v
+          mkdir -p output
+          printf '%s' "$SCRIPT" | python blender/scene_planner.py > output/scene-plan.json
+          cat output/scene-plan.json
       - name: Render animated 2D frames
         run: |
           mkdir -p output/blender-frames
@@ -55,6 +69,13 @@ jobs:
           assert all(f.stat().st_size > 10000 for f in frames), 'Scene frame too small or blank'
           print('Scene variation verified:', [f.name for f in frames])
           PY
+      - name: Upload scene plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: blender-scene-plan
+          path: output/scene-plan.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload scene quality previews
         uses: actions/upload-artifact@v4
         with:
