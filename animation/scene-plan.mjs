@@ -26,7 +26,7 @@ export function splitScript(script){
   if(typeof script!=='string') throw new TypeError('script must be a string');
   return (script.match(/[^.!?\n]+[.!?]?/g)||[]).map(s=>s.trim()).filter(Boolean).slice(0,60);
 }
-export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=null}={}){
+export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=null,aspectRatio="9:16"}={}){
   if(!Number.isInteger(fps)||fps<12||fps>60) throw new RangeError('fps must be 12–60');
   if(!Number.isFinite(secondsPerScene)||secondsPerScene<0.5||secondsPerScene>30) throw new RangeError('invalid duration');
   const sentences=splitScript(script);
@@ -62,5 +62,6 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
     return {id:`scene-${index+1}`,text,action,place,props,visualMode,keywords,characterId:'main',startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
-  return {version:1,width:1080,height:1920,fps,totalFrames:scenes.at(-1).endFrame,scenes};
+  const landscape=aspectRatio==="16:9";
+  return {version:1,width:landscape?1920:1080,height:landscape?1080:1920,fps,totalFrames:scenes.at(-1).endFrame,scenes};
 }
