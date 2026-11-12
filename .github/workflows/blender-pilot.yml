@@ -36,7 +36,16 @@ jobs:
           mkdir -p output
           printf '%s' "$SCRIPT" | python blender/scene_planner.py > output/scene-plan.json
           cat output/scene-plan.json
+          python - <<'PY'
+          import json
+          plan=json.load(open('output/scene-plan.json',encoding='utf-8'))
+          kinds=[scene['visual'] for scene in plan['scenes']]
+          assert len(kinds)==3 and sorted(kinds)==['city','map','phone'], 'Pilot currently needs one city, phone and map sentence, in any order.'
+          print('Blender render order:',kinds)
+          PY
       - name: Render animated 2D frames
+        env:
+          BLENDER_SCENE_PLAN: output/scene-plan.json
         run: |
           mkdir -p output/blender-frames
           python -m py_compile blender/cinematic_blackout.py
