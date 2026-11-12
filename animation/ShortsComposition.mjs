@@ -106,16 +106,34 @@ function Prop({action,frame}){
 }
 
 
+// A separate articulated hand layer makes the phone scene an object interaction,
+// not just a floating screenshot. Motion is deterministic at every render frame.
+function PhoneHand({frame}){
+ const enter=Math.min(1,Math.max(0,frame/20));
+ const tap=Math.max(0,1-Math.abs(frame-40)/12);
+ const bob=Math.sin(frame*.09)*3;
+ return el('svg',{viewBox:'0 0 1080 1920',style:{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none',overflow:'visible'},'aria-hidden':true},
+  el('g',{transform:`translate(${(1-enter)*260} ${(1-enter)*170+bob})`},
+   el('path',{d:'M 770 1700 C 780 1550 750 1370 692 1235 C 666 1170 614 1136 575 1165 C 545 1187 549 1225 566 1266 L 610 1380 C 558 1306 515 1296 485 1321 C 459 1344 465 1382 493 1427 C 435 1388 403 1408 396 1442 C 389 1471 419 1505 451 1534 C 418 1524 392 1543 390 1571 C 386 1608 445 1644 485 1675 L 550 1830 Z',fill:'#e7a47d',stroke:'#a86452',strokeWidth:14,strokeLinejoin:'round'}),
+   el('path',{d:'M 565 1268 C 589 1310 608 1361 610 1380',fill:'none',stroke:'#b76d58',strokeWidth:11,strokeLinecap:'round'}),
+   el('path',{d:'M 493 1427 Q 522 1450 540 1482 M 451 1534 Q 477 1553 491 1581',fill:'none',stroke:'#bd795e',strokeWidth:9,strokeLinecap:'round'})),
+  // The opposite hand taps the screen, then retracts.
+  el('g',{transform:`translate(${(1-enter)*-330} ${Math.sin(frame*.08)*5})`},
+   el('path',{d:'M 0 1550 Q 170 1510 286 1330 Q 360 1220 415 1050 Q 437 992 472 1013 Q 505 1035 486 1085 L 440 1225 Q 482 1200 512 1220 Q 545 1244 524 1280 Q 560 1265 584 1290 Q 606 1320 575 1347 Q 610 1340 624 1367 Q 640 1402 596 1430 Q 540 1500 433 1552 L 250 1720 Z',fill:'#f2b18d',stroke:'#aa6954',strokeWidth:14,strokeLinejoin:'round'}),
+   el('g',{transform:`translate(${tap*42} ${-tap*95})`},
+    el('path',{d:'M 415 1050 Q 437 992 472 1013 Q 505 1035 486 1085 L 440 1225',fill:'none',stroke:'#f8c09d',strokeWidth:18,strokeLinecap:'round'}))),
+  tap>0?el('circle',{cx:548,cy:910,r:38+tap*40,stroke:'#8ce6ff',strokeWidth:8,fill:'none',opacity:tap*.7}):null);
+}
 function StoryObject({action,frame,accent,text=''}){
  const progress=Math.min(1,frame/36),ease=1-Math.pow(1-progress,3);
  const base={position:'absolute',left:'15%',top:'18%',width:'70%',height:'60%'};
- if(action==='phone')return el('div',{style:{...base,left:'27%',width:'46%',borderRadius:64,border:'17px solid #26354e',background:'#d9edff',boxShadow:'0 30px 90px #0009',overflow:'hidden'}},
+ if(action==='phone')return el(React.Fragment,null,el('div',{style:{...base,left:'27%',width:'46%',borderRadius:64,border:'17px solid #26354e',background:'#d9edff',boxShadow:'0 30px 90px #0009',overflow:'hidden'}},
   el('div',{style:{height:'9%',background:'#24354b',margin:'0 auto',width:'37%',borderRadius:'0 0 24px 24px'}}),
   el('div',{style:{padding:'12% 7%',fontSize:37,color:'#20314a',fontWeight:800}},'12:45'),
   el('div',{style:{margin:'5%',padding:'7%',borderRadius:25,background:'#fff',boxShadow:'0 8px 25px #52687a44',transform:`translateY(${(1-ease)*-280}px)`,opacity:ease}},
    el('div',{style:{fontSize:26,color:'#348dba',fontWeight:800}},'● MESSAGE'),
    el('div',{style:{fontSize:28,color:'#26354e',marginTop:14}},text.slice(0,90)||'Neue Nachricht')),
-  el('div',{style:{position:'absolute',bottom:'4%',left:'35%',width:'30%',height:9,borderRadius:10,background:'#24354b'}}));
+  el('div',{style:{position:'absolute',bottom:'4%',left:'35%',width:'30%',height:9,borderRadius:10,background:'#24354b'}})),el(PhoneHand,{frame}));
  if(action==='door')return el('div',{style:{...base,left:'21%',width:'58%',top:'14%',height:'69%',background:'#b7c4d1',border:'16px solid #263448',borderRadius:10,perspective:900}},
   el('div',{style:{position:'absolute',inset:0,background:'linear-gradient(110deg,#9b613d,#e5ac6b)',border:'12px solid #7e4b2e',transformOrigin:'left center',transform:`rotateY(${-68*ease}deg)`,boxShadow:'15px 15px 45px #0008'}},
    el('div',{style:{position:'absolute',right:'10%',top:'50%',width:26,height:26,background:'#f8d77c',borderRadius:'50%',boxShadow:'0 0 0 8px #9e673b'}})));
