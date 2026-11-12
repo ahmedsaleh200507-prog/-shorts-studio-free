@@ -44,6 +44,22 @@ class LongVideoTests(unittest.TestCase):
             self.assertEqual(manifest.count('"/ai-scenes/scene-'), 180)
             self.assertTrue(all(parse_qs(urlsplit(url).query)["width"] == ["1024"] for url in calls))
             self.assertTrue(all(parse_qs(urlsplit(url).query)["height"] == ["576"] for url in calls))
+    def test_missing_image_key_uses_free_vector_fallback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = pathlib.Path(tmp)
+            original_resolve = pathlib.Path.resolve
+            def fake_resolve(path, *args, **kwargs):
+                if path == SCRIPT_FILE:
+                    return tmpdir / "generate-ai-scenes.py"
+                return original_resolve(path, *args, **kwargs)
+            with patch.dict(os.environ, {"SCRIPT": "Ein Mann geht zur Schule. Er lernt.",
+                                      "POLLINATIONS_KEY": "", "AI_MAX_IMAGES": "18"}), patch.object(
+                    pathlib.Path, "resolve", fake_resolve
+                ), patch("urllib.request.urlopen", side_effect=AssertionError("Image API must not be called")):
+                runpy.run_path(str(SCRIPT_FILE), run_name="__main__")
+            manifest = (tmpdir / "ai-scene-images.mjs").read_text()
+            self.assertIn("[null, null]", manifest)
+
     def test_overlong_script_rejected(self):
         with patch.dict(os.environ, {"SCRIPT": "a" * 12001, "POLLINATIONS_KEY": "sk_test"}):
             with self.assertRaises(SystemExit):
