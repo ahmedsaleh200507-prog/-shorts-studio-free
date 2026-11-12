@@ -8,6 +8,8 @@ ROOT=Path(__file__).resolve().parent
 FPS=24
 async def main():
     script=os.environ.get('SCRIPT','').strip()
+    if script.startswith('[[VECTOR_2D]]'):
+        script=script[len('[[VECTOR_2D]]'):].strip()
     lang=os.environ.get('LANGUAGE','de')
     aspect=os.environ.get('ASPECT_RATIO','9:16')
     if script.startswith('[[ASPECT_16_9]]'):
