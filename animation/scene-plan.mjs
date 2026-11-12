@@ -3,9 +3,10 @@
 const rules=[
   ['brush', /zähne|zahn|putzt|brush(?:es|ing)?|teeth|tooth/i, 'bathroom', ['toothbrush','sink']],
   ['checkout', /kasse|bezahl|checkout|cashier|\bpays?\b/i, 'supermarket', ['register','payment-card']],
-  ['pick', /apfel|apple|picks? (?:up )?(?:an? )?apple/i, 'supermarket', ['apple','shelf']],
+  ['pick', /apfel|apple|picks? (?:up )?(?:an? )?apple|nimmt (?:einen |eine |das |den )?(?:apfel|gegenstand)|takes? (?:an? |the )?(?:apple|object)/i, 'supermarket', ['apple','shelf']],
   ['wake', /\bwach(?:e|st|t|en)?\b[^.!?]{0,90}\bauf\b|aufwach|\berwach(?:e|st|t|en)?\b|wake(?:s)? up|woke up|\b(?:steht|stand)\s+auf\b|aufgestanden|\b(?:gets?|got)\s+up\b|\bbed\b|bett/i, 'bedroom', ['bed']],
   ['travel', /\bbus\b|\bzug\b|train|station|bahnhof/i, 'transport', ['vehicle']],
+  ['carry', /trägt (?:den |die |das |einen |eine )?(?:koffer|tasche|rucksack)|carri(?:es|ed|y) (?:a |the )?(?:bag|suitcase|backpack)|mit (?:einem |dem )?koffer/i, 'generic', ['bag','hand']],
   ['alert', /warnung|warnmeldung|alarm|gefahr|notfall|emergency|warning|alert|achtung|sirene/i, 'alert', ['warning-panel','alert-icon']],
   ['phone', /handy|smartphone|telefon|phone|nachricht|message|notification|benachrichtigung|textnachricht|sms|bildschirm|screen/i, 'phone', ['phone-screen','notification']],
   ['door', /tür|tuer|door|öffnet|öffnen|open(?:s|ed)?|klopft|knock/i, 'door', ['door','handle']],
