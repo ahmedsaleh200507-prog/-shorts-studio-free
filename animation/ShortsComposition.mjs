@@ -106,7 +106,7 @@ function Prop({action,frame}){
 }
 
 
-function StoryObject({action,frame,accent}){
+function StoryObject({action,frame,accent,text=''}){
  const progress=Math.min(1,frame/36),ease=1-Math.pow(1-progress,3);
  const base={position:'absolute',left:'15%',top:'18%',width:'70%',height:'60%'};
  if(action==='phone')return el('div',{style:{...base,left:'27%',width:'46%',borderRadius:64,border:'17px solid #26354e',background:'#d9edff',boxShadow:'0 30px 90px #0009',overflow:'hidden'}},
@@ -114,7 +114,7 @@ function StoryObject({action,frame,accent}){
   el('div',{style:{padding:'12% 7%',fontSize:37,color:'#20314a',fontWeight:800}},'12:45'),
   el('div',{style:{margin:'5%',padding:'7%',borderRadius:25,background:'#fff',boxShadow:'0 8px 25px #52687a44',transform:`translateY(${(1-ease)*-280}px)`,opacity:ease}},
    el('div',{style:{fontSize:26,color:'#348dba',fontWeight:800}},'● MESSAGE'),
-   el('div',{style:{fontSize:28,color:'#26354e',marginTop:14}},'Neue Nachricht')),
+   el('div',{style:{fontSize:28,color:'#26354e',marginTop:14}},text.slice(0,90)||'Neue Nachricht')),
   el('div',{style:{position:'absolute',bottom:'4%',left:'35%',width:'30%',height:9,borderRadius:10,background:'#24354b'}}));
  if(action==='door')return el('div',{style:{...base,left:'21%',width:'58%',top:'14%',height:'69%',background:'#b7c4d1',border:'16px solid #263448',borderRadius:10,perspective:900}},
   el('div',{style:{position:'absolute',inset:0,background:'linear-gradient(110deg,#9b613d,#e5ac6b)',border:'12px solid #7e4b2e',transformOrigin:'left center',transform:`rotateY(${-68*ease}deg)`,boxShadow:'15px 15px 45px #0008'}},
@@ -229,7 +229,7 @@ function MotionGraphic({scene,frame}){
  el(CinematicWorld,{scene,frame}),
  el(DocumentaryScene,{scene,frame}),
  el(EditorialGraphic,{scene,frame}),
- ['phone','door','clock','alert'].includes(scene.action)?el(StoryObject,{action:scene.action,frame,accent}):['space','nature','science','map','history','talk','number','technology'].includes(scene.action)?null:el('div',{style:panel},
+ ['phone','door','clock','alert'].includes(scene.action)?el(StoryObject,{action:scene.action,frame,accent,text:scene.text}):['space','nature','science','map','history','talk','number','technology'].includes(scene.action)?null:el('div',{style:panel},
   el('div',{style:{fontSize:145,color:accent,fontWeight:900,lineHeight:1}},label),
   el('div',{style:{fontSize:50,color:'#fff',fontWeight:900,textAlign:'center',maxWidth:'90%',overflowWrap:'anywhere',letterSpacing:2}},title)),
  el('div',{style:{position:'absolute',left:'12%',right:'12%',top:'72%',height:7,borderRadius:10,background:'#ffffff24'}},
