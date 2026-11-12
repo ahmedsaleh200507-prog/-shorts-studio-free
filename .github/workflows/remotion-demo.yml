@@ -26,6 +26,18 @@ jobs:
         run: |
           mkdir -p ../output
           npx remotion render entry.mjs ShortsDemo ../output/remotion-demo.mp4 --codec h264 --crf 27 --concurrency 1 --scale 0.5 --frames 0-47
+      - name: Install FFprobe for MP4 validation
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --connect-timeout 15 --max-time 120 \
+            -o /tmp/ffmpeg-static.tar.xz \
+            https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+          mkdir -p /tmp/ffmpeg-static
+          tar -xJf /tmp/ffmpeg-static.tar.xz -C /tmp/ffmpeg-static
+          FFPROBE=$(find /tmp/ffmpeg-static -type f -name ffprobe -print -quit)
+          test -n "$FFPROBE"
+          sudo install -m 755 "$FFPROBE" /usr/local/bin/ffprobe
+          ffprobe -version
       - name: Validate video frames
         run: |
           test -s output/remotion-demo.mp4
