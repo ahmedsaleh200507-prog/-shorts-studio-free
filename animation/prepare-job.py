@@ -11,7 +11,7 @@ async def main():
     lang=os.environ.get('LANGUAGE','de')
     if not script or len(script)>3000: raise ValueError('Script must contain 1–3000 characters')
     if lang not in ('de','en'): raise ValueError('Unsupported language')
-    sentences=[s.strip() for s in re.findall(r'[^.!?\\n]+[.!?]?',script) if s.strip()]
+    sentences=[s.strip() for s in re.findall(r'[^.!?\n]+[.!?]?',script) if s.strip()]
     if not sentences or len(sentences)>60: raise ValueError('Invalid number of scenes')
     voice={'de':'de-DE-KatjaNeural','en':'en-US-JennyNeural'}[lang]
     out=ROOT/'public'/'audio';out.mkdir(parents=True,exist_ok=True)
