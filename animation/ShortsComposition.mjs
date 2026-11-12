@@ -201,6 +201,21 @@ function EditorialGraphic({scene,frame}){
  );
 }
 
+// Shared timeline, separate visual engines: illustrated AI stills and deterministic 2D animation.
+function AiIllustration({image,sceneIndex,progress}){
+ const zoom=1.035+0.075*(sceneIndex%2===0?progress:1-progress);
+ const dx=(sceneIndex%3-1)*3.2*(2*progress-1);
+ const dy=(sceneIndex%2===0?1:-1)*2.5*(2*progress-1);
+ return el('div',{style:{position:'absolute',inset:0,overflow:'hidden',background:'#0a1529'}},
+  el('img',{src:staticFile(image.startsWith('/')?image.slice(1):image),style:{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',transform:`translate(${dx}%,${dy}%) scale(${zoom})`,filter:'saturate(1.12) contrast(1.06)'}}),
+  el('div',{style:{position:'absolute',inset:0,pointerEvents:'none',background:'linear-gradient(180deg,#07102144 0%,transparent 35%,#08122288 100%)'}}));
+}
+function VectorScene({scene,frame}){
+ return scene.visualMode==='character'?el(React.Fragment,null,
+    el(Background,{place:scene.place,frame}),
+    el(Person,{frame,action:scene.action}),
+    el(Prop,{action:scene.action,frame})):el(MotionGraphic,{scene,frame});
+}
 function MotionGraphic({scene,frame}){
  const t=frame/24, pulse=1+0.035*Math.sin(t*5), slide=Math.min(0, -90+frame*12);
  const title=(scene.keywords||[]).slice(0,3).join(' ').toUpperCase() || scene.action.toUpperCase();
@@ -238,11 +253,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const caption=words.slice(0,revealedWords).join(' ');
  const opacity=interpolate(local,[0,5,Math.max(6,scene.endFrame-scene.startFrame-6),scene.endFrame-scene.startFrame],[0,1,1,0],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
-  el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},
-   aiImage?el('img',{src:staticFile((aiImage.startsWith('/')?aiImage.slice(1):aiImage)),style:{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}):scene.visualMode==='character'?el(React.Fragment,null,
-    el(Background,{place:scene.place,frame:local}),
-    el(Person,{frame:local,action:scene.action}),
-    el(Prop,{action:scene.action,frame:local})):el(MotionGraphic,{scene,frame:local})),
+  aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local})),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
   el('div',{style:{position:'absolute',top:landscape?42:85,left:landscape?70:65,color:'#fff',fontSize:landscape?26:34,fontWeight:800,letterSpacing:3,textShadow:'0 3px 8px #0009'}},'SHORTS STUDIO'),
   el('div',{style:{position:'absolute',bottom:landscape?58:140,left:landscape?'15%':45,right:landscape?'15%':45,opacity,background:'#14253bd9',borderRadius:landscape?18:30,padding:landscape?'18px 24px':'32px 26px',color:'white',fontSize:landscape?35:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},caption)
