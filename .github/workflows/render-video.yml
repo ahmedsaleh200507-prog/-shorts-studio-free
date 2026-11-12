@@ -48,7 +48,7 @@ jobs:
           python -m pip install --disable-pip-version-check --retries 5 --timeout 30 -r render/requirements.txt
       - name: Check renderer syntax and FFmpeg codecs
         run: |
-          python -m py_compile render/render.py
+          python -m py_compile render/render.py render/comfyui_client.py
           ffmpeg -hide_banner -encoders > /tmp/shorts-encoders.txt
           grep -E '^[[:space:]]*V.*libx264([[:space:]]|$)' /tmp/shorts-encoders.txt || { echo '::error::H.264 encoder unavailable'; exit 1; }
           grep -E '^[[:space:]]*A.*aac([[:space:]]|$)' /tmp/shorts-encoders.txt || { echo '::error::AAC encoder unavailable'; exit 1; }
@@ -58,6 +58,7 @@ jobs:
           LANGUAGE: ${{ inputs.language }}
           COMFYUI_URL: ${{ secrets.COMFYUI_URL }}
           COMFYUI_API_TOKEN: ${{ secrets.COMFYUI_API_TOKEN }}
+          COMFYUI_CHECKPOINT: ${{ secrets.COMFYUI_CHECKPOINT }}
           COMFYUI_WORKFLOW: render/comfyui_workflow.json
         run: |
           python render/render.py --text "$SCRIPT" --lang "$LANGUAGE" --out output/final.mp4
