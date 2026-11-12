@@ -34,9 +34,22 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
   if(durationsFrames!==null && (!Array.isArray(durationsFrames)||durationsFrames.length!==sentences.length||durationsFrames.some(n=>!Number.isInteger(n)||n<1))) throw new RangeError('invalid scene durations');
   let cursor=0;
   let previousPlace='generic';
+  // Explicit locations override generic verbs such as 'works' or 'goes'.
+  const explicitPlaces=[
+    ['hospital',/krankenhaus|hospital|klinik|clinic/i],
+    ['school',/schule|school|klassenzimmer|classroom/i],
+    ['supermarket',/supermarkt|supermarket|grocery store|lebensmittelgeschäft/i],
+    ['restaurant',/restaurant|café|cafe|küche|kitchen/i],
+    ['office',/büro|office/i],
+    ['bathroom',/badezimmer|bathroom/i],
+    ['bedroom',/schlafzimmer|bedroom/i],
+    ['transport',/\bbus\b|\bzug\b|train|station|bahnhof/i]
+  ];
   const scenes=sentences.map((text,index)=>{
     const match=rules.find(([,regex])=>regex.test(text));
-    const [action,matchedPlace,props]=match?[match[0],match[2],match[3]]:['talk','generic',[]];
+    const [action,rulePlace,props]=match?[match[0],match[2],match[3]]:['talk','generic',[]];
+    const explicit=explicitPlaces.find(([,regex])=>regex.test(text));
+    const matchedPlace=explicit?explicit[0]:rulePlace;
     // Pronouns and follow-up sentences often continue in the same location.
     // Preserve that location only when no explicit new setting was detected.
     const place=matchedPlace==='generic' && /^(?:er|sie|es|they|he|she|it|dann|danach|anschließend|then|afterwards|plötzlich|suddenly)\b/i.test(text)
