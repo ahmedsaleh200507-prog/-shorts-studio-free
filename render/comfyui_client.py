@@ -21,7 +21,7 @@ def generate(sentence, destination, index):
     if not base or not workflow_file:
         return False
     with open(workflow_file,encoding="utf-8") as f: graph=json.load(f)
-    # The workflow must contain CLIPTextEncode nodes with one positive prompt.
+    # Resolve the actual installed checkpoint without committing model filenames.\n    checkpoint=os.getenv("COMFYUI_CHECKPOINT","").strip()\n    if not checkpoint: raise ValueError("COMFYUI_CHECKPOINT secret must name an installed model checkpoint")\n    loaders=[v for v in graph.values() if v.get("class_type")=="CheckpointLoaderSimple"]\n    if not loaders: raise ValueError("ComfyUI workflow has no CheckpointLoaderSimple node")\n    for loader in loaders: loader["inputs"]["ckpt_name"]=checkpoint\n    # The workflow must contain CLIPTextEncode nodes with one positive prompt.
     prompt=("High quality cinematic 2D hand-drawn animation frame, layered illustration, "
             "expressive characters, detailed environment, dynamic composition, no text, "
             "vertical 9:16. Scene: "+sentence)
