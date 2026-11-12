@@ -54,6 +54,7 @@ jobs:
         env:
           SCRIPT: ${{ inputs.script }}
           POLLINATIONS_KEY: ${{ secrets.POLLINATIONS_KEY }}
+          AI_IMAGE_MODELS: black-forest-labs/flux.1-schnell,tongyi-mai/z-image-turbo
         run: |
           python animation/generate-ai-scenes.py
       - name: Render actual Remotion 2D video
