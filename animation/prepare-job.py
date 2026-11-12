@@ -63,7 +63,7 @@ registerRoot(()=>React.createElement(Composition,{
  id:'ShortsJob',component:ShortsComposition,
  durationInFrames:plan.totalFrames,fps:plan.fps,
  width:plan.width,height:plan.height,
- defaultProps:{script,narration:true,durationsFrames:narrationFrames}
+ defaultProps:{script,narration:true,durationsFrames:narrationFrames,aspectRatio:ASPECT_VALUE}
 }));
 """.replace('SCRIPT_VALUE',json.dumps(script,ensure_ascii=False)).replace('ASPECT_VALUE',json.dumps(aspect))
     (ROOT/'job-entry.mjs').write_text(entry,encoding='utf-8')
