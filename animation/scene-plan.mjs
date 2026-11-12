@@ -33,9 +33,15 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
   if(!sentences.length) throw new Error('empty script');
   if(durationsFrames!==null && (!Array.isArray(durationsFrames)||durationsFrames.length!==sentences.length||durationsFrames.some(n=>!Number.isInteger(n)||n<1))) throw new RangeError('invalid scene durations');
   let cursor=0;
+  let previousPlace='generic';
   const scenes=sentences.map((text,index)=>{
     const match=rules.find(([,regex])=>regex.test(text));
-    const [action,place,props]=match?[match[0],match[2],match[3]]:['talk','generic',[]];
+    const [action,matchedPlace,props]=match?[match[0],match[2],match[3]]:['talk','generic',[]];
+    // Pronouns and follow-up sentences often continue in the same location.
+    // Preserve that location only when no explicit new setting was detected.
+    const place=matchedPlace==='generic' && /^(?:er|sie|es|they|he|she|it|dann|danach|anschließend|then|afterwards|plötzlich|suddenly)\b/i.test(text)
+      ? previousPlace : matchedPlace;
+    if(matchedPlace!=='generic') previousPlace=matchedPlace;
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
