@@ -18,6 +18,8 @@ const rules=[
   ['school', /schule|school|klassenzimmer|classroom|lehrer|teacher|unterricht/i, 'school', ['desk','blackboard']],
   ['restaurant', /restaurant|café|cafe|küche|kitchen|kocht|cooks?|essen|eating/i, 'restaurant', ['table','food']],
   ['office', /büro|office|meeting|besprechung|arbeitet|working/i, 'office', ['desk','computer']],
+  ['map', /karte|landkarte|map|grenze|border|länder|countries|country|region|europa|europe|kurdistan|stadtplan/i, 'map', ['map','route']],
+  ['history', /geschichte|historisch|history|historical|jahrhundert|century|krieg|war|archiv|archive|zeitung|newspaper/i, 'history', ['archive','timeline']],
   ['number', /\b\d+(?:[.,]\d+)?\s*(?:%|prozent|percent|euro|€|dollar|kilometer|km|million|milliard|billion)\b|\b\d+\s*%/i, 'infographic', ['number','chart']],
 ];
 export function splitScript(script){
@@ -37,7 +39,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
-    const visualMode=['alert','phone','door','clock','space','science','nature','technology','number'].includes(action)?'motion-graphic':action==='talk'?'kinetic-type':'character';
+    const visualMode=['alert','phone','door','clock','space','science','nature','technology','number','map','history'].includes(action)?'motion-graphic':action==='talk'?'kinetic-type':'character';
     const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
     return {id:`scene-${index+1}`,text,action,place,props,visualMode,keywords,characterId:'main',startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
