@@ -10,6 +10,9 @@ async def main():
     script=os.environ.get('SCRIPT','').strip()
     lang=os.environ.get('LANGUAGE','de')
     aspect=os.environ.get('ASPECT_RATIO','9:16')
+    if script.startswith('[[ASPECT_16_9]]'):
+        aspect='16:9'
+        script=script[len('[[ASPECT_16_9]]'):].strip()
     if aspect not in ('9:16','16:9'): raise ValueError('Invalid aspect ratio')
     if not script or len(script)>3000: raise ValueError('Script must contain 1–3000 characters')
     if lang not in ('de','en'): raise ValueError('Unsupported language')
