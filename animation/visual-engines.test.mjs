@@ -24,3 +24,11 @@ test('Door animation has sequential approach, grip, open and exit phases',()=>{
  assert.match(source,/const open=Math\.min\(1,Math\.max\(0,\(frame-30\)\/25\)\)/);
  assert.match(source,/const exit=Math\.min\(1,Math\.max\(0,\(frame-48\)\/23\)\)/);
 });
+
+test('Narrated 2D characters have animated mouth without 3D transforms',()=>{
+ assert.match(source,/function Person\(\{frame,action,speaking=false\}\)/);
+ assert.match(source,/speaking\?svg\('ellipse'/);
+ assert.match(source,/speaking:narration/);
+ assert.doesNotMatch(source,/rotateY\(/);
+ assert.doesNotMatch(source,/perspective:900/);
+});
