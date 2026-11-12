@@ -19,7 +19,7 @@ const rules=[
   ['restaurant', /restaurant|café|cafe|küche|kitchen|kocht|cooks?|essen|eating/i, 'restaurant', ['table','food']],
   ['office', /büro|office|meeting|besprechung|arbeitet|working/i, 'office', ['desk','computer']],
   ['map', /karte|landkarte|map|grenze|border|länder|countries|country|region|europa|europe|kurdistan|stadtplan/i, 'map', ['map','route']],
-  ['history', /geschichte|historisch|history|historical|jahrhundert|century|krieg|war|archiv|archive|zeitung|newspaper/i, 'history', ['archive','timeline']],
+  ['history', /geschichte|historisch|history|historical|jahrhundert|century|\bkrieg\b|\bwar\b|archiv|archive|zeitung|newspaper/i, 'history', ['archive','timeline']],
   ['number', /\b\d+(?:[.,]\d+)?\s*(?:%|prozent|percent|euro|€|dollar|kilometer|km|million|milliard|billion)\b|\b\d+\s*%/i, 'infographic', ['number','chart']],
 ];
 export function splitScript(script){
