@@ -16,7 +16,8 @@ select,input{background:#182840;color:#fff;width:100%;border:1px solid #3c506e}
 .row{grid-column:1;display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
 .field{display:grid;gap:7px;flex:1;min-width:145px}.field label{font-size:13px;font-weight:700;color:#c3d6ed}
 canvas,#renderedVideo{grid-column:2;grid-row:3/span 8;display:block;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto 18px;background:#14233a;border:6px solid #253750;border-radius:27px;box-shadow:0 22px 70px #0009}
-#renderedVideo{display:block;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto 18px;background:#101a2e;border:6px solid #253750;border-radius:27px;box-shadow:0 22px 70px #0009;object-fit:contain}\n[hidden]{display:none!important}\n#status,#audioStatus{grid-column:1;min-height:26px;color:var(--mint);overflow-wrap:anywhere;font-size:14px}
+#renderedVideo{display:block;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto 18px;background:#101a2e;border:6px solid #253750;border-radius:27px;box-shadow:0 22px 70px #0009;object-fit:contain}
+[hidden]{display:none!important}\n#status,#audioStatus{grid-column:1;min-height:26px;color:var(--mint);overflow-wrap:anywhere;font-size:14px}
 #audioStatus:not(:empty){background:#142a33;border:1px solid #285b5d;border-radius:12px;padding:12px 14px;margin:5px 0}
 #iosShare{grid-column:1;width:100%;background:#23334b;color:#e5efff;border:1px solid #3a4d69;margin:8px 0}#audioDownload{grid-column:1;color:#081f19;background:var(--mint);font-weight:700;border-radius:12px;padding:12px 18px;text-align:center;text-decoration:none;margin:8px 0}
 small{grid-column:1;color:#a5b8cf;line-height:1.6;display:block;margin-top:12px}
@@ -61,7 +62,7 @@ const PENDING_KEY='shorts-studio-pending-v1';
 function getPending(){try{return JSON.parse(localStorage.getItem(PENDING_KEY)||'null')}catch{return null}}
 function savePending(job){try{localStorage.setItem(PENDING_KEY,JSON.stringify(job))}catch{}el('resumeJob').hidden=false}
 function clearPending(){try{localStorage.removeItem(PENDING_KEY)}catch{}el('resumeJob').hidden=true}
-function showPending(){const p=getPending();if(p?.job_id){el('resumeJob').hidden=false;setStatus('⏳ Video sunucuda hazırlanıyor. Durumu kontrol edebilirsin.');if(!busy && el('appkey').value.trim())generate(false,true)} }
+function showPending(){const p=getPending();if(p?.job_id){el('resumeJob').hidden=false;if(!busy){setStatus('⏳ Devam eden video bulundu. Durumu kontrol edebilirsin.');if(el('appkey').value.trim())generate(true,true)}}}
 function displayVideo(url){const video=el('renderedVideo');video.src=url;video.hidden=false;el('canvas').hidden=true;video.load()}
 function invalidate(){requestVersion++;if(cache){URL.revokeObjectURL(cache.url);cache=null}el('renderedVideo').pause();el('renderedVideo').removeAttribute('src');el('renderedVideo').load();el('renderedVideo').hidden=true;el('audioDownload').hidden=true;el('iosShare').hidden=true;el('canvas').hidden=true}
 async function request(path,key,options={}){const response=await fetch(WORKER+path,{...options,headers:{'x-app-key':key,...(options.headers||{})}});if(!response.ok){let reason='HTTP '+response.status;try{const body=await response.json();reason=body.error||body.message||reason}catch{}throw Error(reason)}return response}
@@ -100,7 +101,7 @@ async function generate(download=false,resume=false){
   const entry=Object.values(zip.files).find(f=>!f.dir&&f.name.toLowerCase().endsWith('.mp4'));
   if(!entry)throw Error('GitHub arşivinde MP4 bulunamadı');
   const blob=await entry.async('blob');
-  if(version!==requestVersion)throw Error('Metin veya dil değişti. Yeni video için Başlat düğmesine bas.');
+  if(!resume&&version!==requestVersion)throw Error('Metin veya dil değişti. Devam eden videoyu kontrol et düğmesini kullan.');
   const url=URL.createObjectURL(new Blob([blob],{type:'video/mp4'}));
   if(cache)URL.revokeObjectURL(cache.url);
   cache={signature,url,blob};el('iosShare').hidden=false;const link=el('audioDownload');link.href=url;link.download='shorts-studio-sesli.mp4';link.hidden=false;link.removeAttribute('aria-hidden');
@@ -132,7 +133,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)showPendin
 el('appkey').addEventListener('change',showPending);
 el('reset').addEventListener('click',()=>{if(cache){displayVideo(cache.url);el('renderedVideo').currentTime=0;setStatus('Video başa alındı.')}else setStatus('Henüz video oluşturulmadı. ▶ Başlat düğmesine bas.')});
 function updateEstimate(){const s=el('story').value.trim();const words=(s.match(/\S+/g)||[]).length;el('scriptEstimate').textContent=`${s.length.toLocaleString('tr-TR')} / 12.000 karakter · Tahmini anlatım ${Math.max(1,Math.round(words/135))} dakika (gerçek süre sese bağlı)`}
-el('story').addEventListener('input',()=>{updateEstimate();invalidate();setStatus('Metin değişti. Yeni video için ▶ Başlat düğmesine bas.')});
+el('story').addEventListener('input',()=>{updateEstimate();invalidate();setStatus('Metin değişti. Yeni video oluşturabilirsin.')});
 el('aspect').addEventListener('change',()=>{invalidate();setStatus('Video formatı değişti. Yeni video oluşturabilirsin.')});
 el('language').addEventListener('change',()=>{invalidate();setStatus('Dil değişti. Yeni video için ▶ Başlat düğmesine bas.')});
 el('voice').innerHTML='<option>Otomatik seslendirme</option>';
