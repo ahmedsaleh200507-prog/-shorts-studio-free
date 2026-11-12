@@ -120,3 +120,13 @@ test('Screen and SMS narratives select animated phone object in both languages',
   assert.equal(scene.visualMode,'motion-graphic',sentence);
  }
 });
+
+test('Carrying a suitcase triggers walking interaction without losing location',()=>{
+ for(const sentence of ['Er trägt einen Koffer.','She carries a suitcase.','He carries a backpack.']){
+  const scene=makeScenePlan(sentence).scenes[0];
+  assert.equal(scene.action,'carry',sentence);
+  assert.equal(scene.visualMode,'character',sentence);
+ }
+ const plan=makeScenePlan('Er ist im Krankenhaus. Danach trägt er einen Koffer.');
+ assert.equal(plan.scenes[1].place,'hospital');
+});
