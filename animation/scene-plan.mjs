@@ -4,7 +4,7 @@ const rules=[
   ['brush', /zähne|zahn|putzt|brush(?:es|ing)?|teeth|tooth/i, 'bathroom', ['toothbrush','sink']],
   ['checkout', /kasse|bezahl|checkout|cashier|\bpays?\b/i, 'supermarket', ['register','payment-card']],
   ['pick', /apfel|apple|nimmt|picks? up/i, 'supermarket', ['apple','shelf']],
-  ['wake', /\bwach(?:e|st|t|en)?\b[^.!?]{0,90}\bauf\b|aufwach|wake(?:s)? up|\bbed\b|bett/i, 'bedroom', ['bed']],
+  ['wake', /\bwach(?:e|st|t|en)?\b[^.!?]{0,90}\bauf\b|aufwach|\berwach(?:e|st|t|en)?\b|wake(?:s)? up|\bbed\b|bett/i, 'bedroom', ['bed']],
   ['travel', /\bbus\b|\bzug\b|train|station|bahnhof/i, 'transport', ['vehicle']],
 ];
 export function splitScript(script){
