@@ -224,6 +224,8 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const plan=makeScenePlan(script,{durationsFrames}),frame=useCurrentFrame();
  const scene=plan.scenes.find(s=>frame>=s.startFrame&&frame<s.endFrame)??plan.scenes.at(-1);
  const local=Math.max(0,frame-scene.startFrame);
+ const sceneIndex=plan.scenes.indexOf(scene);
+ const aiImage=aiSceneImages[sceneIndex];
  const zoom=interpolate(local,[0,Math.max(1,scene.endFrame-scene.startFrame)],[1,1.055],{extrapolateRight:'clamp'});
  const opacity=interpolate(local,[0,5,Math.max(6,scene.endFrame-scene.startFrame-6),scene.endFrame-scene.startFrame],[0,1,1,0],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
