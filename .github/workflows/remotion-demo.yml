@@ -26,22 +26,19 @@ jobs:
         run: |
           mkdir -p ../output
           npx remotion render entry.mjs ShortsDemo ../output/remotion-demo.mp4 --codec h264 --crf 27 --concurrency 1 --scale 0.5 --frames 0-47
-      - name: Install FFprobe for MP4 validation
-        run: |
-          set -euo pipefail
-          curl --fail --location --retry 3 --connect-timeout 15 --max-time 120 \
-            -o /tmp/ffmpeg-static.tar.xz \
-            https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
-          mkdir -p /tmp/ffmpeg-static
-          tar -xJf /tmp/ffmpeg-static.tar.xz -C /tmp/ffmpeg-static
-          FFPROBE=$(find /tmp/ffmpeg-static -type f -name ffprobe -print -quit)
-          test -n "$FFPROBE"
-          sudo install -m 755 "$FFPROBE" /usr/local/bin/ffprobe
-          ffprobe -version
-      - name: Validate video frames
+      - name: Validate MP4 without external FFprobe
         run: |
           test -s output/remotion-demo.mp4
-          ffprobe -v error -show_entries stream=codec_name,width,height -of json output/remotion-demo.mp4
+          node --input-type=module -e "
+            import {readFileSync,statSync} from 'node:fs';
+            const file='output/remotion-demo.mp4';
+            const buf=readFileSync(file);
+            if(statSync(file).size<10000) throw Error('MP4 too small');
+            if(buf.toString('ascii',4,8)!=='ftyp') throw Error('Invalid MP4 header');
+            if(!buf.includes(Buffer.from('moov'))) throw Error('MP4 metadata atom missing');
+            if(!buf.includes(Buffer.from('mdat'))) throw Error('MP4 media atom missing');
+            console.log('MP4 validated:',buf.length,'bytes');
+          "
       - uses: actions/upload-artifact@v4
         with:
           name: remotion-2d-demo-mp4
