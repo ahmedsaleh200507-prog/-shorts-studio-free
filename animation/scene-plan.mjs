@@ -6,6 +6,15 @@ const rules=[
   ['pick', /apfel|apple|nimmt|picks? up/i, 'supermarket', ['apple','shelf']],
   ['wake', /\bwach(?:e|st|t|en)?\b[^.!?]{0,90}\bauf\b|aufwach|\berwach(?:e|st|t|en)?\b|wake(?:s)? up|woke up|\b(?:steht|stand)\s+auf\b|aufgestanden|\b(?:gets?|got)\s+up\b|\bbed\b|bett/i, 'bedroom', ['bed']],
   ['travel', /\bbus\b|\bzug\b|train|station|bahnhof/i, 'transport', ['vehicle']],
+  ['alert', /warnung|warnmeldung|alarm|gefahr|notfall|emergency|warning|alert|achtung|sirene/i, 'alert', ['warning-panel','alert-icon']],
+  ['phone', /handy|smartphone|telefon|phone|nachricht|message|notification|benachrichtigung/i, 'phone', ['phone-screen','notification']],
+  ['door', /tür|tuer|door|öffnet|öffnen|open(?:s|ed)?|klopft|knock/i, 'door', ['door','handle']],
+  ['clock', /uhr|sekunde|minute|stunden|countdown|timer|mitternacht|midnight|\bzeit\b|\btime\b/i, 'clock', ['clock','counter']],
+  ['space', /weltraum|universum|planet|erde|earth|space|moon|mond|galax|sonne|sun/i, 'space', ['planet','stars']],
+  ['science', /wissenschaft|forschung|experiment|physik|science|research|labor|laboratory|atom|molek/i, 'science', ['diagram','particles']],
+  ['nature', /wald|forest|baum|tree|meer|ocean|fluss|river|berg|mountain|natur|nature/i, 'nature', ['landscape']],
+  ['technology', /computer|internet|ki|künstliche intelligenz|artificial intelligence|software|code|roboter|robot/i, 'technology', ['screen','network']],
+  ['number', /\b\d+(?:[.,]\d+)?\s*(?:%|prozent|percent|euro|€|dollar|kilometer|km|million|milliard|billion)\b|\b\d+\s*%/i, 'infographic', ['number','chart']],
 ];
 export function splitScript(script){
   if(typeof script!=='string') throw new TypeError('script must be a string');
@@ -24,7 +33,9 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
-    return {id:`scene-${index+1}`,text,action,place,props,characterId:'main',startFrame,endFrame,camera:{type:'slow-push',from:1,to:1.07}};
+    const visualMode=['alert','phone','door','clock','space','science','nature','technology','number'].includes(action)?'motion-graphic':action==='talk'?'kinetic-type':'character';
+    const keywords=(text.match(/[\\p{L}\\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
+    return {id:`scene-${index+1}`,text,action,place,props,visualMode,keywords,characterId:'main',startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
   return {version:1,width:1080,height:1920,fps,totalFrames:scenes.at(-1).endFrame,scenes};
 }
