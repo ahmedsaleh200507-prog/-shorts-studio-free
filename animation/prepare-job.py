@@ -9,6 +9,8 @@ FPS=24
 async def main():
     script=os.environ.get('SCRIPT','').strip()
     lang=os.environ.get('LANGUAGE','de')
+    aspect=os.environ.get('ASPECT_RATIO','9:16')
+    if aspect not in ('9:16','16:9'): raise ValueError('Invalid aspect ratio')
     if not script or len(script)>3000: raise ValueError('Script must contain 1–3000 characters')
     if lang not in ('de','en'): raise ValueError('Unsupported language')
     sentences=[s.strip() for s in re.findall(r'[^.!?\n]+[.!?]?',script) if s.strip()]
@@ -53,14 +55,14 @@ import {ShortsComposition} from './ShortsComposition.mjs';
 import {makeScenePlan} from './scene-plan.mjs';
 import {narrationFrames} from './narration-plan.mjs';
 const script=SCRIPT_VALUE;
-const plan=makeScenePlan(script,{durationsFrames:narrationFrames});
+const plan=makeScenePlan(script,{durationsFrames:narrationFrames,aspectRatio:ASPECT_VALUE});
 registerRoot(()=>React.createElement(Composition,{
  id:'ShortsJob',component:ShortsComposition,
  durationInFrames:plan.totalFrames,fps:plan.fps,
  width:plan.width,height:plan.height,
  defaultProps:{script,narration:true,durationsFrames:narrationFrames}
 }));
-""".replace('SCRIPT_VALUE',json.dumps(script,ensure_ascii=False))
+""".replace('SCRIPT_VALUE',json.dumps(script,ensure_ascii=False)).replace('ASPECT_VALUE',json.dumps(aspect))
     (ROOT/'job-entry.mjs').write_text(entry,encoding='utf-8')
     print('Prepared',len(sentences),'scenes,',sum(durations),'frames',flush=True)
 if __name__=='__main__':asyncio.run(main())
