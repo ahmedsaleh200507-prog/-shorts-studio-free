@@ -1,0 +1,14 @@
+{
+  "name": "shorts-studio-animation",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check scene-plan.mjs"
+  },
+  "dependencies": {
+    "pixi.js": "8.22.0",
+    "lottie-web": "5.13.0"
+  }
+}
