@@ -50,6 +50,12 @@ jobs:
           python animation/prepare-job.py
           test -s animation/job-entry.mjs
           test -s animation/narration-audio.mjs
+      - name: Generate real AI scene images
+        env:
+          SCRIPT: ${{ inputs.script }}
+          POLLINATIONS_KEY: ${{ secrets.POLLINATIONS_KEY }}
+        run: |
+          python animation/generate-ai-scenes.py
       - name: Render actual Remotion 2D video
         working-directory: animation
         run: |
