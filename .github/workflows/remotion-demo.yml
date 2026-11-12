@@ -31,9 +31,19 @@ jobs:
         run: |
           mkdir -p ../output
           npx remotion render entry.mjs ShortsDemo ../output/remotion-demo.mp4 --codec h264 --crf 27 --concurrency 1 --scale 0.5 --frames 0-47
+      - name: Generate German narration
+        run: |
+          python -m pip install --quiet edge-tts
+          mkdir -p animation/public
+          edge-tts --voice de-DE-KatjaNeural --text "Ein Mann wacht morgens auf. Er putzt seine Zähne. Er nimmt einen Apfel. Er bezahlt an der Kasse." --write-media animation/public/narration.mp3
+          test -s animation/public/narration.mp3
+      - name: Render narrated 2D MP4
+        working-directory: animation
+        run: npx remotion render entry.mjs ShortsNarrated ../output/remotion-narrated.mp4 --codec h264 --crf 27 --concurrency 1 --scale 0.5
       - name: Validate MP4 without external FFprobe
         run: |
           test -s output/remotion-demo.mp4
+          test -s output/remotion-narrated.mp4
           node --input-type=module -e "
             import {readFileSync,statSync} from 'node:fs';
             const file='output/remotion-demo.mp4';
@@ -47,6 +57,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: remotion-2d-demo-mp4
-          path: output/remotion-demo.mp4
+          path: |
+            output/remotion-demo.mp4
+            output/remotion-narrated.mp4
           if-no-files-found: error
           retention-days: 3
