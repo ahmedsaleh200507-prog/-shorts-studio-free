@@ -112,3 +112,11 @@ test('Long-form plan supports 180 scenes and both aspect ratios',()=>{
  assert.equal(portrait.width,1080);
  assert.equal(portrait.height,1920);
 });
+
+test('Screen and SMS narratives select animated phone object in both languages',()=>{
+ for(const sentence of ['Eine SMS erscheint auf dem Bildschirm.','A message appears on the screen.','Sie liest eine Textnachricht.']){
+  const scene=makeScenePlan(sentence).scenes[0];
+  assert.equal(scene.action,'phone',sentence);
+  assert.equal(scene.visualMode,'motion-graphic',sentence);
+ }
+});
