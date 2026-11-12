@@ -1,0 +1,47 @@
+name: Blender character action pilot
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'blender/character_market.py'
+      - '.github/workflows/blender-character.yml'
+permissions:
+  contents: read
+jobs:
+  character:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender and FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y blender ffmpeg xvfb libegl1 libgl1 libopengl0 libglx-mesa0 libgl1-mesa-dri libgbm1 libxrender1 libxi6
+      - name: Render character action
+        run: |
+          mkdir -p output/character-frames
+          python -m py_compile blender/character_market.py
+          xvfb-run -a -s '-screen 0 1280x1024x24' blender -b -t 2 --python-exit-code 1 --python blender/character_market.py
+          test "$(find output/character-frames -name 'frame_*.png' | wc -l)" -eq 144
+      - name: Encode and inspect
+        run: |
+          ffmpeg -hide_banner -loglevel error -y -framerate 24 -i output/character-frames/frame_%04d.png -c:v libx264 -pix_fmt yuv420p -crf 23 -movflags +faststart output/character-market.mp4
+          test -s output/character-market.mp4
+          ffprobe -v error -show_entries stream=codec_name,width,height -of json output/character-market.mp4
+          mkdir -p output/character-preview
+          for t in 0.5 2.5 4.5 5.5; do
+            ffmpeg -hide_banner -loglevel error -y -ss "$t" -i output/character-market.mp4 -frames:v 1 "output/character-preview/at-$t.png"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blender-character-market-video
+          path: output/character-market.mp4
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blender-character-market-previews
+          path: output/character-preview/*.png
+          if-no-files-found: error
+          retention-days: 7
