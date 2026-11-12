@@ -147,6 +147,26 @@ function DocumentaryScene({scene,frame}){
  );
 }
 
+
+function EditorialGraphic({scene,frame}){
+ if(!['talk','number','technology'].includes(scene.action))return null;
+ const t=frame/24,words=(scene.text.match(/[\\p{L}\\p{N}%€]+/gu)||[]).filter(w=>w.length>2);
+ const chosen=words.slice(0,5).join(' ').toUpperCase();
+ const tech=scene.action==='technology',number=scene.action==='number';
+ const accent=tech?'#75d9ff':number?'#f6cf77':'#ff6c71';
+ const values=(scene.text.match(/\\d+(?:[.,]\\d+)?\\s*(?:%|€|km|million|milliard)?/gi)||[]);
+ return el('div',{style:{position:'absolute',inset:0,overflow:'hidden',background:tech?'radial-gradient(circle at 50% 42%,#183956,#050e1f 80%)':number?'radial-gradient(circle at 48% 50%,#4b3b29,#11121d 85%)':'radial-gradient(circle at 48% 44%,#39273b,#0c111f 85%)'}},
+  ...Array.from({length:14},(_,i)=>el('div',{key:i,style:{position:'absolute',left:((i*37)%105)+'%',top:((i*23)%83)+'%',width:tech?2:120,height:tech?100:2,background:accent,opacity:.08+(i%4)*.04,transform:`rotate(${tech?0:-22}deg) translateY(${Math.sin(t+i)*12}px)`}})),
+  tech?el(React.Fragment,null,
+   ...Array.from({length:7},(_,i)=>el('div',{key:'node'+i,style:{position:'absolute',left:(9+i*13)+'%',top:(26+(i*19)%35)+'%',width:20+i%3*9,height:20+i%3*9,borderRadius:'50%',background:accent,boxShadow:'0 0 30px '+accent,transform:`scale(${1+Math.sin(t*3+i)*.3})`}})),
+   el('div',{style:{position:'absolute',left:'12%',top:'27%',width:'76%',height:'37%',border:'3px solid #74b6d755',borderRadius:22,transform:`perspective(900px) rotateY(${Math.sin(t*.8)*12}deg)`,boxShadow:'0 0 80px #65bde733'}})):null,
+  number?el('div',{style:{position:'absolute',left:'10%',right:'10%',top:'27%',color:accent,fontSize:values.length?180:95,fontWeight:900,textAlign:'center',textShadow:'0 0 75px '+accent+'88',transform:`scale(${.8+Math.min(1,frame/18)*.2})`}},values[0]||'100%'):null,
+  el('div',{style:{position:'absolute',left:'9%',right:'9%',top:number?'57%':'37%',fontSize:number?50:74,fontWeight:900,lineHeight:1.12,color:'#f7f3ee',letterSpacing:1,textAlign:'left',overflowWrap:'anywhere',textShadow:'0 6px 24px #000a',transform:`translateX(${Math.max(0,1-frame/18)*-180}px)`,opacity:Math.min(1,frame/13)}},chosen),
+  el('div',{style:{position:'absolute',left:'9%',top:'19%',width:'20%',height:7,background:accent,transform:`scaleX(${Math.min(1,frame/20)})`,transformOrigin:'left'}}),
+  el('div',{style:{position:'absolute',right:'9%',top:'17%',fontSize:28,color:accent,letterSpacing:5,fontWeight:900}},tech?'DIGITAL / 01':number?'DATA / 01':'STORY / 01')
+ );
+}
+
 function MotionGraphic({scene,frame}){
  const t=frame/24, pulse=1+0.035*Math.sin(t*5), slide=Math.min(0, -90+frame*12);
  const title=(scene.keywords||[]).slice(0,3).join(' ').toUpperCase() || scene.action.toUpperCase();
@@ -159,7 +179,8 @@ function MotionGraphic({scene,frame}){
  ...dots,
  el(CinematicWorld,{scene,frame}),
  el(DocumentaryScene,{scene,frame}),
- ['phone','door','clock','alert'].includes(scene.action)?el(StoryObject,{action:scene.action,frame,accent}):['space','nature','science','map','history'].includes(scene.action)?null:el('div',{style:panel},
+ el(EditorialGraphic,{scene,frame}),
+ ['phone','door','clock','alert'].includes(scene.action)?el(StoryObject,{action:scene.action,frame,accent}):['space','nature','science','map','history','talk','number','technology'].includes(scene.action)?null:el('div',{style:panel},
   el('div',{style:{fontSize:145,color:accent,fontWeight:900,lineHeight:1}},label),
   el('div',{style:{fontSize:50,color:'#fff',fontWeight:900,textAlign:'center',maxWidth:'90%',overflowWrap:'anywhere',letterSpacing:2}},title)),
  el('div',{style:{position:'absolute',left:'12%',right:'12%',top:'72%',height:7,borderRadius:10,background:'#ffffff24'}},
