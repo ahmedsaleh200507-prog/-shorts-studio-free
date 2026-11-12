@@ -64,6 +64,24 @@ function getPending(){try{return JSON.parse(localStorage.getItem(PENDING_KEY)||'
 function savePending(job){try{localStorage.setItem(PENDING_KEY,JSON.stringify(job))}catch{}el('resumeJob').hidden=false}
 function clearPending(){try{localStorage.removeItem(PENDING_KEY)}catch{}el('resumeJob').hidden=true}
 function showPending(){const p=getPending();if(p?.job_id){el('resumeJob').hidden=false;if(!busy){setStatus('⏳ Devam eden video bulundu. Durumu kontrol edebilirsin.');if(el('appkey').value.trim())generate(true,true)}}}
+// Optional, read-only media verification. Rendering remains on GitHub Actions;
+// the browser never tries to re-encode a 10-minute video in iPhone memory.
+async function verifyMp4Tracks(blob){
+ const moduleUrl='https://cdn.jsdelivr.net/npm/mediabunny@1.65.2/+esm';
+ try{
+  const {Input,BlobSource,ALL_FORMATS}=await import(moduleUrl);
+  const input=new Input({source:new BlobSource(blob),formats:ALL_FORMATS});
+  const [video,audio,duration]=await Promise.all([input.getPrimaryVideoTrack(),input.getPrimaryAudioTrack(),input.computeDuration()]);
+  if(!video)throw Error('MP4 dosyasında görüntü kanalı bulunamadı.');
+  if(!audio)throw Error('MP4 dosyasında ses kanalı bulunamadı. Sessiz video kaydedilmeyecek.');
+  if(!Number.isFinite(duration)||duration<=0)throw Error('MP4 süresi geçersiz.');
+  return {verified:true,duration};
+ }catch(error){
+  // A missing audio/video track is a real failure; a CDN outage is not.
+  if(/MP4 dosyasında|MP4 süresi/.test(error?.message||''))throw error;
+  return {verified:false,reason:error?.message||String(error)};
+ }
+}
 function displayVideo(url){const video=el('renderedVideo');video.src=url;video.hidden=false;el('canvas').hidden=true;video.load()}
 function invalidate(){requestVersion++;if(cache){URL.revokeObjectURL(cache.url);cache=null}el('renderedVideo').pause();el('renderedVideo').removeAttribute('src');el('renderedVideo').load();el('renderedVideo').hidden=true;el('audioDownload').hidden=true;el('iosShare').hidden=true;el('canvas').hidden=true}
 async function request(path,key,options={}){const response=await fetch(WORKER+path,{...options,headers:{'x-app-key':key,...(options.headers||{})}});if(!response.ok){let reason='HTTP '+response.status;try{const body=await response.json();reason=body.error||body.message||reason}catch{}throw Error(reason)}return response}
@@ -102,13 +120,16 @@ async function generate(download=false,resume=false){
   const entry=Object.values(zip.files).find(f=>!f.dir&&f.name.toLowerCase().endsWith('.mp4'));
   if(!entry)throw Error('GitHub arşivinde MP4 bulunamadı');
   const blob=await entry.async('blob');
+  setStatus('⏳ Ses ve görüntü kanalları kontrol ediliyor...');
+  const verification=await verifyMp4Tracks(blob);
+
   if(!resume&&version!==requestVersion)throw Error('Metin veya dil değişti. Devam eden videoyu kontrol et düğmesini kullan.');
   const url=URL.createObjectURL(new Blob([blob],{type:'video/mp4'}));
   if(cache)URL.revokeObjectURL(cache.url);
   cache={signature,url,blob};el('iosShare').hidden=false;const link=el('audioDownload');link.href=url;link.download='shorts-studio-sesli.mp4';link.hidden=false;link.removeAttribute('aria-hidden');
   displayVideo(url);
   clearPending();
-  if(download){setStatus('✅ MP4 hazır. iPhone’da Paylaş / Dosyalara Kaydet düğmesine dokun veya MP4 indirme bağlantısını kullan.');}
+  if(download){setStatus(verification.verified?'✅ Ses ve görüntü kanalları doğrulandı. MP4 hazır. iPhone’da Paylaş / Dosyalara Kaydet düğmesine dokun.':'⚠️ MP4 hazır, ancak ses kanalı otomatik doğrulanamadı. İndirmeden önce oynatıp kontrol et.');}
   else{el('renderedVideo').play().catch(()=>{});setStatus('✅ MP4 hazır. Oynatıcıdaki ▶ düğmesine dokunarak izleyebilirsin.');}
  }catch(e){setStatus('❌ '+(e?.message||String(e)))}
  finally{busy=false;el('toggle').disabled=false;el('audioSave').disabled=false;el('toggle').textContent='▶ Başlat'}
