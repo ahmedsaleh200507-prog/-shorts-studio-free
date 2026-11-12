@@ -42,11 +42,11 @@ manifest = []
 context = script[:1200]
 prior_segment = ""
 
-def fetch_image(prompt):
+def fetch_image(prompt, seed=42):
     """Try alternative models only on model/server errors, never on quotas."""
     for index, model in enumerate(models):
         query = urllib.parse.urlencode({
-            "model": model, "width": width, "height": height, "seed": 42
+            "model": model, "width": width, "height": height, "seed": seed
         })
         url = "https://gen.pollinations.ai/image/" + urllib.parse.quote(
             prompt, safe=""
@@ -79,12 +79,29 @@ for i in range(image_count):
     start = i * len(sentences) // image_count
     end = (i + 1) * len(sentences) // image_count
     segment = " ".join(sentences[start:end])
+    # Keep the image aligned with the CURRENT segment, not a generic scene
+    # suggested by an earlier sentence in a long script.
+    lower_segment = segment.casefold()
+    no_sun = bool(re.search(
+        r"(?:sonne|sun).{0,90}(?:verschwind|weg|erlisch|gone|disappear|vanish|goes out|went out)"
+        r"|(?:verschwind|weg|erlisch|gone|disappear|vanish).{0,90}(?:sonne|sun)",
+        lower_segment
+    ))
+    sky_rule = (
+        "The Sun is ABSENT from the sky in this scene. "
+        "Show darkness and consequences, no visible sun, no glowing solar disc, "
+        "no duplicate suns, no moon mistaken for a sun. "
+        if no_sun else
+        "Depict celestial bodies only if the current story segment calls for them; "
+        "never add duplicate suns or moons. "
+    )
     prompt = (
         ("Wide horizontal 16:9 cinematic composition. " if landscape else
          "Vertical 9:16 cinematic composition. ")
         + "Rich hand-painted 2D animation still, flat illustrated 2D only, "
         "expressive characters, detailed scenery, coherent lighting, clean outlines, "
         "no text, no subtitles, no watermark, no 3D, no photorealism. "
+        + sky_rule
         "One continuous story with recurring character appearance, same facial "
         "features, hairstyle, costume and proportions when the character returns. "
         "Only change location when the story does. Overall context: "
@@ -92,7 +109,7 @@ for i in range(image_count):
         + ("Previous story segment: " + prior_segment[-320:] + ". " if prior_segment else "")
         + "Current story segment: " + segment[:1200]
     )
-    data, mime = fetch_image(prompt)
+    data, mime = fetch_image(prompt, seed=42 + i * 7919)
     ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}[mime]
     filename = f"scene-{i}.{ext}"
     (out / filename).write_bytes(data)
