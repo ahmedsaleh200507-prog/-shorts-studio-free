@@ -26,11 +26,6 @@ jobs:
       - name: Download rendering browser
         working-directory: animation
         run: npx remotion browser ensure
-      - name: Render real MP4 sample
-        working-directory: animation
-        run: |
-          mkdir -p ../output
-          npx remotion render entry.mjs ShortsDemo ../output/remotion-demo.mp4 --codec h264 --crf 27 --concurrency 1 --scale 0.5 --frames 0-47
       - name: Generate scene-aligned German narration
         run: |
           python -m pip install --quiet edge-tts mutagen
@@ -39,6 +34,11 @@ jobs:
           test -s animation/narration-audio.mjs
           node --input-type=module -e "import {narrationAudio} from './animation/narration-audio.mjs'; if(narrationAudio.length!==4 || narrationAudio.some(x=>!x.startsWith('data:audio/mpeg;base64,'))) process.exit(1); console.log('Four embedded narration clips verified')"
           cat animation/narration-plan.mjs
+      - name: Render real MP4 sample
+        working-directory: animation
+        run: |
+          mkdir -p ../output
+          npx remotion render entry.mjs ShortsDemo ../output/remotion-demo.mp4 --codec h264 --crf 27 --concurrency 1 --scale 0.5 --frames 0-47
       - name: Render narrated 2D MP4
         working-directory: animation
         run: npx remotion render entry.mjs ShortsNarrated ../output/remotion-narrated.mp4 --codec h264 --crf 27 --concurrency 1 --scale 0.5
