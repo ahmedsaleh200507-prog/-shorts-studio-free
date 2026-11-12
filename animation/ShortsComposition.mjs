@@ -142,9 +142,29 @@ function StoryObject({action,frame,accent,text=''}){
    el('div',{style:{fontSize:26,color:'#348dba',fontWeight:800}},'● MESSAGE'),
    el('div',{style:{fontSize:28,color:'#26354e',marginTop:14}},text.slice(0,90)||'Neue Nachricht')),
   el('div',{style:{position:'absolute',bottom:'4%',left:'35%',width:'30%',height:9,borderRadius:10,background:'#24354b'}})),el(PhoneHand,{frame}));
- if(action==='door')return el('div',{style:{...base,left:'21%',width:'58%',top:'14%',height:'69%',background:'#b7c4d1',border:'16px solid #263448',borderRadius:10,perspective:900}},
-  el('div',{style:{position:'absolute',inset:0,background:'linear-gradient(110deg,#9b613d,#e5ac6b)',border:'12px solid #7e4b2e',transformOrigin:'left center',transform:`rotateY(${-68*ease}deg)`,boxShadow:'15px 15px 45px #0008'}},
-   el('div',{style:{position:'absolute',right:'10%',top:'50%',width:26,height:26,background:'#f8d77c',borderRadius:'50%',boxShadow:'0 0 0 8px #9e673b'}})));
+ if(action==='door'){
+  const approach=Math.min(1,frame/23);
+  const grip=Math.max(0,1-Math.abs(frame-26)/14);
+  const open=Math.min(1,Math.max(0,(frame-30)/25));
+  const exit=Math.min(1,Math.max(0,(frame-48)/23));
+  return el(React.Fragment,null,
+   el('div',{style:{position:'absolute',left:'0%',top:'52%',width:'100%',height:'48%',background:'#233c4d',opacity:.42}}),
+   el('div',{style:{...base,left:'21%',width:'58%',top:'14%',height:'69%',background:'linear-gradient(145deg,#b5e3f1,#dcefcf)',border:'16px solid #263448',borderRadius:10,perspective:900,overflow:'visible'}},
+    el('div',{style:{position:'absolute',left:'37%',bottom:'0%',width:'30%',height:'64%',opacity:.7,transform:`scale(${1-exit*.38}) translateX(${exit*65}%)`,transformOrigin:'bottom center'}},
+     el('div',{style:{position:'absolute',left:'20%',top:'0%',width:'60%',aspectRatio:'1',borderRadius:'50%',background:'#243b55'}}),
+     el('div',{style:{position:'absolute',left:'10%',top:'22%',width:'80%',height:'48%',borderRadius:24,background:'#243b55'}}),
+     el('div',{style:{position:'absolute',left:'18%',top:'65%',width:'22%',height:'35%',background:'#243b55',transform:`rotate(${Math.sin(frame*.28)*10}deg)`}}),
+     el('div',{style:{position:'absolute',right:'18%',top:'65%',width:'22%',height:'35%',background:'#243b55',transform:`rotate(${-Math.sin(frame*.28)*10}deg)`}})),
+    el('div',{style:{position:'absolute',inset:0,background:'linear-gradient(110deg,#9b613d,#e5ac6b)',border:'12px solid #7e4b2e',transformOrigin:'left center',transform:`rotateY(${-72*open}deg)`,boxShadow:'15px 15px 45px #0008'}},
+     el('div',{style:{position:'absolute',right:'10%',top:'50%',width:26,height:26,background:'#f8d77c',borderRadius:'50%',boxShadow:'0 0 0 8px #9e673b'}}))),
+   // A foreground character approaches, reaches for the handle and passes the door.
+   el('div',{style:{position:'absolute',left:`${-8+approach*37+exit*49}%`,top:`${47+exit*9}%`,width:`${22-exit*9}%`,height:`${39-exit*12}%`,opacity:1-exit,transform:`translateY(${Math.abs(Math.sin(frame*.32))*-8}px)`}},
+    el('div',{style:{position:'absolute',left:'27%',top:0,width:'46%',aspectRatio:'1',borderRadius:'50%',background:'#e6ae8b',border:'5px solid #995e4b'}}),
+    el('div',{style:{position:'absolute',left:'16%',top:'24%',width:'68%',height:'48%',borderRadius:26,background:'#3578ac'}}),
+    el('div',{style:{position:'absolute',left:'70%',top:'30%',width:'18%',height:'36%',borderRadius:18,background:'#e6ae8b',transformOrigin:'top center',transform:`rotate(${-grip*60}deg)`}}),
+    el('div',{style:{position:'absolute',left:'25%',top:'68%',width:'18%',height:'33%',background:'#253b5a',transform:`rotate(${Math.sin(frame*.3)*12}deg)`}}),
+    el('div',{style:{position:'absolute',left:'58%',top:'68%',width:'18%',height:'33%',background:'#253b5a',transform:`rotate(${-Math.sin(frame*.3)*12}deg)`}})));
+ }
  if(action==='clock')return el('div',{style:{...base,top:'22%',left:'18%',width:'64%',height:'36%',aspectRatio:'1',borderRadius:'50%',border:'22px solid #9de9f5',background:'#f0fbff',boxShadow:'0 0 65px #79cbe777'}},
   ...Array.from({length:12},(_,i)=>el('div',{key:i,style:{position:'absolute',left:'49%',top:'7%',width:9,height:24,background:'#30465b',transformOrigin:'center 290px',transform:`rotate(${i*30}deg)`}})),
   el('div',{style:{position:'absolute',left:'49%',top:'50%',height:'31%',width:13,background:'#273b55',borderRadius:12,transformOrigin:'top center',transform:`rotate(${180+frame*0.7}deg)`}}),
