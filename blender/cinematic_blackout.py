@@ -1,5 +1,5 @@
 """Cinematic BLACKOUT-style 2D motion graphics pilot. Blender 3.6+ / headless Workbench."""
-import bpy, math, os
+import bpy, math, os, json
 from mathutils import Vector
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
@@ -20,6 +20,26 @@ sc.render.image_settings.color_mode='RGB'
 sc.render.filepath=os.path.abspath('output/blender-frames/frame_')
 sc.render.film_transparent=False
 sc.world.color=(.01,.015,.028)
+# The three scene families are rendered in the order requested by the planner.
+# Unsupported content is rejected by CI instead of silently showing unrelated visuals.
+plan_path=os.environ.get('BLENDER_SCENE_PLAN')
+order=['city','phone','map']
+if plan_path:
+ with open(plan_path,encoding='utf-8') as handle:
+  plan=json.load(handle)
+ scenes=plan.get('scenes',[])
+ if len(scenes)!=3 or not all(scene.get('supported') for scene in scenes):
+  raise ValueError('Pilot needs exactly three supported sentences (city, phone, map).')
+ order=[scene['visual'] for scene in scenes]
+ if sorted(order)!=sorted(['city','phone','map']):
+  raise ValueError('Pilot requires one city, one phone, and one map scene.')
+print('Rendering scenes in requested order:',order,flush=True)
+original_ranges={'city':(1,72),'phone':(73,144),'map':(145,240)}
+new_ranges={kind:(i*80+1,(i+1)*80) for i,kind in enumerate(order)}
+def remap_frame(frame):
+ kind='city' if frame<=72 else 'phone' if frame<=144 else 'map'
+ a,b=original_ranges[kind];c,d=new_ranges[kind]
+ return round(c+(max(a,min(frame,b))-a)*(d-c)/max(1,b-a))
 def mat(name,rgb):
  m=bpy.data.materials.new(name);m.diffuse_color=(*rgb,1);return m
 bg=mat('midnight',(.012,.023,.043))
@@ -55,13 +75,16 @@ def segment(name,ax,ay,bx,by,z,width,material):
 def headline(s,x,y,size,color,a,b):
  ob=label(s,x,y,.85,size,color);show(ob,a,b);scale_in(ob,a,min(a+12,b));return ob
 def show(ob,a,b):
+ a,b=remap_frame(a),remap_frame(b)
  ob.hide_render=True;ob.keyframe_insert(data_path='hide_render',frame=1)
  ob.hide_render=False;ob.keyframe_insert(data_path='hide_render',frame=a)
  ob.hide_render=True;ob.keyframe_insert(data_path='hide_render',frame=b+1)
 def scale_in(ob,a,b):
+ a,b=remap_frame(a),remap_frame(b)
  ob.scale=(.02,.02,.02);ob.keyframe_insert(data_path='scale',frame=a)
  ob.scale=(1,1,1);ob.keyframe_insert(data_path='scale',frame=b)
 def move(ob,axis,start,end,a,b):
+ a,b=remap_frame(a),remap_frame(b)
  setattr(ob.location,axis,start);ob.keyframe_insert(data_path='location',frame=a)
  setattr(ob.location,axis,end);ob.keyframe_insert(data_path='location',frame=b)
 # 0–3 sec: atmospheric city, dozens of actual architectural details.
