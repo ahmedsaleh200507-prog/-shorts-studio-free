@@ -7,7 +7,7 @@ const rules=[
   ['wake', /\bwach(?:e|st|t|en)?\b[^.!?]{0,90}\bauf\b|aufwach|\berwach(?:e|st|t|en)?\b|wake(?:s)? up|woke up|\b(?:steht|stand)\s+auf\b|aufgestanden|\b(?:gets?|got)\s+up\b|\bbed\b|bett/i, 'bedroom', ['bed']],
   ['travel', /\bbus\b|\bzug\b|train|station|bahnhof/i, 'transport', ['vehicle']],
   ['alert', /warnung|warnmeldung|alarm|gefahr|notfall|emergency|warning|alert|achtung|sirene/i, 'alert', ['warning-panel','alert-icon']],
-  ['phone', /handy|smartphone|telefon|phone|nachricht|message|notification|benachrichtigung/i, 'phone', ['phone-screen','notification']],
+  ['phone', /handy|smartphone|telefon|phone|nachricht|message|notification|benachrichtigung|textnachricht|sms|bildschirm|screen/i, 'phone', ['phone-screen','notification']],
   ['door', /tür|tuer|door|öffnet|öffnen|open(?:s|ed)?|klopft|knock/i, 'door', ['door','handle']],
   ['clock', /uhr|sekunde|minute|stunden|countdown|timer|mitternacht|midnight|\bzeit\b|\btime\b/i, 'clock', ['clock','counter']],
   ['space', /weltraum|universum|planet|erde|earth|space|moon|mond|galax|sonne|sun/i, 'space', ['planet','stars']],
