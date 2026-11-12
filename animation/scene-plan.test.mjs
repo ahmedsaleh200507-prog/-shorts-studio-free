@@ -74,3 +74,9 @@ test('Documentary reference topics use map and history motion graphics',()=>{
   assert.equal(scene.visualMode,'motion-graphic',sentence);
  }
 });
+
+test('Pronoun follow-up preserves location without inventing a new setting',()=>{
+ const plan=makeScenePlan('Der Patient liegt im Krankenhaus. Er wartet auf Hilfe. Danach spricht er mit einer Frau.');
+ assert.deepEqual(plan.scenes.map(s=>s.place),['hospital','hospital','hospital']);
+ assert.equal(makeScenePlan('Ein Mann ist im Büro. Danach geht er in die Schule.').scenes[1].place,'school');
+});
