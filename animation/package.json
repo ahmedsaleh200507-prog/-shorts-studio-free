@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node --check scene-plan.mjs"
+    "check": "node --check scene-plan.mjs",
+    "render:demo": "remotion render entry.mjs ShortsDemo ../output/remotion-demo.mp4 --codec h264 --crf 26 --concurrency 1"
   },
   "dependencies": {
     "pixi.js": "8.22.0",
     "lottie-web": "5.13.0",
     "remotion": "4.0.543",
     "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "react-dom": "19.1.1",
+    "@remotion/cli": "4.0.543"
   }
 }
