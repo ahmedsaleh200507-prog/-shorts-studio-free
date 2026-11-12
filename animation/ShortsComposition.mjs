@@ -57,6 +57,23 @@ function Prop({action,frame}){
  if(action==='checkout')return el(React.Fragment,null,Shape({x:65,y:66,w:33,h:13,color:'#777e89',r:7}),Shape({x:67,y:61,w:15,h:7,color:'#2a405b',r:5}),Shape({x:58+Math.sin(frame/7)*3,y:54,w:12,h:6,color:'#f5d56c',r:5,rotate:15}));
  return null;
 }
+
+function MotionGraphic({scene,frame}){
+ const t=frame/24, pulse=1+0.035*Math.sin(t*5), slide=Math.min(0, -90+frame*12);
+ const title=(scene.keywords||[]).slice(0,3).join(' ').toUpperCase() || scene.action.toUpperCase();
+ const palette={alert:['#190e1d','#ff4c6a'],phone:['#10182e','#73dcff'],door:['#161b30','#e6b66d'],clock:['#0c1d2a','#75e8f3'],space:['#080f27','#b6a5ff'],science:['#0b2530','#62e5b4'],nature:['#112a2a','#94d68e'],technology:['#0e1732','#65c9f5'],number:['#14152a','#e6cf70'],talk:['#121c35','#8fe9d9']};
+ const [bg,accent]=palette[scene.action]||palette.talk;
+ const panel={position:'absolute',left:'9%',right:'9%',top:'25%',height:'41%',border:'5px solid '+accent,borderRadius:38,boxShadow:'0 0 75px '+accent+'45',background:'#101727',display:'flex',justifyContent:'center',alignItems:'center',flexDirection:'column',transform:`translateY(${slide}px) scale(${pulse})`};
+ const label=scene.action==='alert'?'⚠':scene.action==='phone'?'▣':scene.action==='clock'?'◷':scene.action==='door'?'▯':scene.action==='space'?'✦':scene.action==='science'?'◎':scene.action==='nature'?'❋':scene.action==='technology'?'⌘':scene.action==='number'?'%':'●';
+ const dots=Array.from({length:22},(_,i)=>el('div',{key:i,style:{position:'absolute',left:(i*43%100)+'%',top:((i*29+frame*(i%2?0.12:-0.1))%100+100)%100+'%',width:3+i%4*2,height:3+i%4*2,borderRadius:'50%',background:accent,opacity:0.15+(i%4)*0.12}}));
+ return el('div',{style:{position:'absolute',inset:0,background:`radial-gradient(circle at 50% 42%,${accent}24,${bg} 70%)`,overflow:'hidden'}},
+ ...dots,
+ el('div',{style:panel},
+  el('div',{style:{fontSize:145,color:accent,fontWeight:900,lineHeight:1}},label),
+  el('div',{style:{fontSize:50,color:'#fff',fontWeight:900,textAlign:'center',maxWidth:'90%',overflowWrap:'anywhere',letterSpacing:2}},title)),
+ el('div',{style:{position:'absolute',left:'12%',right:'12%',top:'72%',height:7,borderRadius:10,background:'#ffffff24'}},
+  el('div',{style:{width:Math.min(100,frame/Math.max(1,scene.endFrame-scene.startFrame)*100)+'%',height:'100%',background:accent,borderRadius:10}})));
+}
 export function ShortsComposition({script='Ein Mann wacht morgens auf.',narration=false,durationsFrames=null}){
  const plan=makeScenePlan(script,{durationsFrames}),frame=useCurrentFrame();
  const scene=plan.scenes.find(s=>frame>=s.startFrame&&frame<s.endFrame)??plan.scenes.at(-1);
@@ -65,9 +82,10 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const opacity=interpolate(local,[0,5,Math.max(6,scene.endFrame-scene.startFrame-6),scene.endFrame-scene.startFrame],[0,1,1,0],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
   el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom})`}},
-   el(Background,{place:scene.place,frame:local}),
-   el(Person,{frame:local,action:scene.action}),
-   el(Prop,{action:scene.action,frame:local})),
+   scene.visualMode==='character'?el(React.Fragment,null,
+    el(Background,{place:scene.place,frame:local}),
+    el(Person,{frame:local,action:scene.action}),
+    el(Prop,{action:scene.action,frame:local})):el(MotionGraphic,{scene,frame:local})),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
   el('div',{style:{position:'absolute',top:85,left:65,color:'#fff',fontSize:34,fontWeight:800,letterSpacing:3,textShadow:'0 3px 8px #0009'}},'SHORTS STUDIO'),
   el('div',{style:{position:'absolute',bottom:140,left:45,right:45,opacity,background:'#14253bd9',borderRadius:30,padding:'32px 26px',color:'white',fontSize:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},scene.text)
