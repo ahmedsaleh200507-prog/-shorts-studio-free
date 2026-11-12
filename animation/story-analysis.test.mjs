@@ -108,3 +108,27 @@ test('Object actions and topic changes do not invent human subjects',()=>{
  assert.deepEqual(p.scenes.map(s=>s.characterIds.length),[0,0,1,0]);
  assert.equal(p.registry.characters.length,1);
 });
+
+test('Scientific measurement subject wins over incidental time context',()=>{
+ for(const text of [
+  'The experiment compares energy measurements over time and shows the results clearly.',
+  'Das Experiment vergleicht die Messwerte im Laufe der Zeit und zeigt die Ergebnisse.',
+  'The science experiment measures changes after one minute.'
+ ]){
+  const scene=makeScenePlan(text).scenes[0];
+  assert.equal(scene.action,'science',text);
+  assert.equal(scene.visualHint,'science-chart',text);
+  assert.ok(scene.props.includes('chart'),text);
+ }
+});
+test('Explicit clock instruments keep their intended subject in scientific context',()=>{
+ for(const text of [
+  'The clock measures time in the science experiment.',
+  'Die Uhr zeigt die Zeit im Labor.',
+  'The countdown timer starts the experiment.'
+ ]){
+  const scene=makeScenePlan(text).scenes[0];
+  assert.equal(scene.action,'clock',text);
+  assert.equal(scene.visualHint,null,text);
+ }
+});

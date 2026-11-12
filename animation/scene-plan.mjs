@@ -23,6 +23,18 @@ const rules=[
   ['history', /geschichte|historisch|history|historical|jahrhundert|century|\bkrieg\b|\bwar\b|archiv|archive|zeitung|newspaper/i, 'history', ['archive','timeline']],
   ['number', /\b\d+(?:[.,]\d+)?\s*(?:%|prozent|percent|euro|€|dollar|kilometer|km|million|milliard|billion)\b|\b\d+\s*%/i, 'infographic', ['number','chart']],
 ];
+// A duration phrase is context for the action, not necessarily a clock shot.
+// Keep explicitly named clock instruments, but let the scientific subject win
+// over incidental wording such as 'measurements over time'.
+function selectVisualRule(text){
+  const matches=rules.filter(([,regex])=>regex.test(text));
+  const first=matches[0];
+  if(first?.[0]==='clock'&&!/\buhr\b|\bclock\b|countdown|timer|stopwatch|stoppuhr/iu.test(text)){
+    const science=matches.find(([action])=>action==='science');
+    if(science)return science;
+  }
+  return first;
+}
 export function splitScript(script){
   if(typeof script!=='string') throw new TypeError('script must be a string');
   // Protect decimals and a small, explicit abbreviation vocabulary before
@@ -73,7 +85,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     ['transport',/\bbus\b|\bzug\b|train|station|bahnhof/i]
   ];
   const scenes=sentences.map((text,index)=>{
-    const match=rules.find(([,regex])=>regex.test(text));
+    const match=selectVisualRule(text);
     const [action,rulePlace,props]=match?[match[0],match[2],match[3]]:['talk','generic',[]];
     const explicit=explicitPlaces.find(([,regex])=>regex.test(text));
     const matchedPlace=explicit?explicit[0]:rulePlace;
@@ -88,9 +100,11 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
     const semantic=story.scenes[index];
+    const chartContext=action==='science'&&/measurements?|measure[sd]?|compares?|comparison|results?|messung|messwerte|vergleicht|vergleich|ergebnisse?|diagramm|\bchart\b|\bgraph\b/iu.test(text);
+    const visualHint=chartContext?'science-chart':null;
     const visualMode=['alert','phone','door','clock','space','science','nature','technology','number','map','history'].includes(action)?'motion-graphic':action==='talk'?'kinetic-type':'character';
     const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
-    return {id:`scene-${index+1}`,text,action,place,props:[...new Set([...props,...semantic.objectIds.map(id=>id.replace('object-',''))])],visualMode,keywords,...semantic,startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
+    return {id:`scene-${index+1}`,text,action,place,props:[...new Set([...props,...semantic.objectIds.map(id=>id.replace('object-','')),...(chartContext?['chart']:[])])],visualHint,visualMode,keywords,...semantic,startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
   const landscape=aspectRatio==="16:9";
   return {version:2,registry:story.registry,analysis:story.analysis,width:landscape?1920:1080,height:landscape?1080:1920,fps,totalFrames:scenes.at(-1).endFrame,scenes};

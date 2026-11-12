@@ -1,5 +1,6 @@
 """Speech timing provenance and optional language-independent Rhubarb cues."""
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -59,3 +60,26 @@ def rhubarb_cues(audio, output):
         return []
     finally:
         wav.unlink(missing_ok=True)
+
+
+async def edge_speech(text, voice, target):
+    import edge_tts
+    # edge-tts 7.3 pins certifi in its TLS context. Add an explicitly configured
+    # enterprise CA bundle while retaining certificate/hostname verification.
+    ca_bundle = os.environ.get('SSL_CERT_FILE') or os.environ.get('REQUESTS_CA_BUNDLE')
+    if ca_bundle:
+        from edge_tts.communicate import _SSL_CTX
+        _SSL_CTX.load_verify_locations(cafile=ca_bundle)
+    words = []
+    # Explicit WordBoundary is required: edge-tts 7 defaults to sentences.
+    communication = edge_tts.Communicate(text, voice, boundary='WordBoundary',
+                                        proxy=os.environ.get('HTTPS_PROXY') or None)
+    with target.open('wb') as audio:
+        async for chunk in communication.stream():
+            if chunk['type'] == 'audio':
+                audio.write(chunk['data'])
+            else:
+                word = edge_word(chunk)
+                if word:
+                    words.append(word)
+    return words

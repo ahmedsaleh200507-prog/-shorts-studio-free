@@ -18,14 +18,10 @@ jobs:
           node-version: '22'
       - name: Install PixiJS Lottie Remotion and React
         working-directory: animation
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Verify installed packages and scene-plan tests
         working-directory: animation
         run: |
           npm test
           node --input-type=module -e "for (const n of ['pixi.js','lottie-web','remotion','react','react-dom']) { const p = await import.meta.resolve(n); console.log(n,p) }"
           node --check ShortsComposition.mjs
-      - name: Verify Rigby2D Pixi runtime upstream
-        run: |
-          curl --fail --location --retry 3 --connect-timeout 15 --max-time 30 -o /tmp/rigby-readme.md https://raw.githubusercontent.com/jaisurya-dev-art/rigby2d/main/runtimes/pixi/README.md
-          grep -q 'rigbyPixi' /tmp/rigby-readme.md

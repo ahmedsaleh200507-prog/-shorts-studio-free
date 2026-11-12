@@ -3,10 +3,14 @@ on:
   push:
     paths:
       - 'animation/**'
+      - 'backend/**'
+      - 'index.html'
       - '.github/workflows/test-animation.yml'
   pull_request:
     paths:
       - 'animation/**'
+      - 'backend/**'
+      - 'index.html'
       - '.github/workflows/test-animation.yml'
 permissions:
   contents: read
@@ -27,8 +31,59 @@ jobs:
           python -m py_compile animation/generate-ai-scenes.py animation/prepare-job.py
           node --check animation/ShortsComposition.mjs
           node --check animation/scene-plan.mjs
-      - name: Test free vector and AI fallback
-        run: python -m unittest discover -s animation -p 'test_long_video.py' -v
+      - name: Install FFmpeg for real media checks
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+      - name: Test speech, free vector, AI fallback and real MP4 validation
+        run: python -m unittest discover -s animation -p 'test_*.py' -v
+      - name: Test mobile job recovery and gateway
+        run: |
+          node backend/worker.test.mjs
+          node backend/ui.test.mjs
       - name: Test scene planning
         working-directory: animation
         run: npm test
+  narrated-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: de
+            aspect: '9:16'
+            script: 'Ein Mann bekommt eine Nachricht. Er nimmt sein Handy und liest sie. Danach verlässt er das Haus.'
+          - language: en
+            aspect: '16:9'
+            script: 'A woman walks to the hospital. She carries an apple in the supermarket. A science chart shows the experiment.'
+    env:
+      SCRIPT: ${{ matrix.script }}
+      LANGUAGE: ${{ matrix.language }}
+      ASPECT_RATIO: ${{ matrix.aspect }}
+      VIDEO_MODE: vector
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install and prepare real narration
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install edge-tts==7.3.1 mutagen==1.48.1
+          npm ci --prefix animation --no-audit --no-fund
+          cd animation
+          npx remotion browser ensure
+          python prepare-job.py
+          python generate-ai-scenes.py
+      - name: Render, mux and verify actual H264 AAC MP4
+        run: python animation/render-job.py --chunk-seconds 6
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: narrated-smoke-${{ matrix.language }}
+          path: output/
+          retention-days: 3
+          if-no-files-found: ignore

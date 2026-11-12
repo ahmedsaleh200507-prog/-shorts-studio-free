@@ -4,91 +4,119 @@ on:
   workflow_dispatch:
     inputs:
       script:
-        description: 'German or English text (up to 12000 characters)'
+        description: German or English text (12000 characters / 180 scenes)
         required: true
         type: string
       aspect_ratio:
-        description: 'Video orientation'
-        required: false
+        description: Video orientation
         default: '9:16'
         type: choice
-        options:
-          - '9:16'
-          - '16:9'
+        options: ['9:16', '16:9']
+      video_mode:
+        description: Vector animation or optional animated AI illustrations
+        default: vector
+        type: choice
+        options: [vector, ai]
+      voice:
+        description: Narrator voice
+        default: female
+        type: choice
+        options: [female, male]
+      target_duration:
+        description: Pacing goal in seconds (actual narration duration is preserved)
+        default: auto
+        type: choice
+        options: ['auto', '15', '30', '60', '180', '300', '600']
       job_id:
-        description: 'Unique render request identifier'
-        required: false
+        description: Unique render request identifier
         default: manual
         type: string
       language:
-        description: 'Narration language'
-        required: true
+        description: Narration language
         default: de
         type: choice
-        options:
-          - de
-          - en
+        options: [de, en]
 permissions:
   contents: read
+concurrency:
+  group: render-${{ inputs.job_id || github.run_id }}
+  cancel-in-progress: false
 jobs:
   render:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    env:
+      SCRIPT: ${{ inputs.script }}
+      LANGUAGE: ${{ inputs.language }}
+      ASPECT_RATIO: ${{ inputs.aspect_ratio }}
+      VIDEO_MODE: ${{ inputs.video_mode }}
+      VOICE: ${{ inputs.voice }}
+      TARGET_DURATION: ${{ inputs.target_duration }}
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install Remotion and narration dependencies
+          cache: npm
+          cache-dependency-path: animation/package-lock.json
+      - name: Install render and free narration tools
         run: |
-          python -m pip install --disable-pip-version-check --retries 5 edge-tts mutagen
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install --disable-pip-version-check edge-tts==7.3.1 mutagen==1.48.1 piper-tts==1.8.0
           cd animation
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
           npm test
-          python -m unittest discover -s . -p 'test_long_video.py' -v
           npx remotion browser ensure
-      - name: Prepare real user script and synchronized narration
-        env:
-          SCRIPT: ${{ inputs.script }}
-          LANGUAGE: ${{ inputs.language }}
-          ASPECT_RATIO: ${{ inputs.aspect_ratio }}
+      - name: Install optional phonetic lip-sync tool
         run: |
-          python animation/prepare-job.py
-          test -s animation/job-entry.mjs
-          test -s animation/narration-audio.mjs
-      - name: Generate real AI scene images
+          curl -fL --retry 2 --max-time 90 -o "$RUNNER_TEMP/rhubarb.zip" https://github.com/DanielSWolf/rhubarb-lip-sync/releases/download/v1.14.0/Rhubarb-Lip-Sync-1.14.0-Linux.zip
+          unzip -q "$RUNNER_TEMP/rhubarb.zip" -d "$RUNNER_TEMP/rhubarb"
+          chmod +x "$RUNNER_TEMP/rhubarb/Rhubarb-Lip-Sync-1.14.0-Linux/rhubarb"
+          echo "$RUNNER_TEMP/rhubarb/Rhubarb-Lip-Sync-1.14.0-Linux" >> "$GITHUB_PATH"
+        continue-on-error: true
+      - name: Prepare speech and timing (Edge or explicitly reported Piper fallback)
+        run: |
+          if ! python animation/prepare-job.py; then
+            mkdir -p output/voices
+            if [ "$LANGUAGE" = en ]; then
+              voice_path=en/en_US/lessac/low/en_US-lessac-low
+              fallback_gender=female
+            else
+              voice_path=de/de_DE/thorsten/low/de_DE-thorsten-low
+              fallback_gender=male
+            fi
+            voice_file=$(basename "$voice_path")
+            curl -fL --retry 2 --max-time 180 "https://huggingface.co/rhasspy/piper-voices/resolve/main/$voice_path.onnx" -o "output/voices/$voice_file.onnx"
+            curl -fL --retry 2 --max-time 30 "https://huggingface.co/rhasspy/piper-voices/resolve/main/$voice_path.onnx.json" -o "output/voices/$voice_file.onnx.json"
+            TTS_ENGINE=piper PIPER_ACTUAL_GENDER="$fallback_gender" PIPER_MODEL="$PWD/output/voices/$voice_file.onnx" python animation/prepare-job.py
+          fi
+      - name: Generate optional AI illustrations or free vector fallback
         env:
-          SCRIPT: ${{ inputs.script }}
-          ASPECT_RATIO: ${{ inputs.aspect_ratio }}
           POLLINATIONS_KEY: ${{ secrets.POLLINATIONS_KEY }}
           AI_IMAGE_MODELS: black-forest-labs/flux.1-schnell,tongyi-mai/z-image-turbo
           AI_MAX_IMAGES: '18'
-        run: |
-          python animation/generate-ai-scenes.py
-          test -s animation/ai-scene-images.mjs
-      - name: Render actual Remotion 2D video
-        working-directory: animation
-        run: |
-          mkdir -p ../output
-          npx remotion render job-entry.mjs ShortsJob ../output/final.mp4 --codec h264 --crf 26 --concurrency 1 --scale 0.5
-      - name: Validate real MP4 file
-        run: |
-          test -s output/final.mp4
-          node --input-type=module -e "
-            import {readFileSync,statSync} from 'node:fs';
-            const f='output/final.mp4', b=readFileSync(f);
-            if(statSync(f).size<10000) throw Error('MP4 too small');
-            if(b.toString('ascii',4,8)!=='ftyp') throw Error('Missing MP4 header');
-            if(!b.includes(Buffer.from('moov')) || !b.includes(Buffer.from('mdat'))) throw Error('Invalid MP4 structure');
-            console.log('Production Remotion MP4:',b.length,'bytes');
-          "
+        run: python animation/generate-ai-scenes.py
+      - name: Render in bounded parts, mux original audio once and verify with FFprobe
+        run: python animation/render-job.py
       - uses: actions/upload-artifact@v4
         with:
           name: shorts-studio-sesli-mp4
-          path: output/final.mp4
+          path: |
+            output/final.mp4
+            output/render-report.json
           if-no-files-found: error
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shorts-studio-quality
+          path: |
+            output/quality-report.json
+            animation/visual-report.json
+            animation/narration-report.json
+          if-no-files-found: ignore
           retention-days: 3

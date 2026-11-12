@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shorts Studio Free — Sesli MP4</title>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Shorts Studio Free — Sesli MP4</title>
 <style>
 :root{color-scheme:dark;--bg:#070c18;--panel:#111c30;--line:#31405a;--muted:#a8bdd5;--mint:#84f0d0;--white:#f5f8ff}
 *{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 15% 0%,#172d49 0%,transparent 55%),linear-gradient(165deg,#090f1d,#080d19 75%);color:var(--white);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
@@ -41,105 +41,122 @@ select{border-radius:14px;background:#16243a;padding:14px}
 #iosShare,#audioDownload{width:100%;order:6;margin-top:10px;border-radius:14px}small{order:9;font-size:12px;margin-top:24px;color:#788da7}
 canvas{display:none!important}.legacy-actions{display:none!important}
 @media(max-width:760px){main{padding:22px 18px calc(40px + env(safe-area-inset-bottom))}textarea{height:235px}#renderedVideo{width:min(100%,320px)}}
+main{padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}
 </style></head>
-<body><main><h1>Shorts <span style="color:#84f0d0">Studio</span></h1><p>Hikâyeni yaz. AI sahnelerini oluştur. Videonu indir.</p>
+<body><main><h1>Shorts <span style="color:#84f0d0">Studio</span></h1><p>Senaryonu yaz. 2D videonu seslendir ve indir.</p>
 <textarea id="story" maxlength="12000" aria-label="Video senaryosu">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea>
 <div id="scriptEstimate" class="long-note" aria-live="polite"></div>
-<p class="long-note">Uzun video: 10 dakika için yaklaşık 7.000–12.000 karakterlik metin gerekir. AI görselleri kota tasarrufu için tekrar kullanılabilir; üretim uzun sürebilir.</p><div class="row"><div class="field"><label for="language">Ses dili</label><select id="language"><option value="de-DE">🇩🇪 Almanca</option><option value="en-US">🇬🇧 İngilizce</option></select></div><div class="field"><label for="voice">Cihazdaki ses</label><select id="voice"><option value="">Sesler yükleniyor...</option></select></div></div>
-<div class="row"><div class="field"><label for="styleMode">Video tarzı</label><select id="styleMode"><option value="ai">✨ AI çizimli video (kredi kullanabilir)</option><option value="vector">🎨 2D çizgi animasyon (AI görsel kredisi yok)</option></select></div></div>
-<div class="row"><div class="field"><label for="aspect">Video formatı</label><select id="aspect"><option value="9:16">📱 Dikey · 9:16</option><option value="16:9">🖥️ Yatay · 16:9</option></select></div></div>
+<p class="long-note">Süre hedefi kurgu içindir; gerçek süre seslendirmeye bağlıdır. Metin kesilmez. Uzun videoların üretimi uzun sürebilir.</p><div class="row"><div class="field"><label for="language">Ses dili</label><select id="language"><option value="de-DE">🇩🇪 Almanca</option><option value="en-US">🇬🇧 İngilizce</option></select></div><div class="field"><label for="voice">Anlatıcı</label><select id="voice"><option value="female">Kadın</option><option value="male">Erkek</option></select></div></div>
+<div class="row"><div class="field"><label for="styleMode">Video tarzı</label><select id="styleMode"><option value="vector">🎨 2D çizgi animasyon · ücretsiz</option><option value="ai">✨ AI Video · hareketlendirilmiş 2D çizimler</option></select></div></div>
+<p id="modeNote" class="long-note"></p><div class="row"><div class="field"><label for="targetDuration">Hedef süre</label><select id="targetDuration"><option value="auto">Otomatik</option><option value="15">15 saniye</option><option value="30">30 saniye</option><option value="60">1 dakika</option><option value="180">3 dakika</option><option value="300">5 dakika</option><option value="600">10 dakika</option></select></div><div class="field"><label for="aspect">Video formatı</label><select id="aspect"><option value="9:16">📱 Dikey · 9:16</option><option value="16:9">🖥️ Yatay · 16:9</option></select></div></div>
 <div class="row legacy-actions" hidden><button id="toggle">▶ Başlat</button><button id="reset">↺ Baştan</button></div>
-<details class="advanced"><summary>⚙️ Bağlantı ayarları</summary><div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div></details><div class="row primary-action"><button id="audioSave">🎬 Videoyu oluştur</button></div><div id="audioStatus" role="status" aria-live="polite"></div><button id="resumeJob" type="button" hidden>↻ Devam eden videoyu kontrol et</button><a id="audioDownload" hidden aria-hidden="true">📥 MP4 dosyasını indir</a><button id="iosShare" hidden type="button">📱 iPhone’da Paylaş / Dosyalara Kaydet</button><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
-<small>iPhone Safari uyumlu · 9:16 / 16:9 sesli MP4 · AI görselleri · Ücretsiz servislerin kullanım kotası olabilir. Bağlantı anahtarını kimseyle paylaşma.</small></main>
+<details class="advanced"><summary>⚙️ Bağlantı ayarları</summary><div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div><p class="long-note">Anahtar yalnızca bu sekmenin oturumunda tutulur. Üretim GitHub sunucusunda sürer; Safari kapalıyken de devam eder.</p><button id="forgetJob" type="button" hidden style="background:#23334b;color:#e5efff">Mevcut iş kaydını bırak</button><p class="long-note">İş kaydını bırakmak sunucudaki üretimi iptal etmez; yeni üretim ek kota kullanabilir.</p></details><div class="row primary-action"><button id="audioSave">🎬 Videoyu oluştur</button></div><div id="audioStatus" role="status" aria-live="polite"></div><button id="resumeJob" type="button" hidden>↻ Devam eden videoyu kontrol et</button><progress id="renderProgress" hidden aria-label="Sunucu video üretimi" style="width:100%;margin-top:12px"></progress><p id="renderReport" class="long-note" role="status"></p><a id="audioDownload" hidden aria-hidden="true">📥 MP4 dosyasını indir</a><button id="iosShare" hidden type="button">📱 iPhone’da Paylaş / Dosyalara Kaydet</button><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
+<small>Safari için mobil arayüz · H.264 / AAC MP4 · Ücretsiz servisler kotalıdır. AI kapasitesi yoksa ücretsiz vektör yedeği kullanılır. Bağlantı anahtarını kimseyle paylaşma.</small></main>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
-'use strict';
+ 'use strict';
 const el=id=>document.getElementById(id);
 const WORKER='https://shorts-studio-free.ahmed-saleh2005.workers.dev';
+const PENDING_KEY='shorts-studio-pending-v1',SESSION_KEY='shorts-studio-session-key';
+const MAX_ARCHIVE_BYTES=120*1024*1024;
 const setStatus=message=>{el('status').textContent=message;el('audioStatus').textContent=message};
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-let busy=false,cache=null,requestVersion=0;
-const PENDING_KEY='shorts-studio-pending-v1';
+let busy=false,cache=null;
 function getPending(){try{return JSON.parse(localStorage.getItem(PENDING_KEY)||'null')}catch{return null}}
-function savePending(job){try{localStorage.setItem(PENDING_KEY,JSON.stringify(job))}catch{}el('resumeJob').hidden=false}
-function clearPending(){try{localStorage.removeItem(PENDING_KEY)}catch{}el('resumeJob').hidden=true}
-function showPending(){const p=getPending();if(p?.job_id){el('resumeJob').hidden=false;if(!busy){setStatus('⏳ Devam eden video bulundu. Durumu kontrol edebilirsin.');if(el('appkey').value.trim())generate(true,true)}}}
-function displayVideo(url){const video=el('renderedVideo');video.src=url;video.hidden=false;el('canvas').hidden=true;video.load()}
-function invalidate(){requestVersion++;if(cache){URL.revokeObjectURL(cache.url);cache=null}el('renderedVideo').pause();el('renderedVideo').removeAttribute('src');el('renderedVideo').load();el('renderedVideo').hidden=true;el('audioDownload').hidden=true;el('iosShare').hidden=true;el('canvas').hidden=true}
-async function request(path,key,options={}){const response=await fetch(WORKER+path,{...options,headers:{'x-app-key':key,...(options.headers||{})}});if(!response.ok){let reason='HTTP '+response.status;try{const body=await response.json();reason=body.error||body.message||reason}catch{}throw Error(reason)}return response}
-async function generate(download=false,resume=false){
+function savePending(job){try{localStorage.setItem(PENDING_KEY,JSON.stringify(job))}catch{}updateAction()}
+function clearPending(){try{localStorage.removeItem(PENDING_KEY)}catch{}updateAction()}
+function updateAction(){el('audioSave').textContent=getPending()?.job_id?'↻ Devam eden videoyu aç':'🎬 Videoyu oluştur';el('resumeJob').hidden=true;el('forgetJob').hidden=!getPending()?.job_id}
+function displayVideo(url,aspect){const video=el('renderedVideo');video.style.aspectRatio=aspect==='16:9'?'16 / 9':'9 / 16';video.style.maxWidth=aspect==='16:9'?'100%':'320px';video.style.width=aspect==='16:9'?'100%':'min(100%,320px)';video.src=url;video.hidden=false;video.load()}
+function invalidate(){if(cache){URL.revokeObjectURL(cache.url);cache=null}el('renderedVideo').pause();el('renderedVideo').removeAttribute('src');el('renderedVideo').load();el('renderedVideo').hidden=true;el('audioDownload').hidden=true;el('iosShare').hidden=true;el('renderReport').textContent=''}
+async function request(path,key,options={}){
+ const response=await fetch(WORKER+path,{...options,headers:{'x-app-key':key,...(options.headers||{})}});
+ if(!response.ok){let reason='HTTP '+response.status;try{const body=await response.json();reason=body.error||body.message||reason}catch{}const error=Error(reason);error.status=response.status;throw error}return response;
+}
+function configuration(){return {script:el('story').value.trim(),language:el('language').value.startsWith('de')?'de':'en',aspect_ratio:el('aspect').value,video_mode:el('styleMode').value,voice:el('voice').value,target_duration:el('targetDuration').value}}
+function restorePendingInputs(){
+ const pending=getPending();if(!pending)return;let c;try{c=JSON.parse(pending.signature||'null')}catch{}
+ if(!c||typeof c.script!=='string')c=pending.script?{script:pending.script,language:pending.lang,aspect_ratio:pending.aspect,video_mode:pending.styleMode}:null;
+ if(!c)return;el('story').value=c.script;
+ for(const [id,value] of Object.entries({language:c.language==='en'?'en-US':'de-DE',aspect:c.aspect_ratio,styleMode:c.video_mode,voice:c.voice,targetDuration:c.target_duration}))if(value)el(id).value=value;
+}
+function showPending(){updateAction();if(getPending()?.job_id&&!busy){setStatus('⏳ Sunucudaki video kaydı bulundu. Üretim telefondan bağımsız sürer.');if(el('appkey').value.trim()&&!document.hidden)generate(true,true)}}
+function applyReport(report){
+ if(!report){el('renderReport').textContent='Üretim kaynağı raporu bu çıktıda yok. AI görsellerinin kullanıldığı doğrulanamadı.';return}
+ const timingSources=Array.isArray(report.timingSource)?report.timingSource:[report.timingSource];
+ const timing=timingSources.filter(Boolean).map(t=>t==='edge-word-boundary'?'ses motorunun kelime zamanlaması':String(t).includes('estimat')?'tahmini zamanlama':String(t)).join(', ');
+ const source=report.visualSource==='vector'?'Ücretsiz 2D vektör animasyon':report.visualSource==='ai-illustration'?'Hareketlendirilmiş 2D AI illüstrasyonlar':report.visualSource==='mixed'?'AI illüstrasyon + 2D vektör yedeği':'Üretim kaynağı: '+String(report.visualSource||'bilinmiyor');
+ const speech=report.ttsEngine==='piper'?' · Çevrimdışı ses yedeği (Piper): '+String(report.voice||'model bilinmiyor')+'. Kullanılan ses, seçtiğin cinsiyette olmayabilir.':report.voice?' · Kullanılan ses: '+String(report.voice)+'.':'';
+ const genderNames={female:'kadın',male:'erkek',unknown:'bilinmiyor'};
+ const gender=report.requestedVoiceGender||report.actualVoiceGender?' · İstenen ses: '+(genderNames[report.requestedVoiceGender]||'bilinmiyor')+' · Kullanılan ses: '+(genderNames[report.actualVoiceGender]||'bilinmiyor')+'.':'';
+ const warnings=Array.isArray(report.warnings)?report.warnings.filter(w=>typeof w==='string'&&w.trim()).join(' '):'';
+ el('renderReport').textContent=source+(Number.isFinite(report.aiImageCount)?' · '+report.aiImageCount+' AI görsel':'')+(report.timingSource?' · Altyazı: '+timing:'')+'.'+speech+gender+(warnings?' · Uyarı: '+warnings:'');
+}
+async function generate(download=true,resume=false){
  if(busy)return;
- const pending=resume?getPending():null;
- if(resume&&!pending?.job_id){setStatus('Devam eden kayıt bulunamadı.');return}
- const script=resume?pending.script:el('story').value.trim(),key=el('appkey').value.trim(),lang=resume?pending.lang:(el('language').value.startsWith('de')?'de':'en'),aspect=resume?pending.aspect:el('aspect').value,styleMode=resume?(pending.styleMode||'ai'):el('styleMode').value,signature=JSON.stringify([script,lang,aspect,styleMode]),version=requestVersion;
- if(!script){setStatus('Önce metin yaz.');return}
- if(script.length>3000){setStatus('Uzun video isteği gönderiliyor. Cloudflare Worker 3000 karakter sınırı uyguluyorsa Worker da güncellenmelidir.')}
- if(cache?.signature===signature){displayVideo(cache.url);if(download){el('iosShare').hidden=false;setStatus('MP4 hazır. iPhone’da paylaş veya indir.')}else{el('renderedVideo').play().catch(()=>{});setStatus('Video hazır. ▶ ile oynatabilirsin.')}return}
- if(!key){setStatus('Cloudflare APP_KEY girmen gerekiyor.');el('appkey').focus();return}
+ const pending=getPending(),config=configuration(),key=el('appkey').value.trim();
+ if(!key){setStatus('Bağlantı ayarlarındaki özel Cloudflare APP_KEY gerekli.');el('appkey').focus();return}
+ if(!pending&&!config.script){setStatus('Önce senaryonu yaz.');return}
+ if(!pending&&config.script.length>12000){setStatus('Senaryo en fazla 12.000 karakter olabilir.');return}
  if(!window.JSZip){setStatus('ZIP kütüphanesi yüklenemedi. Sayfayı yeniden aç.');return}
- busy=true;el('toggle').disabled=true;el('audioSave').disabled=true;el('toggle').textContent='⏳ Hazırlanıyor...';
+ const signature=pending?.signature||JSON.stringify(config);
+ if(!pending&&cache?.signature===signature){displayVideo(cache.url,cache.aspect);setStatus('✅ Sesli MP4 hazır. İndirebilir veya paylaşabilirsin.');return}
+ busy=true;el('audioSave').disabled=true;el('forgetJob').disabled=true;el('renderProgress').hidden=false;
  try{
-  setStatus('⏳ Video oluşturma isteği gönderiliyor...');
-  let job;
-  if(resume){job=pending}else{
-   const response=await request('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script:(styleMode==='vector'?'[[VECTOR_2D]]\n':'')+(aspect==='16:9'?'[[ASPECT_16_9]]\n':'')+script,language:lang,aspect_ratio:aspect})});
-   job=await response.json();if(!job.job_id)throw Error('GitHub iş kimliği alınamadı');
-   savePending({job_id:job.job_id,script,lang,aspect,styleMode,createdAt:Date.now()});
+  let job=pending;
+  if(!job){
+   const health=await(await request('/health',key)).json();
+   if(health.contract_version!==2)throw Error('Sunucu sürümü yeni video ayarlarını desteklemiyor. Depodaki Worker ve render iş akışı güncellenmeli.');
+   if(!health.configured)throw Error('Sunucunun GitHub bağlantı ayarları eksik.');
+   // Persist BEFORE dispatch. A dropped HTTP response must never silently enqueue a duplicate.
+   job={job_id:crypto.randomUUID(),signature,aspect:config.aspect_ratio,styleMode:config.video_mode,createdAt:Date.now()};savePending(job);
+   setStatus('⏳ İstek sunucuya gönderiliyor...');
+   try{await request('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...config,job_id:job.job_id})})}catch(error){if(error.status>=400&&error.status<500)clearPending();throw error}
   }
-  let runId=null;
-  for(let attempt=0;attempt<900;attempt++){
-   await wait(6000);
-   if(!resume&&version!==requestVersion)throw Error('Metin veya dil değişti. Devam eden videoyu kontrol et düğmesiyle tekrar bağlanabilirsin.');
-   const res=await request('/status?job_id='+encodeURIComponent(job.job_id),key),info=await res.json();
-   setStatus('⏳ GitHub video hazırlıyor: '+(info.status||'bekleniyor')+' ('+((attempt+1)*6)+' sn)');
-   if(info.status==='completed'){if(info.conclusion!=='success'){clearPending();throw Error('GitHub video üretimi başarısız: '+(info.conclusion||'bilinmiyor')+(info.run_id?' | Hata kaydı: https://github.com/ahmedsaleh200507-prog/-shorts-studio-free/actions/runs/'+encodeURIComponent(info.run_id):''))}runId=info.run_id;break}
+  let runId=job.run_id||null,discoveryMisses=0,failures=0;
+  const deadline=Date.now()+90*60*1000;
+  while(!runId&&Date.now()<deadline){
+   if(document.hidden){setStatus('⏳ Sunucu üretime devam ediyor. Safari’ye dönünce durum yenilenecek.');return}
+   let info;try{info=await(await request('/status?job_id='+encodeURIComponent(job.job_id),key)).json();failures=0}catch(error){if(error.status===401||error.status===403)throw error;if(++failures>=3)throw Error('Durum servisine erişilemiyor. İş kaydı korundu; tekrar kontrol edebilirsin.');await wait(6000);continue}
+   if(info.status==='completed'){
+    if(info.conclusion!=='success'){clearPending();throw Error('Üretim başarısız: '+(info.conclusion||'bilinmiyor')+(info.run_url?' · '+info.run_url:''))}
+    runId=info.run_id;job={...job,run_id:runId};savePending(job);break;
+   }
+   if(info.status==='pending-discovery')discoveryMisses++;else discoveryMisses=0;
+   if(discoveryMisses>=20)throw Error('İş henüz GitHub’da bulunamadı. Kayıt korundu; otomatik ikinci üretim başlatılmadı. Bağlantı ve workflow ayarlarını kontrol et.');
+   const labels={queued:'Sırada',in_progress:'Sahneler, ses ve MP4 sunucuda hazırlanıyor',waiting:'GitHub çalıştırıcısı bekleniyor','pending-discovery':'GitHub iş kaydı bekleniyor'};
+   setStatus('⏳ '+(labels[info.status]||info.status||'Bekleniyor')+' · '+Math.round((Date.now()-job.createdAt)/1000)+' sn.');await wait(6000);
   }
-  if(!runId)throw Error('90 dakika içinde tamamlanmadı');
-  let archiveResponse=null;
-  for(let i=0;i<12;i++){try{archiveResponse=await request('/artifact?run_id='+encodeURIComponent(runId),key);break}catch(e){if(i===11)throw e;await wait(5000)}}
-  setStatus('⏳ MP4 indiriliyor...');
-  const zip=await JSZip.loadAsync(await archiveResponse.arrayBuffer());
+  if(!runId)throw Error('90 dakikalık izleme süresi doldu. İş kaydı korundu; tekrar bağlanabilirsin.');
+  const meta=await(await request('/artifact?run_id='+encodeURIComponent(runId)+'&metadata=1',key)).json();
+  if(meta.size_in_bytes>MAX_ARCHIVE_BYTES)throw Error('Video arşivi 120 MiB sınırını aşıyor. Safari belleğini korumak için açılmadı. GitHub Actions iş sayfasından arşivi indir: '+(meta.run_url||'https://github.com/ahmedsaleh200507-prog/-shorts-studio-free/actions/runs/'+runId));
+  setStatus('⏳ Sesli MP4 alınıyor...');
+  const archive=await request('/artifact?run_id='+encodeURIComponent(runId),key),zip=await JSZip.loadAsync(await archive.arrayBuffer());
   const entry=Object.values(zip.files).find(f=>!f.dir&&f.name.toLowerCase().endsWith('.mp4'));
-  if(!entry)throw Error('GitHub arşivinde MP4 bulunamadı');
-  const blob=await entry.async('blob');
-  if(!resume&&version!==requestVersion)throw Error('Metin veya dil değişti. Devam eden videoyu kontrol et düğmesini kullan.');
-  const url=URL.createObjectURL(new Blob([blob],{type:'video/mp4'}));
+  if(!entry)throw Error('Arşivde MP4 bulunamadı');
+  const bytes=await entry.async('uint8array'),blob=new Blob([bytes],{type:'video/mp4'}),url=URL.createObjectURL(blob);
+  const reportEntry=Object.values(zip.files).find(f=>!f.dir&&f.name.endsWith('render-report.json'));let report=null;
+  if(reportEntry){try{report=JSON.parse(await reportEntry.async('string'))}catch{}}
   if(cache)URL.revokeObjectURL(cache.url);
-  cache={signature,url,blob};el('iosShare').hidden=false;const link=el('audioDownload');link.href=url;link.download='shorts-studio-sesli.mp4';link.hidden=false;link.removeAttribute('aria-hidden');
-  displayVideo(url);
-  clearPending();
-  if(download){setStatus('✅ MP4 hazır. iPhone’da Paylaş / Dosyalara Kaydet düğmesine dokun veya MP4 indirme bağlantısını kullan.');}
-  else{el('renderedVideo').play().catch(()=>{});setStatus('✅ MP4 hazır. Oynatıcıdaki ▶ düğmesine dokunarak izleyebilirsin.');}
- }catch(e){setStatus('❌ '+(e?.message||String(e)))}
- finally{busy=false;el('toggle').disabled=false;el('audioSave').disabled=false;el('toggle').textContent='▶ Başlat'}
+  cache={signature,url,blob,aspect:job.aspect};
+  el('iosShare').hidden=false;const link=el('audioDownload');link.href=url;link.download='shorts-studio-sesli.mp4';link.hidden=false;link.removeAttribute('aria-hidden');
+  displayVideo(url,job.aspect);applyReport(report);clearPending();
+  setStatus('✅ Sesli MP4 hazır. Önizleyebilir, indirebilir veya iPhone paylaşım menüsünü açabilirsin.');
+ }catch(error){setStatus('❌ '+(error?.message||String(error))+(getPending()?.job_id?' Devam eden videoyu aç düğmesiyle tekrar kontrol edebilirsin.':''))}
+ finally{busy=false;el('audioSave').disabled=false;el('forgetJob').disabled=false;el('renderProgress').hidden=true;updateAction()}
 }
 el('iosShare').addEventListener('click',async()=>{
  if(!cache?.blob){setStatus('Önce MP4 oluştur.');return}
  const file=new File([cache.blob],'shorts-studio-sesli.mp4',{type:'video/mp4'});
- try{
-  if(navigator.canShare?.({files:[file]}) && navigator.share){
-   await navigator.share({files:[file],title:'Shorts Studio Free MP4'});
-   setStatus('Paylaşım menüsü açıldı. Dosyalara Kaydet veya Videoyu Kaydet seçeneğini kullanabilirsin.');
-  }else{
-   el('audioDownload').click();
-   setStatus('Bu tarayıcıda dosya paylaşımı desteklenmiyor. MP4 indirme bağlantısını kullan.');
-  }
- }catch(e){if(e?.name!=='AbortError')setStatus('Paylaşım açılamadı: '+(e?.message||String(e)))}
+ try{if(navigator.canShare?.({files:[file]})&&navigator.share){await navigator.share({files:[file],title:'Shorts Studio Free MP4'});setStatus('Paylaşım menüsü açıldı.')}else{el('audioDownload').click();setStatus('MP4 indirme bağlantısı açıldı.')}}catch(error){if(error?.name!=='AbortError')setStatus('Paylaşım açılamadı: '+error.message)}
 });
-el('toggle').addEventListener('click',()=>generate(false));
-el('audioSave').addEventListener('click',()=>generate(true));
-el('resumeJob').addEventListener('click',()=>generate(true,true));
-window.addEventListener('pageshow',showPending);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)showPending()});
-el('appkey').addEventListener('change',showPending);
-el('reset').addEventListener('click',()=>{if(cache){displayVideo(cache.url);el('renderedVideo').currentTime=0;setStatus('Video başa alındı.')}else setStatus('Henüz video oluşturulmadı. ▶ Başlat düğmesine bas.')});
-function updateEstimate(){const s=el('story').value.trim();const words=(s.match(/\S+/g)||[]).length;el('scriptEstimate').textContent=`${s.length.toLocaleString('tr-TR')} / 12.000 karakter · Tahmini anlatım ${Math.max(1,Math.round(words/135))} dakika (gerçek süre sese bağlı)`}
-el('story').addEventListener('input',()=>{updateEstimate();invalidate();setStatus('Metin değişti. Yeni video oluşturabilirsin.')});
-el('styleMode').addEventListener('change',()=>{invalidate();setStatus('Video tarzı değişti. Yeni video oluşturabilirsin.')});
-el('aspect').addEventListener('change',()=>{invalidate();setStatus('Video formatı değişti. Yeni video oluşturabilirsin.')});
-el('language').addEventListener('change',()=>{invalidate();setStatus('Dil değişti. Yeni video için ▶ Başlat düğmesine bas.')});
-el('voice').innerHTML='<option>Otomatik seslendirme</option>';
-el('canvas').hidden=true;
-updateEstimate();
-setStatus('Hazır. Senaryonu yazıp Videoyu oluştur düğmesine bas.');
+el('forgetJob').addEventListener('click',()=>{if(busy)return;clearPending();setStatus('Yerel iş kaydı bırakıldı. Sunucudaki iş sürüyor olabilir; yeni üretim ek kota kullanır.')});
+el('toggle').addEventListener('click',()=>generate());el('audioSave').addEventListener('click',()=>generate());el('resumeJob').addEventListener('click',()=>generate(true,true));
+window.addEventListener('pageshow',showPending);document.addEventListener('visibilitychange',()=>{if(!document.hidden)showPending()});
+el('appkey').addEventListener('change',()=>{try{sessionStorage.setItem(SESSION_KEY,el('appkey').value.trim())}catch{}showPending()});
+el('reset').addEventListener('click',()=>{if(cache){displayVideo(cache.url,cache.aspect);el('renderedVideo').currentTime=0}});
+function updateEstimate(){const s=el('story').value.trim(),words=(s.match(/\S+/g)||[]).length,seconds=Math.max(1,Math.round(words/135*60));el('scriptEstimate').textContent=`${s.length.toLocaleString('tr-TR')} / 12.000 karakter · Tahmini anlatım ${seconds} sn (ölçülmüş süre değildir)`}
+function updateMode(){el('modeNote').textContent=el('styleMode').value==='ai'?'AI Video: 2D AI illüstrasyonlar hareketlendirilir; gerçek AI hareketli video modeli kullanılmaz. Ücretsiz kapasite/anahtar yoksa 2D vektör yedeği devreye girer.':'2D vektör motoru API anahtarı ve AI görsel kotası gerektirmez. Karakter ve nesne hareketleri senaryodan planlanır.'}
+for(const id of ['story','styleMode','aspect','language','voice','targetDuration'])el(id).addEventListener(id==='story'?'input':'change',()=>{invalidate();updateEstimate();updateMode();setStatus(getPending()?.job_id?'Sunucudaki mevcut iş sürüyor. Önce Devam eden videoyu aç ile sonucunu alabilirsin.':'Hazır. Videoyu oluştur düğmesine dokun.');updateAction()});
+try{el('appkey').value=sessionStorage.getItem(SESSION_KEY)||''}catch{}
+restorePendingInputs();el('canvas').hidden=true;updateEstimate();updateMode();updateAction();setStatus('Hazır. Senaryonu yazıp Videoyu oluştur düğmesine bas.');
 </script></body></html>

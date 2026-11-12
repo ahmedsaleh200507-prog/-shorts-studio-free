@@ -29,10 +29,15 @@ def main():
     p.add_argument("--output", type=Path, help="MP4 output path")
     p.add_argument("--setup", action="store_true", help="Install free dependencies")
     p.add_argument("--piper-model", type=Path, help="Use installed Piper and this downloaded ONNX voice model for offline TTS")
+    p.add_argument("--mode", choices=["vector", "ai"], default="vector")
+    p.add_argument("--voice", choices=["female", "male"], default="female")
+    p.add_argument("--aspect", choices=["9:16", "16:9"], default="9:16")
+    p.add_argument("--duration", choices=["auto", "15", "30", "60", "180", "300", "600"], default="auto")
+    p.add_argument("--browser", help="Existing Chromium executable")
     args = p.parse_args()
     if args.setup:
-        run([sys.executable, "-m", "pip", "install", "edge-tts", "mutagen"])
-        run(["npm", "install", "--no-audit", "--no-fund"], cwd=ANIMATION)
+        run([sys.executable, "-m", "pip", "install", "edge-tts==7.3.1", "mutagen==1.48.1"])
+        run(["npm", "ci", "--no-audit", "--no-fund"], cwd=ANIMATION)
         run(["npx", "remotion", "browser", "ensure"], cwd=ANIMATION)
         print("Setup complete. Run again with --text or --file.")
         return
@@ -42,13 +47,17 @@ def main():
     script = script.strip()
     if not script:
         p.error("Script is empty")
-    if len(script) > 3000:
-        p.error("Current renderer supports up to 3000 characters per video; split longer scripts.")
+    if len(script) > 12000:
+        p.error("Renderer supports up to 12000 characters / 180 scenes; split longer scripts.")
     if not shutil.which("ffmpeg"):
         p.error("FFmpeg is required on PATH")
     env = os.environ.copy()
     env["SCRIPT"] = script
     env["LANGUAGE"] = args.language
+    env["VIDEO_MODE"] = args.mode
+    env["VOICE"] = args.voice
+    env["ASPECT_RATIO"] = args.aspect
+    env["TARGET_DURATION"] = args.duration
     if args.piper_model:
         env["TTS_ENGINE"] = "piper"
         env["PIPER_MODEL"] = str(args.piper_model.expanduser().resolve())
@@ -57,12 +66,11 @@ def main():
     target = args.output or OUTPUT / ("shorts-" + time.strftime("%Y%m%d-%H%M%S") + ".mp4")
     target = target.expanduser().resolve()
     target.parent.mkdir(parents=True, exist_ok=True)
-    run(["npx", "remotion", "render", "job-entry.mjs", "ShortsJob", str(target),
-         "--codec", "h264", "--crf", "26", "--concurrency", "1", "--scale", "0.5"], cwd=ANIMATION)
-    run(["ffprobe", "-v", "error", "-show_entries", "stream=codec_name,width,height",
-         "-of", "default=noprint_wrappers=1", str(target)])
-    if not target.is_file() or target.stat().st_size < 10000:
-        raise RuntimeError("MP4 output missing or too small")
+    run([sys.executable, "generate-ai-scenes.py"], cwd=ANIMATION, env=env)
+    render = [sys.executable, "render-job.py", "--output", str(target)]
+    if args.browser:
+        render.extend(["--browser", args.browser])
+    run(render, cwd=ANIMATION, env=env)
     print("\nVideo created:", target)
 
 if __name__ == "__main__":
