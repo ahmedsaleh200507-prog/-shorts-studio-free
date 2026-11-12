@@ -2,6 +2,11 @@
 import json, os, pathlib, re, urllib.parse, urllib.request, urllib.error
 ROOT=pathlib.Path(__file__).resolve().parent
 script=os.environ.get("SCRIPT","").strip()
+if script.startswith("[[ASPECT_16_9]]"):
+    script=script[len("[[ASPECT_16_9]]"):].strip()
+    landscape=True
+else:
+    landscape=False
 key=os.environ.get("POLLINATIONS_KEY","").strip()
 if not key.startswith("sk_"):
     raise SystemExit("AI image mode requires a Pollinations sk_ key in GitHub Actions secret POLLINATIONS_KEY.")
@@ -16,7 +21,7 @@ character_bible=("Keep one recurring protagonist across scenes: same face, hairs
                   "clothes, age and proportions, unless the script explicitly changes them. ")
 previous_scene=""
 for i,sentence in enumerate(sentences):
-    prompt=("Vertical 9:16, richly detailed hand-painted 2D animated film still, flat illustrated 2D only, "
+    prompt=(("Horizontal 16:9 wide cinematic frame, " if landscape else "Vertical 9:16 frame, ")+ "richly detailed hand-painted 2D animated film still, flat illustrated 2D only, "
             "cohesive character design, expressive cinematic lighting, vivid environment, clean outlines, "
             "no letters, no subtitles, no watermarks, no 3D, no photorealism. Scene: "+sentence)
     prompt += (" Entire story context: "+story_context+
@@ -25,7 +30,7 @@ for i,sentence in enumerate(sentences):
     previous_scene=sentence
     models=[m.strip() for m in os.environ.get("AI_IMAGE_MODELS","black-forest-labs/flux.1-schnell").split(",") if m.strip()][:3]
     if not models: raise SystemExit("No image model configured")
-    query=urllib.parse.urlencode({"model":models[0],"width":576,"height":1024,"seed":42})
+    query=urllib.parse.urlencode({"model":models[0],"width":1024 if landscape else 576,"height":576 if landscape else 1024,"seed":42})
     url="https://gen.pollinations.ai/image/"+urllib.parse.quote(prompt,safe="")+"?"+query
     req=urllib.request.Request(url,headers={"Authorization":"Bearer "+key,"Accept":"image/*","User-Agent":"ShortsStudioFree/1.0"})
     try:
