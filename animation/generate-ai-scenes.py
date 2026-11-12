@@ -1,11 +1,11 @@
 """Generate real AI scene artwork with Pollinations, only when a server-side key is configured."""
-import json, os, pathlib, urllib.parse, urllib.request, urllib.error
+import json, os, pathlib, re, urllib.parse, urllib.request, urllib.error
 ROOT=pathlib.Path(__file__).resolve().parent
 script=os.environ.get("SCRIPT","").strip()
 key=os.environ.get("POLLINATIONS_KEY","").strip()
 if not key.startswith("sk_"):
     raise SystemExit("AI image mode requires a Pollinations sk_ key in GitHub Actions secret POLLINATIONS_KEY.")
-sentences=[s.strip() for s in __import__("re").findall(r"[^.!?\n]+[.!?]?",script) if s.strip()]
+sentences=[s.strip() for s in re.findall(r"[^.!?\n]+[.!?]?",script) if s.strip()]
 if not sentences or len(sentences)>60: raise SystemExit("Invalid script")
 out=ROOT/"public"/"ai-scenes";out.mkdir(parents=True,exist_ok=True)
 uris=[]
