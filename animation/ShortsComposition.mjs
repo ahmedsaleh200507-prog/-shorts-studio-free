@@ -43,6 +43,19 @@ function Background({place,frame}){
   Shape({x:0,y:0,w:100,h:72,color:'#f0dfbf'}),
   ...[5,77].map((x,i)=>Shape({x,y:18,w:19,h:50,color:'#a26c4b',r:5,children:el(React.Fragment,null,...[12,43,73].map((y,j)=>Shape({x:4,y,w:92,h:7,color:'#efc95d',r:4}))) })),
   floor,Shape({x:3,y:75,w:94,h:3,color:'#d4ac88'}));
+ if(['hospital','school','restaurant','office'].includes(place)){
+  const colors={hospital:['#dceef0','#91c6d1'],school:['#f1e2bf','#76a6a3'],restaurant:['#e7cbb4','#b57a57'],office:['#d3e1eb','#6588a4']};
+  const [wall,accent]=colors[place];
+  return el(React.Fragment,null,
+   Shape({x:0,y:0,w:100,h:72,color:wall}),
+   Shape({x:6,y:12,w:34,h:28,color:accent,r:9,style:{border:'11px solid #f8f7f0',boxShadow:'0 8px 18px #0002'}}),
+   Shape({x:70,y:14,w:21,h:36,color:place==='school'?'#376b58':'#b4d0db',r:6,style:{border:'9px solid #f4f0e8'}}),
+   floor,
+   Shape({x:7,y:63,w:68,h:7,color:place==='restaurant'?'#81583c':'#dce7e9',r:8}),
+   Shape({x:12,y:69,w:4,h:20,color:'#5b6b78'}),
+   Shape({x:64,y:69,w:4,h:20,color:'#5b6b78'}),
+   place==='hospital'?Shape({x:83,y:22,w:3,h:17,color:'#de5d61',children:Shape({x:-180,y:36,w:460,h:20,color:'#de5d61'})}):null);
+ }
  if(place==='transport')return el(React.Fragment,null,
   Shape({x:0,y:0,w:100,h:72,color:'#c0dcf2'}),
   Shape({x:5,y:27,w:90,h:43,color:'#f5c15b',r:25}),
