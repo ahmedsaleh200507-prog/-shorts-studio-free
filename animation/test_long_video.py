@@ -79,6 +79,21 @@ class LongVideoTests(unittest.TestCase):
             manifest = (tmpdir / "ai-scene-images.mjs").read_text()
             self.assertIn("[null, null]", manifest)
 
+    def test_explicit_vector_mode_skips_image_api_even_with_key(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = pathlib.Path(tmp)
+            original_resolve = pathlib.Path.resolve
+            def fake_resolve(path, *args, **kwargs):
+                if path == SCRIPT_FILE:
+                    return tmpdir / "generate-ai-scenes.py"
+                return original_resolve(path, *args, **kwargs)
+            with patch.dict(os.environ, {"SCRIPT": "[[VECTOR_2D]]\\n[[ASPECT_16_9]]\\nEin Mann liest Nachrichten.",
+                                      "POLLINATIONS_KEY": "sk_test"}), patch.object(
+                    pathlib.Path, "resolve", fake_resolve
+                ), patch("urllib.request.urlopen", side_effect=AssertionError("No image API in vector mode")):
+                runpy.run_path(str(SCRIPT_FILE), run_name="__main__")
+            self.assertIn("[null]", (tmpdir / "ai-scene-images.mjs").read_text())
+
     def test_overlong_script_rejected(self):
         with patch.dict(os.environ, {"SCRIPT": "a" * 12001, "POLLINATIONS_KEY": "sk_test"}):
             with self.assertRaises(SystemExit):
