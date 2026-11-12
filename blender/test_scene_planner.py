@@ -16,6 +16,11 @@ class ScenePlannerTests(unittest.TestCase):
         self.assertEqual(result["scenes"][0]["visual"], "unsupported")
         self.assertFalse(result["all_supported"])
 
+    def test_permuted_script_preserves_order(self):
+        result = plan("The map shows a route. A phone displays a warning. The city goes dark.")
+        self.assertEqual([scene["visual"] for scene in result["scenes"]], ["map", "phone", "city"])
+        self.assertTrue(result["all_supported"])
+
     def test_empty_rejected(self):
         with self.assertRaises(ValueError):
             plan("   ")
