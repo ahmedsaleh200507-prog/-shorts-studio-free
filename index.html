@@ -59,7 +59,7 @@ async function generate(download=false){
    if(version!==requestVersion)throw Error('Metin veya dil değişti. Yeni video için Başlat düğmesine bas.');
    const res=await request('/status?job_id='+encodeURIComponent(job.job_id),key),info=await res.json();
    setStatus('⏳ GitHub video hazırlıyor: '+(info.status||'bekleniyor')+' ('+((attempt+1)*6)+' sn)');
-   if(info.status==='completed'){if(info.conclusion!=='success')throw Error('GitHub video üretimi başarısız: '+(info.conclusion||'bilinmiyor'));runId=info.run_id;break}
+   if(info.status==='completed'){if(info.conclusion!=='success')throw Error('GitHub video üretimi başarısız: '+(info.conclusion||'bilinmiyor')+(info.run_id?' | Hata kaydı: https://github.com/ahmedsaleh200507-prog/-shorts-studio-free/actions/runs/'+encodeURIComponent(info.run_id):''));runId=info.run_id;break}
   }
   if(!runId)throw Error('10 dakika içinde tamamlanmadı');
   let archiveResponse=null;
