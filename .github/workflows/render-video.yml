@@ -34,49 +34,40 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: render/requirements.txt
-      - name: Install static FFmpeg and FFprobe (no apt)
-        shell: bash
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Remotion and narration dependencies
         run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/shorts-ffmpeg"
-          curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 180 \
-            https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz \
-            -o "$RUNNER_TEMP/ffmpeg-static.tar.xz"
-          mkdir -p "$RUNNER_TEMP/ffmpeg-extract"
-          tar -xJf "$RUNNER_TEMP/ffmpeg-static.tar.xz" -C "$RUNNER_TEMP/ffmpeg-extract"
-          FFMPEG_BIN="$(find "$RUNNER_TEMP/ffmpeg-extract" -type f -name ffmpeg -print -quit)"
-          FFPROBE_BIN="$(find "$RUNNER_TEMP/ffmpeg-extract" -type f -name ffprobe -print -quit)"
-          test -n "$FFMPEG_BIN" && test -n "$FFPROBE_BIN" || { echo "::error::FFmpeg binaries missing from downloaded archive"; exit 1; }
-          cp "$FFMPEG_BIN" "$RUNNER_TEMP/shorts-ffmpeg/ffmpeg"
-          cp "$FFPROBE_BIN" "$RUNNER_TEMP/shorts-ffmpeg/ffprobe"
-          chmod +x "$RUNNER_TEMP/shorts-ffmpeg/ffmpeg" "$RUNNER_TEMP/shorts-ffmpeg/ffprobe"
-          echo "$RUNNER_TEMP/shorts-ffmpeg" >> "$GITHUB_PATH"
-          "$RUNNER_TEMP/shorts-ffmpeg/ffmpeg" -version | head -n 1
-          "$RUNNER_TEMP/shorts-ffmpeg/ffprobe" -version | head -n 1
-      - name: Verify FFmpeg and install renderer
-        run: |
-          set -euo pipefail
-          command -v ffmpeg
-          command -v ffprobe
-          python -m pip install --disable-pip-version-check --retries 5 --timeout 30 -r render/requirements.txt
-      - name: Check renderer syntax and FFmpeg codecs
-        run: |
-          python -m py_compile render/render.py render/comfyui_client.py render/motion2d.py render/test_motion2d.py
-          python render/test_motion2d.py
-          ffmpeg -hide_banner -encoders > /tmp/shorts-encoders.txt
-          grep -E '^[[:space:]]*V.*libx264([[:space:]]|$)' /tmp/shorts-encoders.txt || { echo '::error::H.264 encoder unavailable'; exit 1; }
-          grep -E '^[[:space:]]*A.*aac([[:space:]]|$)' /tmp/shorts-encoders.txt || { echo '::error::AAC encoder unavailable'; exit 1; }
-      - name: Render and verify audio/video
+          python -m pip install --disable-pip-version-check --retries 5 edge-tts mutagen
+          cd animation
+          npm ci --no-audit --no-fund
+          npm test
+          npx remotion browser ensure
+      - name: Prepare real user script and synchronized narration
         env:
           SCRIPT: ${{ inputs.script }}
           LANGUAGE: ${{ inputs.language }}
-          COMFYUI_URL: ${{ secrets.COMFYUI_URL }}
-          COMFYUI_API_TOKEN: ${{ secrets.COMFYUI_API_TOKEN }}
-          COMFYUI_CHECKPOINT: ${{ secrets.COMFYUI_CHECKPOINT }}
-          COMFYUI_WORKFLOW: render/comfyui_workflow.json
         run: |
-          python render/render.py --text "$SCRIPT" --lang "$LANGUAGE" --out output/final.mp4
-          ffprobe -v error -show_entries stream=codec_name,codec_type -of json output/final.mp4
+          python animation/prepare-job.py
+          test -s animation/job-entry.mjs
+          test -s animation/narration-audio.mjs
+      - name: Render actual Remotion 2D video
+        working-directory: animation
+        run: |
+          mkdir -p ../output
+          npx remotion render job-entry.mjs ShortsJob ../output/final.mp4 --codec h264 --crf 26 --concurrency 1 --scale 0.5
+      - name: Validate real MP4 file
+        run: |
+          test -s output/final.mp4
+          node --input-type=module -e "
+            import {readFileSync,statSync} from 'node:fs';
+            const f='output/final.mp4', b=readFileSync(f);
+            if(statSync(f).size<10000) throw Error('MP4 too small');
+            if(b.toString('ascii',4,8)!=='ftyp') throw Error('Missing MP4 header');
+            if(!b.includes(Buffer.from('moov')) || !b.includes(Buffer.from('mdat'))) throw Error('Invalid MP4 structure');
+            console.log('Production Remotion MP4:',b.length,'bytes');
+          "
       - uses: actions/upload-artifact@v4
         with:
           name: shorts-studio-sesli-mp4
