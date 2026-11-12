@@ -99,7 +99,15 @@ function Background({place,frame}){
 function Prop({action,frame}){
  const bob=Math.sin(frame/4)*2;
  if(action==='brush')return el(React.Fragment,null,Shape({x:57,y:45+bob,w:2,h:14,color:'#f5f5f5',r:6,rotate:30}),Shape({x:55,y:44+bob,w:6,h:3,color:'#5bc4dd',r:4}));
- if(action==='pick')return el(React.Fragment,null,Shape({x:72-frame/8,y:50+bob,w:9,h:7,color:'#d8443e',r:'50%'}),Shape({x:76-frame/8,y:48+bob,w:4,h:3,color:'#4c954e',r:'70%'}));
+ if(action==='pick'){
+  const grasp=Math.min(1,Math.max(0,(frame-14)/28));
+  const x=72-19*grasp,y=57-9*grasp+bob*.3;
+  return el(React.Fragment,null,
+   Shape({x,y,w:9,h:7,color:'#d8443e',r:'48% 48% 52% 52%',style:{boxShadow:'inset -5px -4px 0 #a92b2b'}}),
+   Shape({x:x+4,y:y-2,w:1.3,h:3,color:'#60422d',r:3,rotate:15}),
+   Shape({x:x+5,y:y-2,w:4,h:2,color:'#4c954e',r:'70% 0 70% 0',rotate:-22}),
+   grasp>.5?Shape({x:x-1,y:y+2,w:3,h:3,color:'#e5ad8c',r:'50%'}):null);
+ }
  if(action==='checkout')return el(React.Fragment,null,Shape({x:65,y:66,w:33,h:13,color:'#777e89',r:7}),Shape({x:67,y:61,w:15,h:7,color:'#2a405b',r:5}),Shape({x:58+Math.sin(frame/7)*3,y:54,w:12,h:6,color:'#f5d56c',r:5,rotate:15}));
  if(action==='carry'){
   const sway=Math.sin(frame*.24)*2.5;
@@ -148,13 +156,13 @@ function StoryObject({action,frame,accent,text=''}){
   const exit=Math.min(1,Math.max(0,(frame-48)/23));
   return el(React.Fragment,null,
    el('div',{style:{position:'absolute',left:'0%',top:'52%',width:'100%',height:'48%',background:'#233c4d',opacity:.42}}),
-   el('div',{style:{...base,left:'21%',width:'58%',top:'14%',height:'69%',background:'linear-gradient(145deg,#b5e3f1,#dcefcf)',border:'16px solid #263448',borderRadius:10,perspective:900,overflow:'visible'}},
+   el('div',{style:{...base,left:'21%',width:'58%',top:'14%',height:'69%',background:'linear-gradient(145deg,#b5e3f1,#dcefcf)',border:'16px solid #263448',borderRadius:10,overflow:'visible'}},
     el('div',{style:{position:'absolute',left:'37%',bottom:'0%',width:'30%',height:'64%',opacity:.7,transform:`scale(${1-exit*.38}) translateX(${exit*65}%)`,transformOrigin:'bottom center'}},
      el('div',{style:{position:'absolute',left:'20%',top:'0%',width:'60%',aspectRatio:'1',borderRadius:'50%',background:'#243b55'}}),
      el('div',{style:{position:'absolute',left:'10%',top:'22%',width:'80%',height:'48%',borderRadius:24,background:'#243b55'}}),
      el('div',{style:{position:'absolute',left:'18%',top:'65%',width:'22%',height:'35%',background:'#243b55',transform:`rotate(${Math.sin(frame*.28)*10}deg)`}}),
      el('div',{style:{position:'absolute',right:'18%',top:'65%',width:'22%',height:'35%',background:'#243b55',transform:`rotate(${-Math.sin(frame*.28)*10}deg)`}})),
-    el('div',{style:{position:'absolute',inset:0,background:'linear-gradient(110deg,#9b613d,#e5ac6b)',border:'12px solid #7e4b2e',transformOrigin:'left center',transform:`rotateY(${-72*open}deg)`,boxShadow:'15px 15px 45px #0008'}},
+    el('div',{style:{position:'absolute',inset:0,background:'linear-gradient(110deg,#9b613d,#e5ac6b)',border:'12px solid #7e4b2e',transformOrigin:'left center',transform:`scaleX(${1-open*.92}) skewY(${-open*4}deg)`,boxShadow:'15px 15px 45px #0008'}},
      el('div',{style:{position:'absolute',right:'10%',top:'50%',width:26,height:26,background:'#f8d77c',borderRadius:'50%',boxShadow:'0 0 0 8px #9e673b'}}))),
    // A foreground character approaches, reaches for the handle and passes the door.
    el('div',{style:{position:'absolute',left:`${-8+approach*37+exit*49}%`,top:`${47+exit*9}%`,width:`${22-exit*9}%`,height:`${39-exit*12}%`,opacity:1-exit,transform:`translateY(${Math.abs(Math.sin(frame*.32))*-8}px)`}},
