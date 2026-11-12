@@ -92,3 +92,10 @@ test('Explicit place wins over broad action keywords',()=>{
   assert.equal(makeScenePlan(sentence).scenes[0].place,place,sentence);
  }
 });
+
+test('History keywords do not match substrings in everyday words',()=>{
+ const p=makeScenePlan('Der Patient liegt im Krankenhaus. Er wartet auf Hilfe. Danach spricht er mit einer Frau.');
+ assert.deepEqual(p.scenes.map(s=>s.place),['hospital','hospital','hospital']);
+ assert.equal(makeScenePlan('The war ended.').scenes[0].action,'history');
+ assert.equal(makeScenePlan('The warehouse is large.').scenes[0].action,'talk');
+});
