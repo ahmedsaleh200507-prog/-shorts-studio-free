@@ -42,3 +42,22 @@ test('Reference-style visual narration uses semantic motion graphics',()=>{
  assert.equal(makeScenePlan('Eine unbekannte Geschichte beginnt.').scenes[0].visualMode,'kinetic-type');
  assert.equal(makeScenePlan('Sie putzt ihre Zähne.').scenes[0].visualMode,'character');
 });
+
+test('Different stories create different environments, not a supermarket fallback',()=>{
+ const cases=[
+  ['Der Patient liegt im Krankenhaus.','hospital'],
+  ['Die Kinder lernen in der Schule.','school'],
+  ['Die Familie sitzt im Restaurant.','restaurant'],
+  ['Die Frau arbeitet im Büro.','office'],
+  ['Der Mann nimmt seinen Schlüssel.','generic']
+ ];
+ for(const [sentence,place] of cases){
+  assert.equal(makeScenePlan(sentence).scenes[0].place,place,sentence);
+ }
+});
+test('Each sentence has its own non-overlapping frames',()=>{
+ const p=makeScenePlan('Er ist im Krankenhaus. Danach geht er in die Schule. Er fährt mit dem Bus.');
+ assert.equal(p.scenes.length,3);
+ for(let i=1;i<p.scenes.length;i++)assert.equal(p.scenes[i-1].endFrame,p.scenes[i].startFrame);
+ assert.equal(p.totalFrames,p.scenes.at(-1).endFrame);
+});
