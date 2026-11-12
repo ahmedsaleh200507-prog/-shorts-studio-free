@@ -4,6 +4,7 @@ import {AbsoluteFill, Audio, Sequence, useCurrentFrame, interpolate} from 'remot
 import {makeScenePlan} from './scene-plan.mjs';
 import {aiSceneImages} from './ai-scene-images.mjs';
 import {staticFile} from 'remotion';
+import {characterPose} from './skeletal-motion.mjs';
 
 const el=React.createElement;
 const pct=(n)=>n+'%';
@@ -12,14 +13,12 @@ function Shape({x,y,w,h,color,r=0,rotate=0,children,style={}}){
 }
 function Person({frame,action}){
  // Vector character with independently articulated limbs and a gentle breathing cycle.
- const walking=action==='travel'||action==='carry',step=walking?Math.sin(frame*0.24):0;
- const bounce=walking?Math.abs(step)*8:Math.sin(frame*0.09)*2;
- const reach=action==='pick'?Math.min(1,frame/22):0;
- const brush=action==='brush',wake=action==='wake';
- const armLeft=walking?step*19:brush?-34+Math.sin(frame*.34)*7:action==='checkout'?-18:Math.sin(frame*.08)*3;
- const armRight=action==='carry'?-11+step*4:walking?-step*19:reach?-55*reach:action==='checkout'?-26:Math.sin(frame*.09+1)*4;
- const legLeft=walking?step*22:0,legRight=walking?-step*22:0;
- const headTurn=Math.sin(frame*.045)*2;
+ const pose=characterPose(action,frame);
+ const wake=action==='wake';
+ const bounce=pose.bodyY;
+ const armLeft=pose.leftArm,armRight=pose.rightArm;
+ const legLeft=pose.leftLeg,legRight=pose.rightLeg;
+ const headTurn=pose.headRotation;
  const svg=(tag,props,...children)=>el(tag,props,...children);
  return el('div',{style:{position:'absolute',left:'29%',top:'28%',width:'42%',height:'55%',transform:`translateY(${bounce+(wake?Math.max(0,28-frame*1.1):0)}px)`}},
   svg('svg',{viewBox:'0 0 300 640',width:'100%',height:'100%',role:'img','aria-label':'Animated 2D character'},
