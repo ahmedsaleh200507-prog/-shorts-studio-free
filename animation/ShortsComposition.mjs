@@ -12,12 +12,12 @@ function Shape({x,y,w,h,color,r=0,rotate=0,children,style={}}){
 }
 function Person({frame,action}){
  // Vector character with independently articulated limbs and a gentle breathing cycle.
- const walking=action==='travel',step=walking?Math.sin(frame*0.24):0;
+ const walking=action==='travel'||action==='carry',step=walking?Math.sin(frame*0.24):0;
  const bounce=walking?Math.abs(step)*8:Math.sin(frame*0.09)*2;
  const reach=action==='pick'?Math.min(1,frame/22):0;
  const brush=action==='brush',wake=action==='wake';
  const armLeft=walking?step*19:brush?-34+Math.sin(frame*.34)*7:action==='checkout'?-18:Math.sin(frame*.08)*3;
- const armRight=walking?-step*19:reach?-55*reach:action==='checkout'?-26:Math.sin(frame*.09+1)*4;
+ const armRight=action==='carry'?-11+step*4:walking?-step*19:reach?-55*reach:action==='checkout'?-26:Math.sin(frame*.09+1)*4;
  const legLeft=walking?step*22:0,legRight=walking?-step*22:0;
  const headTurn=Math.sin(frame*.045)*2;
  const svg=(tag,props,...children)=>el(tag,props,...children);
@@ -102,6 +102,14 @@ function Prop({action,frame}){
  if(action==='brush')return el(React.Fragment,null,Shape({x:57,y:45+bob,w:2,h:14,color:'#f5f5f5',r:6,rotate:30}),Shape({x:55,y:44+bob,w:6,h:3,color:'#5bc4dd',r:4}));
  if(action==='pick')return el(React.Fragment,null,Shape({x:72-frame/8,y:50+bob,w:9,h:7,color:'#d8443e',r:'50%'}),Shape({x:76-frame/8,y:48+bob,w:4,h:3,color:'#4c954e',r:'70%'}));
  if(action==='checkout')return el(React.Fragment,null,Shape({x:65,y:66,w:33,h:13,color:'#777e89',r:7}),Shape({x:67,y:61,w:15,h:7,color:'#2a405b',r:5}),Shape({x:58+Math.sin(frame/7)*3,y:54,w:12,h:6,color:'#f5d56c',r:5,rotate:15}));
+ if(action==='carry'){
+  const sway=Math.sin(frame*.24)*2.5;
+  return el('div',{style:{position:'absolute',left:'59%',top:'60%',width:'18%',height:'18%',transform:`translateY(${sway}px) rotate(${sway*.65}deg)`,transformOrigin:'50% 0%'}},
+   el('div',{style:{position:'absolute',left:'24%',top:'0%',width:'52%',height:'26%',border:'9px solid #d7a96a',borderBottom:'none',borderRadius:'50% 50% 0 0'}}),
+   el('div',{style:{position:'absolute',top:'18%',width:'100%',height:'77%',borderRadius:18,background:'#ad6849',border:'8px solid #714332',boxShadow:'8px 13px 20px #0003'}}),
+   el('div',{style:{position:'absolute',left:'45%',top:'26%',width:'10%',height:'52%',borderRadius:8,background:'#e4b16b'}}));
+ }
+
  return null;
 }
 
