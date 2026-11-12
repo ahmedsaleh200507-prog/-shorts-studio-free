@@ -61,7 +61,7 @@ const PENDING_KEY='shorts-studio-pending-v1';
 function getPending(){try{return JSON.parse(localStorage.getItem(PENDING_KEY)||'null')}catch{return null}}
 function savePending(job){try{localStorage.setItem(PENDING_KEY,JSON.stringify(job))}catch{}el('resumeJob').hidden=false}
 function clearPending(){try{localStorage.removeItem(PENDING_KEY)}catch{}el('resumeJob').hidden=true}
-function showPending(){const p=getPending();if(p?.job_id){el('resumeJob').hidden=false;setStatus('⏳ Video sunucuda hazırlanıyor olabilir. APP_KEY girip “Devam eden videoyu kontrol et” düğmesine bas.')} }
+function showPending(){const p=getPending();if(p?.job_id){el('resumeJob').hidden=false;setStatus('⏳ Video sunucuda hazırlanıyor. Durumu kontrol edebilirsin.');if(!busy && el('appkey').value.trim())generate(false,true)} }
 function displayVideo(url){const video=el('renderedVideo');video.src=url;video.hidden=false;el('canvas').hidden=true;video.load()}
 function invalidate(){requestVersion++;if(cache){URL.revokeObjectURL(cache.url);cache=null}el('renderedVideo').pause();el('renderedVideo').removeAttribute('src');el('renderedVideo').load();el('renderedVideo').hidden=true;el('audioDownload').hidden=true;el('iosShare').hidden=true;el('canvas').hidden=true}
 async function request(path,key,options={}){const response=await fetch(WORKER+path,{...options,headers:{'x-app-key':key,...(options.headers||{})}});if(!response.ok){let reason='HTTP '+response.status;try{const body=await response.json();reason=body.error||body.message||reason}catch{}throw Error(reason)}return response}
@@ -128,6 +128,8 @@ el('toggle').addEventListener('click',()=>generate(false));
 el('audioSave').addEventListener('click',()=>generate(true));
 el('resumeJob').addEventListener('click',()=>generate(true,true));
 window.addEventListener('pageshow',showPending);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)showPending()});
+el('appkey').addEventListener('change',showPending);
 el('reset').addEventListener('click',()=>{if(cache){displayVideo(cache.url);el('renderedVideo').currentTime=0;setStatus('Video başa alındı.')}else setStatus('Henüz video oluşturulmadı. ▶ Başlat düğmesine bas.')});
 function updateEstimate(){const s=el('story').value.trim();const words=(s.match(/\S+/g)||[]).length;el('scriptEstimate').textContent=`${s.length.toLocaleString('tr-TR')} / 12.000 karakter · Tahmini anlatım ${Math.max(1,Math.round(words/135))} dakika (gerçek süre sese bağlı)`}
 el('story').addEventListener('input',()=>{updateEstimate();invalidate();setStatus('Metin değişti. Yeni video için ▶ Başlat düğmesine bas.')});
