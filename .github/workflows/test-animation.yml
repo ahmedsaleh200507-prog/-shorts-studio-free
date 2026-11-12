@@ -1,0 +1,34 @@
+name: Test animation engines
+on:
+  push:
+    paths:
+      - 'animation/**'
+      - '.github/workflows/test-animation.yml'
+  pull_request:
+    paths:
+      - 'animation/**'
+      - '.github/workflows/test-animation.yml'
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check both engines
+        run: |
+          python -m py_compile animation/generate-ai-scenes.py animation/prepare-job.py
+          node --check animation/ShortsComposition.mjs
+          node --check animation/scene-plan.mjs
+      - name: Test free vector and AI fallback
+        run: python -m unittest discover -s animation -p 'test_long_video.py' -v
+      - name: Test scene planning
+        working-directory: animation
+        run: npm test
