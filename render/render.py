@@ -137,7 +137,11 @@ async def main():
                 raise RuntimeError(f'Invalid narration duration for scene {i+1}: {d}')
             image=root/f'i{i:03}.png'
             im=Image.new('RGB',(540,960))
-            ai_scene=generate_ai_scene(s,image,i)
+            try:
+                ai_scene=generate_ai_scene(s,image,i)
+            except (OSError, ValueError, KeyError, TimeoutError, RuntimeError) as exc:
+                ai_scene=False
+                print(f'ComfyUI unavailable for scene {i+1}: {type(exc).__name__}: {exc}; using animated 2D fallback',flush=True)
             if ai_scene:
                 generated=Image.open(image).convert('RGB')
                 from PIL import ImageOps
@@ -147,7 +151,7 @@ async def main():
             else:
                 scene(ImageDraw.Draw(im),540,960,s,i,len(sentences))
                 im.save(image)
-                print('Legacy 2D scene used (ComfyUI not configured)',flush=True)
+                print('Animated 2D fallback selected',flush=True)
             seg=root/f's{i:03}.mp4'
             if not ai_scene:
                 frames=root/f'frames_{i:03}'
