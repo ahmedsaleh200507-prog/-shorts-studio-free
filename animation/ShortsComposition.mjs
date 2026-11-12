@@ -9,21 +9,53 @@ function Shape({x,y,w,h,color,r=0,rotate=0,children,style={}}){
  return el('div',{style:{position:'absolute',left:pct(x),top:pct(y),width:pct(w),height:pct(h),background:color,borderRadius:r,transform:`rotate(${rotate}deg)`,...style}},children);
 }
 function Person({frame,action}){
- const phase=Math.sin(frame/4),walk=action==='travel'?phase*14:0;
- const arm=action==='brush'?-45+phase*12:action==='pick'?-65+phase*12:action==='checkout'?-32+phase*9:action==='wake'?-15+phase*8:phase*10;
- const rise=action==='wake'?Math.max(0,18-frame*0.7):0;
- return el('div',{style:{position:'absolute',left:'36%',top:`${29+rise+walk/10}%`,width:'30%',height:'52%'}},
-  Shape({x:26,y:5,w:48,h:24,color:'#e9b18e',r:'50%',children:Shape({x:0,y:0,w:100,h:32,color:'#273248',r:'50%'}),
-   style:{boxShadow:'inset -9px -4px 0 #d69877'}}),
-  Shape({x:38,y:17,w:5,h:3,color:'#1c293c',r:'50%'}),
-  Shape({x:62,y:17,w:5,h:3,color:'#1c293c',r:'50%'}),
-  Shape({x:27,y:29,w:46,h:39,color:'#397fbd',r:26,style:{boxShadow:'inset -12px 0 0 #286a9e'}}),
-  Shape({x:29,y:64,w:17,h:34,color:'#23344e',r:14,rotate:action==='travel'?walk:0}),
-  Shape({x:54,y:64,w:17,h:34,color:'#23344e',r:14,rotate:action==='travel'?-walk:0}),
-  Shape({x:18,y:33,w:14,h:32,color:'#e9b18e',r:20,rotate:arm,style:{transformOrigin:'50% 7%'}}),
-  Shape({x:68,y:33,w:14,h:32,color:'#e9b18e',r:20,rotate:-arm/2,style:{transformOrigin:'50% 7%'}})
+ // Vector character with independently articulated limbs and a gentle breathing cycle.
+ const walking=action==='travel',step=walking?Math.sin(frame*0.24):0;
+ const bounce=walking?Math.abs(step)*8:Math.sin(frame*0.09)*2;
+ const reach=action==='pick'?Math.min(1,frame/22):0;
+ const brush=action==='brush',wake=action==='wake';
+ const armLeft=walking?step*19:brush?-34+Math.sin(frame*.34)*7:action==='checkout'?-18:Math.sin(frame*.08)*3;
+ const armRight=walking?-step*19:reach?-55*reach:action==='checkout'?-26:Math.sin(frame*.09+1)*4;
+ const legLeft=walking?step*22:0,legRight=walking?-step*22:0;
+ const headTurn=Math.sin(frame*.045)*2;
+ const svg=(tag,props,...children)=>el(tag,props,...children);
+ return el('div',{style:{position:'absolute',left:'29%',top:'28%',width:'42%',height:'55%',transform:`translateY(${bounce+(wake?Math.max(0,28-frame*1.1):0)}px)`}},
+  svg('svg',{viewBox:'0 0 300 640',width:'100%',height:'100%',role:'img','aria-label':'Animated 2D character'},
+   svg('defs',null,
+    svg('linearGradient',{id:'shirtShade',x1:'0%',y1:'0%',x2:'100%',y2:'20%'},svg('stop',{offset:'0%',stopColor:'#529ad2'}),svg('stop',{offset:'100%',stopColor:'#205b92'})),
+    svg('linearGradient',{id:'skinShade',x1:'0%',y1:'0%',x2:'100%',y2:'0%'},svg('stop',{offset:'0%',stopColor:'#f4c6a5'}),svg('stop',{offset:'100%',stopColor:'#d89170'}))
+   ),
+   // Rear limbs first so the body overlaps the shoulder and hip joints.
+   svg('g',{transform:`rotate(${legLeft} 119 392)`},
+    svg('path',{d:'M99 379 Q105 420 102 486 L90 590 Q91 608 112 610 L139 603 L145 481 L147 395 Z',fill:'#263c60',stroke:'#192b45',strokeWidth:6,strokeLinejoin:'round'}),
+    svg('path',{d:'M89 586 Q105 596 139 592 L148 615 Q137 630 84 625 Q72 616 89 586',fill:'#202a3e',stroke:'#111b2d',strokeWidth:5})),
+   svg('g',{transform:`rotate(${legRight} 180 392)`},
+    svg('path',{d:'M155 387 Q163 431 161 485 L158 597 Q171 610 189 601 L205 484 L206 383 Z',fill:'#314d70',stroke:'#192b45',strokeWidth:6,strokeLinejoin:'round'}),
+    svg('path',{d:'M158 590 Q172 601 190 594 L216 611 Q220 631 163 627 Q146 616 158 590',fill:'#202a3e',stroke:'#111b2d',strokeWidth:5})),
+   svg('g',{transform:`rotate(${armLeft} 94 227)`},
+    svg('path',{d:'M96 221 Q62 225 58 269 L42 367 Q40 390 59 395 Q78 397 85 375 L112 285 Q130 235 96 221',fill:'url(#shirtShade)',stroke:'#214d76',strokeWidth:6}),
+    svg('path',{d:'M44 358 Q34 371 40 389 Q50 409 68 394 L78 366',fill:'url(#skinShade)',stroke:'#b87860',strokeWidth:5})),
+   svg('g',{transform:`rotate(${armRight} 208 229)`},
+    svg('path',{d:'M203 224 Q240 220 249 270 L270 359 Q277 386 256 393 Q237 395 230 370 L191 287 Q177 240 203 224',fill:'url(#shirtShade)',stroke:'#214d76',strokeWidth:6}),
+    svg('path',{d:'M243 355 Q243 375 252 390 Q270 408 277 382 L268 355',fill:'url(#skinShade)',stroke:'#b87860',strokeWidth:5})),
+   svg('path',{d:'M105 214 Q150 201 200 217 Q225 258 213 382 Q161 401 89 383 Q79 290 105 214',fill:'url(#shirtShade)',stroke:'#214d76',strokeWidth:7,strokeLinejoin:'round'}),
+   svg('path',{d:'M111 227 Q145 242 178 229',fill:'none',stroke:'#a8c9e5',strokeWidth:5,opacity:.7}),
+   svg('path',{d:'M139 188 L140 220 Q153 233 169 219 L168 186',fill:'url(#skinShade)',stroke:'#b87860',strokeWidth:5}),
+   svg('g',{transform:`rotate(${headTurn} 151 130)`},
+    svg('ellipse',{cx:151,cy:133,rx:71,ry:87,fill:'url(#skinShade)',stroke:'#b87860',strokeWidth:5}),
+    svg('path',{d:'M82 127 Q68 40 136 39 Q210 25 224 110 L213 124 Q196 98 192 83 Q157 114 105 101 L94 142 Z',fill:'#27364b',stroke:'#1b2738',strokeWidth:5}),
+    svg('path',{d:'M107 137 Q122 129 135 137 M166 137 Q181 129 195 137',fill:'none',stroke:'#343849',strokeWidth:6,strokeLinecap:'round'}),
+    svg('ellipse',{cx:121,cy:146,rx:5,ry:7,fill:'#24364b'}),
+    svg('ellipse',{cx:181,cy:146,rx:5,ry:7,fill:'#24364b'}),
+    svg('path',{d:'M150 151 L145 171 Q151 176 158 171',fill:'none',stroke:'#c48068',strokeWidth:4,strokeLinecap:'round'}),
+    svg('path',{d:'M132 190 Q151 203 172 188',fill:'none',stroke:'#9d574f',strokeWidth:5,strokeLinecap:'round'}),
+    svg('ellipse',{cx:96,cy:175,rx:12,ry:8,fill:'#e99b86',opacity:.45}),
+    svg('ellipse',{cx:203,cy:174,rx:12,ry:8,fill:'#e99b86',opacity:.45})
+   )
+  )
  );
 }
+
 function Background({place,frame}){
  const floor=Shape({x:0,y:72,w:100,h:28,color:'#bd9477'});
  if(place==='bedroom')return el(React.Fragment,null,
