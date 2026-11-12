@@ -16,7 +16,7 @@ select,input{background:#182840;color:#fff;width:100%;border:1px solid #3c506e}
 .row{grid-column:1;display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
 .field{display:grid;gap:7px;flex:1;min-width:145px}.field label{font-size:13px;font-weight:700;color:#c3d6ed}
 canvas,#renderedVideo{grid-column:2;grid-row:3/span 8;display:block;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto 18px;background:#14233a;border:6px solid #253750;border-radius:27px;box-shadow:0 22px 70px #0009}
-#renderedVideo{display:block;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto 18px;background:#101a2e;border:6px solid #253750;border-radius:27px;box-shadow:0 22px 70px #0009;object-fit:contain}\n#status,#audioStatus{grid-column:1;min-height:26px;color:var(--mint);overflow-wrap:anywhere;font-size:14px}
+#renderedVideo{display:block;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto 18px;background:#101a2e;border:6px solid #253750;border-radius:27px;box-shadow:0 22px 70px #0009;object-fit:contain}\n[hidden]{display:none!important}\n#status,#audioStatus{grid-column:1;min-height:26px;color:var(--mint);overflow-wrap:anywhere;font-size:14px}
 #audioStatus:not(:empty){background:#142a33;border:1px solid #285b5d;border-radius:12px;padding:12px 14px;margin:5px 0}
 #audioDownload{grid-column:1;color:#081f19;background:var(--mint);font-weight:700;border-radius:12px;padding:12px 18px;text-align:center;text-decoration:none;margin:8px 0}
 small{grid-column:1;color:#a5b8cf;line-height:1.6;display:block;margin-top:12px}
@@ -29,7 +29,7 @@ small{grid-column:1;color:#a5b8cf;line-height:1.6;display:block;margin-top:12px}
 <div class="row"><div class="field"><label for="language">Ses dili</label><select id="language"><option value="de-DE">🇩🇪 Almanca</option><option value="en-US">🇬🇧 İngilizce</option></select></div><div class="field"><label for="voice">Cihazdaki ses</label><select id="voice"><option value="">Sesler yükleniyor...</option></select></div></div>
 <div class="row"><button id="toggle">▶ Başlat</button><button id="reset">↺ Baştan</button></div>
 <div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div><div class="row"><button id="audioSave">📥 Videoyu kaydet</button></div><div id="audioStatus" role="status" aria-live="polite"></div><a id="audioDownload" hidden aria-hidden="true">İndirme bağlantısı</a><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
-<small>▶ Başlat: sesli önizleme. 📥 Videoyu kaydet: otomatik seslendirmeli MP4 hazırlar ve indirmeyi başlatır. Cloudflare APP_KEY değeri gerekir; GitHub tokenını buraya girme.</small></main>
+<small>▶ Başlat ve 📥 Videoyu kaydet aynı MP4 üretimini başlatır. Oluşturulan gerçek video önizlemede gösterilir. Cloudflare APP_KEY değeri gerekir; GitHub tokenını buraya girme.</small></main>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 'use strict';
@@ -38,7 +38,7 @@ let scenes=[],index=0,state='idle',utter=null,voices=[],generation=0,raf=0,scene
 const status=s=>$('status').textContent=s;
 const split=t=>(t.match(/[^.!?\n]+[.!?]?/gu)||[]).map(s=>s.trim()).filter(Boolean).slice(0,80);
 function classify(s,prev){let q=s.toLowerCase(),p='city';if(/supermarkt|market|shop|laden|geschäft|einkauf|grocer|store/.test(q))p='market';else if(/badezimmer|zahn|dusche|bathroom|brush|shower/.test(q))p='bath';else if(/schlaf|bett|aufwach|wacht .*auf|wake|woke|bedroom|sleep/.test(q))p='bed';else if(/küche|kochen|essen|kitchen|cook/.test(q))p='kitchen';else if(/schule|unterricht|school|classroom/.test(q))p='school';else if(/krankenhaus|arzt|hospital|doctor/.test(q))p='hospital';else if(/wald|baum|forest|tree/.test(q))p='forest';else if(/büro|arbeit|office|work/.test(q))p='office';else if(/bus|zug|bahn|train|station/.test(q))p='station';else if(/weltall|planet|space|moon|mond/.test(q))p='space';else if(prev&&/^(er|sie|es|dann|danach|he|she|then|und)\b/.test(q)&&p==='city')p=prev.place;let a=/zahn|putz|brush/.test(q)?'brush':/aufwach|wacht .*auf|wake|woke|get(s)? up/.test(q)?'wake':/einsteig|steigt .*ein|board(s|ing)?|get(s)? on/.test(q)?'board':/apfel|apple|nimmt|take/.test(q)?'take':/bezahl|kasse|pay/.test(q)?'pay':/schlaf|bett|sleep/.test(q)?'sleep':/geh|lauf|walk|go|fahr|drive|bus|zug|train/.test(q)?'walk':'talk';return {text:s,place:p,action:a}}
-function showLivePreview(){const video=$('renderedVideo');video.pause();video.hidden=true;c.hidden=false}\nfunction showRenderedVideo(url){const video=$('renderedVideo');video.src=url;video.hidden=false;c.hidden=true;video.load();status('Oluşturulan gerçek MP4 önizlemesi hazır. Oynat düğmesine bas.')}\nfunction prepare(){showLivePreview();const a=split($('story').value);if(!a.length){status('Önce metin yaz.');return false}scenes=[];for(const sentence of a)scenes.push(classify(sentence,scenes.at(-1)));index=0;sceneElapsed=0;draw(scenes[0],0,0);return true}
+function showLivePreview(){const video=$('renderedVideo');video.pause();video.hidden=true;c.hidden=true}\nfunction showRenderedVideo(url){const video=$('renderedVideo');video.src=url;video.hidden=false;c.hidden=true;video.load();status('Oluşturulan gerçek MP4 önizlemesi hazır. Oynat düğmesine bas.')}\nfunction prepare(){const a=split($('story').value);if(!a.length){status('Önce metin yaz.');return false}scenes=[];for(const sentence of a)scenes.push(classify(sentence,scenes.at(-1)));index=0;sceneElapsed=0;return true}
 function R(a,b,w,h,col){x.fillStyle=col;x.fillRect(a,b,w,h)}function C(a,b,r,col){x.beginPath();x.arc(a,b,r,0,Math.PI*2);x.fillStyle=col;x.fill()}function L(a,b,d,e,col,w=9){x.strokeStyle=col;x.lineWidth=w;x.lineCap='round';x.beginPath();x.moveTo(a,b);x.lineTo(d,e);x.stroke()}function T(s,a,b,size=28,col='white'){x.fillStyle=col;x.font=`bold ${size}px system-ui`;x.textAlign='center';x.fillText(s,a,b)}
 function background(s,t){
  const p=s.place;
@@ -151,13 +151,13 @@ function draw(s,t,progress){if(!s)return;x.clearRect(0,0,W,H);x.save();x.transla
 function loadVoices(){if(!('speechSynthesis'in window))return;const previous=$('voice').value;voices=speechSynthesis.getVoices();const lang=$('language').value.split('-')[0],options=voices.map((v,i)=>({v,i})).filter(o=>o.v.lang.toLowerCase().startsWith(lang));$('voice').replaceChildren();if(!options.length){const e=document.createElement('option');e.value='';e.textContent=voices.length?'Bu dilde ses yok':'Sesler yükleniyor...';$('voice').append(e);return}for(const o of options){const e=document.createElement('option');e.value=String(o.i);e.textContent=o.v.name+' ('+o.v.lang+')';$('voice').append(e)}$('voice').value=options.some(o=>String(o.i)===previous)?previous:String(options[0].i)}
 function cancelSpeech(){generation++;utter=null;if('speechSynthesis'in window)try{speechSynthesis.cancel()}catch(e){}}
 function stopAnimation(){cancelAnimationFrame(raf);raf=0}
-function controls(){$('toggle').textContent=state==='playing'?'⏸ Durdur':state==='paused'?'▶ Devam et':'▶ Başlat';$('toggle').disabled=recording;$('reset').disabled=recording;$('story').disabled=recording}
+function controls(){$('toggle').textContent='▶ Başlat';$('toggle').disabled=recording;$('reset').disabled=recording;$('story').disabled=recording}
 function resetPlayback(){cancelSpeech();stopAnimation();state='idle';index=0;sceneElapsed=0;controls()}
 function animate(){stopAnimation();frameStart=performance.now();const tick=now=>{if(state!=='playing')return;const elapsed=sceneElapsed+(now-frameStart)/1000;draw(scenes[index],elapsed,Math.min(1,elapsed/5));raf=requestAnimationFrame(tick)};raf=requestAnimationFrame(tick)}
 function finish(){resetPlayback();if(scenes.length)draw(scenes[scenes.length-1],5,1);status('Oynatma tamamlandı. Yeniden başlatabilirsin.')}
 function speak(){if(state!=='playing')return;if(index>=scenes.length){finish();return}const id=++generation;const u=new SpeechSynthesisUtterance(scenes[index].text);utter=u;u.lang=$('language').value;u.rate=1;const value=$('voice').value;if(value!==''&&voices[Number(value)])u.voice=voices[Number(value)];u.onstart=()=>{if(id!==generation||state!=='playing')return;sceneElapsed=0;animate();status('Okunuyor: '+(index+1)+'/'+scenes.length)};u.onend=()=>{if(id!==generation||state!=='playing')return;stopAnimation();index++;sceneElapsed=0;if(index>=scenes.length)finish();else{draw(scenes[index],0,0);speak()}};u.onerror=e=>{if(id!==generation)return;if(e.error==='interrupted'||e.error==='canceled')return;resetPlayback();status('Seslendirme hatası: '+e.error+'. Baştan deneyin.')};try{speechSynthesis.speak(u)}catch(e){resetPlayback();status('Ses başlatılamadı: '+e.message)}}
-$('toggle').onclick=()=>{if(recording)return;if(state==='playing'){sceneElapsed+=(performance.now()-frameStart)/1000;state='paused';stopAnimation();try{speechSynthesis.pause()}catch(e){}controls();status('Duraklatıldı. Devam et düğmesine bas.');return}if(state==='paused'){state='playing';try{speechSynthesis.resume()}catch(e){resetPlayback();status('Ses devam ettirilemedi: '+e.message);return}animate();controls();status('Devam ediyor.');return}if(!('speechSynthesis'in window)){status('Tarayıcı seslendirmeyi desteklemiyor.');return}resetPlayback();if(!prepare())return;state='playing';controls();speak()};
-$('reset').onclick=()=>{if(recording)return;resetPlayback();prepare();status('Başa alındı.')};
+$('toggle').onclick=()=>{if(audioBusy)return;$('audioSave').click()};
+$('reset').onclick=()=>{if(audioBusy)return;resetPlayback();showLivePreview();prepare();status('Yeni video için hazır. Başlat düğmesine bas.')};
 $('story').addEventListener('input',()=>{if(recording)return;resetPlayback();showLivePreview();if(downloadUrl){URL.revokeObjectURL(downloadUrl);downloadUrl='';}status('Metin değişti. Başlat düğmesine bas.')});
 $('language').onchange=()=>{resetPlayback();loadVoices();status('Dil değişti. Cihazdaki sesi seç.')};
 $('voice').onchange=()=>{resetPlayback();status('Ses seçildi. Başlat düğmesine bas.')};
@@ -182,7 +182,7 @@ $('audioSave').onclick=async()=>{
  if(!key){audioStatus('Kaydetmek için Cloudflare APP_KEY değerini girmen gerekiyor. Şifreyi unuttuysan Cloudflare Settings bölümünden yenisini oluştur.');$('appkey').focus();return}
  audioBusy=true;$('audioSave').disabled=true;$('audioDownload').hidden=true;$('audioDownload').setAttribute('aria-hidden','true');
  try{
-  showLivePreview();audioStatus('Sesli video işi başlatılıyor...');
+  showLivePreview();status('Gerçek MP4 oluşturuluyor. Tamamlanınca aynı video burada gösterilecek.');audioStatus('Sesli video işi başlatılıyor...');
   const response=await api('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script,language:$('language').value.startsWith('de')?'de':'en'})});
   const job=await response.json();if(!job.job_id)throw Error('İş kimliği alınamadı');
   let runId=null;
@@ -223,5 +223,5 @@ $('audioSave').onclick=async()=>{
  }catch(error){audioStatus('Hata: '+error.message+(error.message==='Unauthorized'?' — Cloudflare APP_KEY ile buraya yazdığın değer eşleşmiyor.':'')+(error.message==='Origin not allowed'?' — Cloudflare ALLOWED_ORIGIN ayarını kontrol et.':''))}
  finally{audioBusy=false;$('audioSave').disabled=false}
 };
-prepare();controls();
+prepare();showLivePreview();controls();
 </script></body></html>
