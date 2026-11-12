@@ -1,5 +1,10 @@
 name: Blender 2D engine pilot
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'blender/**'
+      - '.github/workflows/blender-pilot.yml'
   workflow_dispatch:
 permissions:
   contents: read
