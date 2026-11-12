@@ -1,0 +1,34 @@
+name: Blender 2D engine pilot
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  blender-pilot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install open-source Blender and FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y blender ffmpeg
+          blender --version | head -n 2
+          ffmpeg -version | head -n 1
+      - name: Render animated 2D frames
+        run: |
+          mkdir -p output/blender-frames
+          blender -b -t 2 --python blender/pilot.py
+          test -s output/blender-frames/frame_0001.png
+          test -s output/blender-frames/frame_0072.png
+      - name: Encode and verify MP4
+        run: |
+          ffmpeg -hide_banner -loglevel error -y -framerate 24 -i output/blender-frames/frame_%04d.png -c:v libx264 -pix_fmt yuv420p -crf 23 -movflags +faststart output/blender-pilot.mp4
+          test -s output/blender-pilot.mp4
+          ffprobe -v error -show_entries stream=codec_name,width,height -of json output/blender-pilot.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blender-2d-engine-pilot
+          path: output/blender-pilot.mp4
+          if-no-files-found: error
+          retention-days: 7
