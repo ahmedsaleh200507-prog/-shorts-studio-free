@@ -15,12 +15,16 @@ def _font(size):
 def classify(text):
     t = text.casefold()
     groups = [
-        ('night', ('blackout','stromausfall','dunkel','dark','nacht','night','stadt','city')),
+        ('night', ('blackout','stromausfall','dunkel','dark','nacht','night')),
         ('market', ('supermarkt','market','shop','laden','einkauf','grocer')),
         ('hospital', ('krankenhaus','hospital','arzt','doctor','patient')),
         ('school', ('schule','school','classroom','unterricht')),
         ('transport', ('bus','zug','train','bahnhof','station')),
-        ('home', ('wohnung','zimmer','home','house','bett','bed','aufwach','wake')),
+        ('home', ('wohnung','zimmer','home','house','bett','bed','aufwach','wake','erwacht','wacht auf')),
+        ('bathroom', ('badezimmer','bathroom','zähne','zahnbürste','toothbrush','teeth','zähneputzen')),
+        ('cafe', ('café','cafe','kaffee','coffee','restaurant')),
+        ('office', ('büro','office','computer','laptop','arbeit','work')),
+        ('park', ('park','baum','tree','forest','wald','nature')),
     ]
     return next((name for name, words in groups if any(word in t for word in words)), 'city')
 
@@ -59,6 +63,28 @@ def _background(d, kind, tick):
             for j in range(8):
                 x=25+j*65
                 d.rounded_rectangle((x,y-65,x+43,y-8),radius=5,fill=['#d86e65','#77a58d','#efbb73'][j%3])
+    elif kind == 'bathroom':
+        d.rectangle((0,190,W,810),fill='#cce7ec')
+        for yy in range(210,810,90): d.line((0,yy,W,yy),fill='#a7d2d9',width=3)
+        for xx in range(0,W,90): d.line((xx,190,xx,810),fill='#a7d2d9',width=3)
+        d.rounded_rectangle((55,235,485,530),radius=24,fill='#f8ffff',outline='#6b9daa',width=9)
+        d.rounded_rectangle((80,690,460,775),radius=35,fill='#f8ffff',outline='#9abfc6',width=6)
+    elif kind == 'cafe':
+        d.rectangle((0,210,W,810),fill='#e8d5bb')
+        d.rectangle((45,265,495,500),fill='#9e7358')
+        for xx in (105,260,415): d.ellipse((xx-30,350,xx+30,410),fill='#eacb91')
+        d.rounded_rectangle((60,665,480,710),radius=15,fill='#86583f')
+    elif kind == 'office':
+        d.rectangle((0,200,W,810),fill='#d7e2e9')
+        d.rectangle((70,275,470,530),fill='#8fb4c9',outline='#f4f9fc',width=16)
+        d.rectangle((55,675,485,720),fill='#8a6c57')
+        d.rounded_rectangle((180,555,370,670),radius=10,fill='#2d455d')
+        d.rectangle((200,575,350,642),fill='#76bbd3')
+    elif kind == 'park':
+        d.rectangle((0,600,W,810),fill='#83b38a')
+        for xx in (75,430):
+            d.rectangle((xx-15,360,xx+15,720),fill='#78543d')
+            d.ellipse((xx-90,240,xx+90,465),fill='#4f966c')
     elif kind == 'hospital':
         d.rectangle((0,210,W,805),fill='#e8f2f3')
         d.rectangle((60,270,480,620),fill='#b9d7df')
@@ -106,7 +132,10 @@ def action_kind(sentence):
     if any(w in t for w in ('zähne','zahn','teeth','tooth','brush','putzt')): return 'brush'
     if any(w in t for w in ('kasse','bezahlt','bezahlen','checkout','cashier','pays')): return 'checkout'
     if any(w in t for w in ('apfel','apple','nimmt','picks up')): return 'pick'
-    if any(w in t for w in ('aufwach','wacht','wake','bett','bed')): return 'wake'
+    if any(w in t for w in ('aufwach','wacht','erwacht','wake','bett','bed')): return 'wake'
+    if any(w in t for w in ('kaffee','coffee','trinkt','drinks','cup')): return 'drink'
+    if any(w in t for w in ('telefon','handy','phone','message','nachricht')): return 'phone'
+    if any(w in t for w in ('liest','lesen','reading','reads','buch','book')): return 'read'
     return 'walk'
 
 def _action(d, sentence, tick):
@@ -124,6 +153,10 @@ def _action(d, sentence, tick):
         for yy in (350,535): d.rectangle((0,yy,W,yy+28),fill='#996e50')
         for xx in range(30,520,90):
             d.ellipse((xx,295,xx+43,337),fill='#d44e42')
+    elif action in ('drink','phone','read'):
+        d.rectangle((0,190,W,810),fill='#e6d9ca')
+        d.rectangle((45,290,495,510),fill='#a7c8d6',outline='#ffffff',width=12)
+        d.rounded_rectangle((40,710,500,755),radius=12,fill='#8b674f')
     else:
         d.rectangle((0,190,W,810),fill='#e9ded4')
         d.rectangle((50,315,230,530),fill='#a3cfe0',outline='#ffffff',width=12)
@@ -154,6 +187,19 @@ def _action(d, sentence, tick):
         d.rounded_rectangle((hx-12,hy-10,hx+33,hy+16),radius=4,fill='#edc76f')
         d.rounded_rectangle((395,455,505,605),radius=12,fill='#304659')
         d.rectangle((412,476,487,520),fill='#9bd4b0')
+    elif action in ('drink','phone','read'):
+        wave=math.sin(tick*3)
+        hx,hy=x+28+int(7*wave),y-8+int(6*wave)
+        d.line((x+60,y+42,hx,hy),fill=skin,width=23)
+        if action=='drink':
+            d.rounded_rectangle((hx-18,hy-23,hx+22,hy+15),radius=6,fill='#f7f5e9',outline='#b38b68',width=3)
+            d.arc((hx+12,hy-17,hx+37,hy+12),270,90,fill='#f7f5e9',width=6)
+        elif action=='phone':
+            d.rounded_rectangle((hx-15,hy-34,hx+15,hy+20),radius=5,fill='#27374a')
+            d.rectangle((hx-11,hy-27,hx+11,hy+10),fill='#78c2d8')
+        else:
+            d.polygon([(hx-52,hy-15),(hx,hy-28),(hx,hy+30),(hx-52,hy+18)],fill='#f5f0dc')
+            d.polygon([(hx,hy-28),(hx+52,hy-15),(hx+52,hy+18),(hx,hy+30)],fill='#fff8e8')
     else:
         d.line((x+60,y+42,x+90,y+92-int(24*math.sin(tick*3))),fill=skin,width=23)
     return True
