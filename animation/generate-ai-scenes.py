@@ -9,11 +9,21 @@ sentences=[s.strip() for s in __import__("re").findall(r"[^.!?\n]+[.!?]?",script
 if not sentences or len(sentences)>60: raise SystemExit("Invalid script")
 out=ROOT/"public"/"ai-scenes";out.mkdir(parents=True,exist_ok=True)
 uris=[]
+# Shared visual bible for the whole story; this improves prompt consistency,
+# but does not guarantee identity without image-reference support.
+story_context=script[:1400]
+character_bible=("Keep one recurring protagonist across scenes: same face, hairstyle, "
+                  "clothes, age and proportions, unless the script explicitly changes them. ")
+previous_scene=""
 for i,sentence in enumerate(sentences):
     prompt=("Vertical 9:16, richly detailed hand-painted 2D animated film still, flat illustrated 2D only, "
             "cohesive character design, expressive cinematic lighting, vivid environment, clean outlines, "
             "no letters, no subtitles, no watermarks, no 3D, no photorealism. Scene: "+sentence)
-    query=urllib.parse.urlencode({"model":os.environ.get("AI_IMAGE_MODEL","black-forest-labs/flux.1-schnell"),"width":576,"height":1024,"seed":i+42})
+    prompt += (" Entire story context: "+story_context+
+               ". "+character_bible+
+               (" Previous scene: "+previous_scene+". Preserve visual continuity." if previous_scene else ""))
+    previous_scene=sentence
+    query=urllib.parse.urlencode({"model":os.environ.get("AI_IMAGE_MODEL","black-forest-labs/flux.1-schnell"),"width":576,"height":1024,"seed":42})
     url="https://gen.pollinations.ai/image/"+urllib.parse.quote(prompt,safe="")+"?"+query
     req=urllib.request.Request(url,headers={"Authorization":"Bearer "+key,"Accept":"image/*","User-Agent":"ShortsStudioFree/1.0"})
     try:
