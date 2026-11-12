@@ -42,9 +42,13 @@ jobs:
           curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 180 \
             https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz \
             -o "$RUNNER_TEMP/ffmpeg-static.tar.xz"
-          tar -xJf "$RUNNER_TEMP/ffmpeg-static.tar.xz" \
-            --wildcards --no-anchored 'ffmpeg' 'ffprobe' \
-            --strip-components=1 -C "$RUNNER_TEMP/shorts-ffmpeg"
+          mkdir -p "$RUNNER_TEMP/ffmpeg-extract"
+          tar -xJf "$RUNNER_TEMP/ffmpeg-static.tar.xz" -C "$RUNNER_TEMP/ffmpeg-extract"
+          FFMPEG_BIN="$(find "$RUNNER_TEMP/ffmpeg-extract" -type f -name ffmpeg -print -quit)"
+          FFPROBE_BIN="$(find "$RUNNER_TEMP/ffmpeg-extract" -type f -name ffprobe -print -quit)"
+          test -n "$FFMPEG_BIN" && test -n "$FFPROBE_BIN" || { echo "::error::FFmpeg binaries missing from downloaded archive"; exit 1; }
+          cp "$FFMPEG_BIN" "$RUNNER_TEMP/shorts-ffmpeg/ffmpeg"
+          cp "$FFPROBE_BIN" "$RUNNER_TEMP/shorts-ffmpeg/ffprobe"
           chmod +x "$RUNNER_TEMP/shorts-ffmpeg/ffmpeg" "$RUNNER_TEMP/shorts-ffmpeg/ffprobe"
           echo "$RUNNER_TEMP/shorts-ffmpeg" >> "$GITHUB_PATH"
           "$RUNNER_TEMP/shorts-ffmpeg/ffmpeg" -version | head -n 1
