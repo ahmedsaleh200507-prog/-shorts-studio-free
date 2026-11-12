@@ -20,3 +20,25 @@ test('German separable verbs with intervening words',()=>{
     assert.equal(action,'wake',text);
   }
 });
+
+test('Reference-style visual narration uses semantic motion graphics',()=>{
+ const cases=[
+  ['Eine Warnmeldung erscheint auf dem Bildschirm.','alert'],
+  ['Eine Nachricht erscheint auf dem Smartphone.','phone'],
+  ['Jemand steht vor der Tür.','door'],
+  ['Die Uhr zeigt Mitternacht.','clock'],
+  ['Die Erde dreht sich um die Sonne.','space'],
+  ['Das Experiment erklärt die Physik.','science'],
+  ['Im Wald steht ein Baum.','nature'],
+  ['Ein Computer verarbeitet die Daten.','technology'],
+  ['Die Kosten steigen um 25%.','number']
+ ];
+ for(const [text,action] of cases){
+  const scene=makeScenePlan(text).scenes[0];
+  assert.equal(scene.action,action,text);
+  assert.equal(scene.visualMode,'motion-graphic',text);
+  assert.ok(scene.keywords.length>0,text);
+ }
+ assert.equal(makeScenePlan('Eine unbekannte Geschichte beginnt.').scenes[0].visualMode,'kinetic-type');
+ assert.equal(makeScenePlan('Sie putzt ihre Zähne.').scenes[0].visualMode,'character');
+});
