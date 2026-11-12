@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       script:
-        description: 'German or English text (up to 3000 characters)'
+        description: 'German or English text (up to 12000 characters)'
         required: true
         type: string
       aspect_ratio:
@@ -33,7 +33,7 @@ permissions:
 jobs:
   render:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -64,8 +64,10 @@ jobs:
           SCRIPT: ${{ inputs.script }}
           POLLINATIONS_KEY: ${{ secrets.POLLINATIONS_KEY }}
           AI_IMAGE_MODELS: black-forest-labs/flux.1-schnell,tongyi-mai/z-image-turbo
+          AI_MAX_IMAGES: '18'
         run: |
           python animation/generate-ai-scenes.py
+          test -s animation/ai-scene-images.mjs
       - name: Render actual Remotion 2D video
         working-directory: animation
         run: |
