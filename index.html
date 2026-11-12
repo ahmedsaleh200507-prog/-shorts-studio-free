@@ -23,13 +23,29 @@ small{grid-column:1;color:#a5b8cf;line-height:1.6;display:block;margin-top:12px}
 [hidden]{display:none!important}
 @media(max-width:760px){main{display:flex;flex-direction:column;gap:0;padding:18px 16px calc(35px + env(safe-area-inset-bottom))}h1{margin-top:6px}h1+p{margin-bottom:18px}textarea{height:175px}main>.row{width:100%}canvas,#renderedVideo{order:7;width:min(100%,330px);margin:18px auto}#status{order:6}#audioStatus{order:4;width:100%}#audioDownload{order:5;width:100%}small{order:8}#toggle,#reset{flex:1}#audioSave{width:100%}}
 @media(prefers-reduced-motion:reduce){button{transition:none}}
+
+/* iPhone-first minimal studio */
+main{max-width:680px;display:flex;flex-direction:column;gap:0;padding:28px 20px calc(50px + env(safe-area-inset-bottom))}
+h1{font-size:clamp(36px,8vw,52px);font-weight:850;letter-spacing:-.055em;margin:16px 0 4px}
+h1+p{font-size:15px;margin:0 0 25px;color:#9bacc4}
+textarea{width:100%;height:250px;min-height:200px;background:#111b2e;border:1px solid #33445d;border-radius:22px;padding:22px;box-shadow:none;line-height:1.7}
+.row{width:100%;margin:15px 0 0;gap:12px}.field label{font-size:12px;color:#afc3d9}
+select{border-radius:14px;background:#16243a;padding:14px}
+.primary-action{margin-top:20px}#audioSave{width:100%;min-height:64px;border-radius:18px;font-size:18px;box-shadow:0 12px 30px #65e4c31c}
+.advanced{width:100%;margin-top:16px;border:1px solid #26374e;border-radius:14px;padding:12px 16px;background:#0d1728}
+.advanced summary{font-size:13px;color:#9cb0c8;cursor:pointer;list-style:none}.advanced summary::-webkit-details-marker{display:none}
+.advanced .row{margin-top:12px}#status{display:none}#audioStatus{width:100%;margin-top:18px;font-size:14px;line-height:1.5}
+#renderedVideo{order:5;width:min(100%,320px);max-width:320px;margin:24px auto 10px;border:3px solid #2b4059;border-radius:20px}
+#iosShare,#audioDownload{width:100%;order:6;margin-top:10px;border-radius:14px}small{order:9;font-size:12px;margin-top:24px;color:#788da7}
+canvas{display:none!important}.legacy-actions{display:none!important}
+@media(max-width:760px){main{padding:22px 18px calc(40px + env(safe-area-inset-bottom))}textarea{height:235px}#renderedVideo{width:min(100%,320px)}}
 </style></head>
-<body><main><h1>🎬 Shorts Studio <span style="color:#84f0d0">Free</span></h1><p>2D hikâyeni yaz · Sesli önizle · 9:16 MP4 olarak kaydet</p>
+<body><main><h1>Shorts <span style="color:#84f0d0">Studio</span></h1><p>Hikâyeni yaz. AI sahnelerini oluştur. Videonu indir.</p>
 <textarea id="story" maxlength="3000" aria-label="Video senaryosu">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea>
 <div class="row"><div class="field"><label for="language">Ses dili</label><select id="language"><option value="de-DE">🇩🇪 Almanca</option><option value="en-US">🇬🇧 İngilizce</option></select></div><div class="field"><label for="voice">Cihazdaki ses</label><select id="voice"><option value="">Sesler yükleniyor...</option></select></div></div>
-<div class="row"><button id="toggle">▶ Başlat</button><button id="reset">↺ Baştan</button></div>
-<div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div><div class="row"><button id="audioSave">📥 Videoyu kaydet</button></div><div id="audioStatus" role="status" aria-live="polite"></div><a id="audioDownload" hidden aria-hidden="true">📥 MP4 dosyasını indir</a><button id="iosShare" hidden type="button">📱 iPhone’da Paylaş / Dosyalara Kaydet</button><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
-<small>📱 iPhone 16 Pro Max ve Safari için: Bu sayfa telefonda çalışır; MP4 üretimi uzaktaki GitHub Actions iş akışında yapılır. Windows veya bilgisayar gerekmez. ▶ Başlat ve 📥 Videoyu kaydet aynı MP4 üretimini başlatır. Cloudflare APP_KEY gerekir; GitHub tokenını buraya girme. Ücretsiz servislerin kullanım kotası olabilir.</small></main>
+<div class="row legacy-actions" hidden><button id="toggle">▶ Başlat</button><button id="reset">↺ Baştan</button></div>
+<details class="advanced"><summary>⚙️ Bağlantı ayarları</summary><div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div></details><div class="row primary-action"><button id="audioSave">✨ AI videoyu oluştur</button></div><div id="audioStatus" role="status" aria-live="polite"></div><a id="audioDownload" hidden aria-hidden="true">📥 MP4 dosyasını indir</a><button id="iosShare" hidden type="button">📱 iPhone’da Paylaş / Dosyalara Kaydet</button><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
+<small>iPhone Safari uyumlu · 9:16 sesli MP4 · AI görselleri · Ücretsiz servislerin kullanım kotası olabilir. Bağlantı anahtarını kimseyle paylaşma.</small></main>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 'use strict';
@@ -45,7 +61,7 @@ async function generate(download=false){
  if(busy)return;
  const script=el('story').value.trim(),key=el('appkey').value.trim(),lang=el('language').value.startsWith('de')?'de':'en',signature=JSON.stringify([script,lang]),version=requestVersion;
  if(!script){setStatus('Önce metin yaz.');return}
- if(cache?.signature===signature){displayVideo(cache.url);if(download){el('audioDownload').click();setStatus('MP4 hazır. İndirme başlamazsa İndirme bağlantısı düğmesine dokun.')}else{el('renderedVideo').play().catch(()=>{});setStatus('Video hazır. ▶ ile oynatabilirsin.')}return}
+ if(cache?.signature===signature){displayVideo(cache.url);if(download){el('iosShare').hidden=false;setStatus('MP4 hazır. iPhone’da paylaş veya indir.')}else{el('renderedVideo').play().catch(()=>{});setStatus('Video hazır. ▶ ile oynatabilirsin.')}return}
  if(!key){setStatus('Cloudflare APP_KEY girmen gerekiyor.');el('appkey').focus();return}
  if(!window.JSZip){setStatus('ZIP kütüphanesi yüklenemedi. Sayfayı yeniden aç.');return}
  busy=true;el('toggle').disabled=true;el('audioSave').disabled=true;el('toggle').textContent='⏳ Hazırlanıyor...';
