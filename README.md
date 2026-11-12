@@ -30,3 +30,14 @@ Output is saved in `output/` unless `--output` is supplied. Current implementati
 5. Add offline speech synthesis (e.g. Piper), visual quality checks, and one-button UI integration.
 
 No paid API or subscription should be silently invoked. Free third-party services may have quotas.
+
+## Optional fully offline speech
+
+The default voice uses Edge TTS and needs internet. For offline speech, install the free Piper CLI and download a compatible German or English Piper ONNX voice model **and its .onnx.json configuration**. Then run:
+
+```powershell
+py -3.12 local-render.py --language de --piper-model "C:\\voices\\de_DE-voice.onnx" --text "Guten Morgen."
+```
+
+The model path is an example, not an included download. Piper must be available as `piper` on PATH. Video rendering then uses local tools; first-time dependency installation still requires internet. The offline voice feature has not yet been tested on the target PC.
+
