@@ -150,11 +150,11 @@ function DocumentaryScene({scene,frame}){
 
 function EditorialGraphic({scene,frame}){
  if(!['talk','number','technology'].includes(scene.action))return null;
- const t=frame/24,words=(scene.text.match(/[\\p{L}\\p{N}%€]+/gu)||[]).filter(w=>w.length>2);
+ const t=frame/24,words=(scene.text.match(/[\p{L}\p{N}%€]+/gu)||[]).filter(w=>w.length>2);
  const chosen=words.slice(0,5).join(' ').toUpperCase();
  const tech=scene.action==='technology',number=scene.action==='number';
  const accent=tech?'#75d9ff':number?'#f6cf77':'#ff6c71';
- const values=(scene.text.match(/\\d+(?:[.,]\\d+)?\\s*(?:%|€|km|million|milliard)?/gi)||[]);
+ const values=(scene.text.match(/\d+(?:[.,]\d+)?\s*(?:%|€|km|million|milliard)?/gi)||[]);
  return el('div',{style:{position:'absolute',inset:0,overflow:'hidden',background:tech?'radial-gradient(circle at 50% 42%,#183956,#050e1f 80%)':number?'radial-gradient(circle at 48% 50%,#4b3b29,#11121d 85%)':'radial-gradient(circle at 48% 44%,#39273b,#0c111f 85%)'}},
   ...Array.from({length:14},(_,i)=>el('div',{key:i,style:{position:'absolute',left:((i*37)%105)+'%',top:((i*23)%83)+'%',width:tech?2:120,height:tech?100:2,background:accent,opacity:.08+(i%4)*.04,transform:`rotate(${tech?0:-22}deg) translateY(${Math.sin(t+i)*12}px)`}})),
   tech?el(React.Fragment,null,
