@@ -19,8 +19,9 @@ function Person({frame,action,speaking=false}){
  const armLeft=pose.leftArm,armRight=pose.rightArm;
  const legLeft=pose.leftLeg,legRight=pose.rightLeg;
  const headTurn=pose.headRotation;
+ const wakeProgress=wake?Math.min(1,Math.max(0,(frame-9)/42)):1;
  const svg=(tag,props,...children)=>el(tag,props,...children);
- return el('div',{style:{position:'absolute',left:'29%',top:'28%',width:'42%',height:'55%',transform:`translateY(${bounce+(wake?Math.max(0,28-frame*1.1):0)}px)`}},
+ return el('div',{style:{position:'absolute',left:'29%',top:'28%',width:'42%',height:'55%',transform:wake?`translate(${-29*(1-wakeProgress)}%,${27*(1-wakeProgress)}%) rotate(${-68*(1-wakeProgress)}deg) scale(${.82+.18*wakeProgress})`:`translateY(${bounce}px)`,transformOrigin:'50% 70%'}},
   svg('svg',{viewBox:'0 0 300 640',width:'100%',height:'100%',role:'img','aria-label':'Animated 2D character'},
    svg('defs',null,
     svg('linearGradient',{id:'shirtShade',x1:'0%',y1:'0%',x2:'100%',y2:'20%'},svg('stop',{offset:'0%',stopColor:'#529ad2'}),svg('stop',{offset:'100%',stopColor:'#205b92'})),
@@ -39,6 +40,11 @@ function Person({frame,action,speaking=false}){
    svg('g',{transform:`rotate(${armRight} 208 229)`},
     svg('path',{d:'M203 224 Q240 220 249 270 L270 359 Q277 386 256 393 Q237 395 230 370 L191 287 Q177 240 203 224',fill:'url(#shirtShade)',stroke:'#214d76',strokeWidth:6}),
     svg('path',{d:'M243 355 Q243 375 252 390 Q270 408 277 382 L268 355',fill:'url(#skinShade)',stroke:'#b87860',strokeWidth:5})),
+   action==='brush'?svg('g',{'aria-label':'Hand holding toothbrush'},
+    svg('path',{d:`M206 245 Q248 251 230 293 Q205 335 160 ${189+Math.sin(frame*.55)*5}`,fill:'none',stroke:'#3376a8',strokeWidth:29,strokeLinecap:'round'}),
+    svg('circle',{cx:160,cy:189+Math.sin(frame*.55)*5,r:14,fill:'#e5a782',stroke:'#b87860',strokeWidth:3}),
+    svg('line',{x1:158,y1:188+Math.sin(frame*.55)*5,x2:151,y2:174+Math.sin(frame*.55)*5,stroke:'#f7f9fa',strokeWidth:7,strokeLinecap:'round'}),
+    svg('rect',{x:143,y:171+Math.sin(frame*.55)*5,width:16,height:7,rx:3,fill:'#52c2d8'})):null,
    svg('path',{d:'M105 214 Q150 201 200 217 Q225 258 213 382 Q161 401 89 383 Q79 290 105 214',fill:'url(#shirtShade)',stroke:'#214d76',strokeWidth:7,strokeLinejoin:'round'}),
    svg('path',{d:'M111 227 Q145 242 178 229',fill:'none',stroke:'#a8c9e5',strokeWidth:5,opacity:.7}),
    svg('path',{d:'M139 188 L140 220 Q153 233 169 219 L168 186',fill:'url(#skinShade)',stroke:'#b87860',strokeWidth:5}),
@@ -98,7 +104,7 @@ function Background({place,frame}){
 }
 function Prop({action,frame}){
  const bob=Math.sin(frame/4)*2;
- if(action==='brush')return el(React.Fragment,null,Shape({x:57,y:45+bob,w:2,h:14,color:'#f5f5f5',r:6,rotate:30}),Shape({x:55,y:44+bob,w:6,h:3,color:'#5bc4dd',r:4}));
+ if(action==='brush')return null; // Toothbrush is attached to the character's animated hand in Person.
  if(action==='pick'){
   const grasp=Math.min(1,Math.max(0,(frame-14)/28));
   const x=72-19*grasp,y=57-9*grasp+bob*.3;
