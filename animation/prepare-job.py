@@ -14,10 +14,10 @@ async def main():
         aspect='16:9'
         script=script[len('[[ASPECT_16_9]]'):].strip()
     if aspect not in ('9:16','16:9'): raise ValueError('Invalid aspect ratio')
-    if not script or len(script)>3000: raise ValueError('Script must contain 1–3000 characters')
+    if not script or len(script)>12000: raise ValueError('Script must contain 1–12000 characters')
     if lang not in ('de','en'): raise ValueError('Unsupported language')
     sentences=[s.strip() for s in re.findall(r'[^.!?\n]+[.!?]?',script) if s.strip()]
-    if not sentences or len(sentences)>60: raise ValueError('Invalid number of scenes')
+    if not sentences or len(sentences)>180: raise ValueError('Invalid number of scenes')
     voice={'de':'de-DE-KatjaNeural','en':'en-US-JennyNeural'}[lang]
     offline=os.environ.get('TTS_ENGINE','edge')=='piper'
     piper_model=os.environ.get('PIPER_MODEL','')
@@ -50,6 +50,8 @@ async def main():
         if not math.isfinite(seconds) or seconds<=0: raise RuntimeError('Invalid narration')
         durations.append(max(1,math.ceil((seconds+0.2)*FPS)))
         uris.append('data:audio/mpeg;base64,'+base64.b64encode(file.read_bytes()).decode('ascii'))
+    total_seconds=sum(durations)/FPS
+    if total_seconds>660: raise ValueError('Narration exceeds 11 minutes; shorten the script')
     (ROOT/'narration-audio.mjs').write_text('export const narrationAudio = '+json.dumps(uris)+';\n',encoding='utf-8')
     (ROOT/'narration-plan.mjs').write_text('export const narrationFrames = '+json.dumps(durations)+';\n',encoding='utf-8')
     entry="""import React from 'react';
