@@ -3,7 +3,7 @@
 const rules=[
   ['brush', /zähne|zahn|putzt|brush(?:es|ing)?|teeth|tooth/i, 'bathroom', ['toothbrush','sink']],
   ['checkout', /kasse|bezahl|checkout|cashier|\bpays?\b/i, 'supermarket', ['register','payment-card']],
-  ['pick', /apfel|apple|nimmt|picks? up/i, 'supermarket', ['apple','shelf']],
+  ['pick', /apfel|apple|picks? (?:up )?(?:an? )?apple/i, 'supermarket', ['apple','shelf']],
   ['wake', /\bwach(?:e|st|t|en)?\b[^.!?]{0,90}\bauf\b|aufwach|\berwach(?:e|st|t|en)?\b|wake(?:s)? up|woke up|\b(?:steht|stand)\s+auf\b|aufgestanden|\b(?:gets?|got)\s+up\b|\bbed\b|bett/i, 'bedroom', ['bed']],
   ['travel', /\bbus\b|\bzug\b|train|station|bahnhof/i, 'transport', ['vehicle']],
   ['alert', /warnung|warnmeldung|alarm|gefahr|notfall|emergency|warning|alert|achtung|sirene/i, 'alert', ['warning-panel','alert-icon']],
@@ -14,6 +14,10 @@ const rules=[
   ['science', /wissenschaft|forschung|experiment|physik|science|research|labor|laboratory|atom|molek/i, 'science', ['diagram','particles']],
   ['nature', /wald|forest|baum|tree|meer|ocean|fluss|river|berg|mountain|natur|nature/i, 'nature', ['landscape']],
   ['technology', /computer|internet|ki|künstliche intelligenz|artificial intelligence|software|code|roboter|robot/i, 'technology', ['screen','network']],
+  ['hospital', /krankenhaus|hospital|arzt|ärztin|doctor|patient|klinik|clinic/i, 'hospital', ['bed','medical-monitor']],
+  ['school', /schule|school|klassenzimmer|classroom|lehrer|teacher|unterricht/i, 'school', ['desk','blackboard']],
+  ['restaurant', /restaurant|café|cafe|küche|kitchen|kocht|cooks?|essen|eating/i, 'restaurant', ['table','food']],
+  ['office', /büro|office|meeting|besprechung|arbeitet|working/i, 'office', ['desk','computer']],
   ['number', /\b\d+(?:[.,]\d+)?\s*(?:%|prozent|percent|euro|€|dollar|kilometer|km|million|milliard|billion)\b|\b\d+\s*%/i, 'infographic', ['number','chart']],
 ];
 export function splitScript(script){
