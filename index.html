@@ -177,33 +177,33 @@ let cachedRender=null;
 async function generateOrPlay(download=false){
  if(audioBusy)return;
  const script=$('story').value.trim(),key=$('appkey').value.trim();
- if(!script){audioStatus('Önce metin yaz.');return}
+ if(!script){audioStatus('Önce metin yaz.');status('Önce metin yaz.');return}
  const lang=$('language').value.startsWith('de')?'de':'en';
  const cacheKey=JSON.stringify([script,lang]);
  if(cachedRender&&cachedRender.key===cacheKey){
    showRenderedVideo(cachedRender.url);
-   if(download){$('audioDownload').click();audioStatus('Hazır MP4 indiriliyor.')}else{audioStatus('Hazır video oynatılıyor.');$('renderedVideo').play().catch(()=>{});}
+   if(download){$('audioDownload').click();audioStatus('Hazır MP4 indiriliyor.')}else{audioStatus('Hazır video oynatılıyor.');$('renderedVideo').play().catch(()=>{status('Video hazır. Oynatmak için videonun üzerindeki ▶ düğmesine dokun.')});}
    return;
  }
- if(script.length>3000){audioStatus('En fazla 3000 karakter yaz.');return}
- if(!window.JSZip){audioStatus('İndirme kütüphanesi yüklenemedi. İnternet bağlantını kontrol et.');return}
- if(!key){audioStatus('Kaydetmek için Cloudflare APP_KEY değerini girmen gerekiyor. Şifreyi unuttuysan Cloudflare Settings bölümünden yenisini oluştur.');$('appkey').focus();return}
- audioBusy=true;$('audioSave').disabled=true;$('audioDownload').hidden=true;$('audioDownload').setAttribute('aria-hidden','true');
+ if(script.length>3000){audioStatus('En fazla 3000 karakter yaz.');status('Metin çok uzun.');return}
+ if(!window.JSZip){const message='⚠️ ZIP kütüphanesi yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.';audioStatus(message);status(message);return}
+ if(!key){const message='⚠️ Başlatılamadı: Cloudflare APP_KEY boş. Önce aşağıdaki APP_KEY alanını doldur. Bu anahtarı GitHub tokenıyla karıştırma.';audioStatus(message);status(message);$('appkey').focus();$('appkey').scrollIntoView({behavior:'smooth',block:'center'});return}
+ audioBusy=true;$('toggle').disabled=true;$('audioSave').disabled=true;$('audioDownload').hidden=true;$('audioDownload').setAttribute('aria-hidden','true');
  try{
-  showLivePreview();status('Gerçek MP4 oluşturuluyor. Tamamlanınca aynı video burada gösterilecek.');audioStatus('Sesli video işi başlatılıyor...');
+  showLivePreview();status('⏳ Gerçek sesli MP4 oluşturuluyor. GitHub işlemi birkaç dakika sürebilir.');audioStatus('⏳ Video oluşturma isteği gönderiliyor...');
   const response=await api('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script,language:$('language').value.startsWith('de')?'de':'en'})});
-  const job=await response.json();if(!job.job_id)throw Error('İş kimliği alınamadı');
+  const job=await response.json();if(!job.job_id)throw Error('İş kimliği alınamadı');audioStatus('⏳ GitHub işi başlatıldı. Ses ve video hazırlanıyor...');
   let runId=null;
   for(let attempt=0;attempt<100;attempt++){
    await delay(6000);
    const res=await api('/status?job_id='+encodeURIComponent(job.job_id),key),state=await res.json();
-   audioStatus('Sesli MP4: '+(state.status||'bekleniyor')+' ('+(attempt+1)+')');
+   audioStatus('⏳ Sesli MP4: '+(state.status||'bekleniyor')+' — yaklaşık '+((attempt+1)*6)+' saniyedir bekleniyor.');
    if(state.status==='completed'){
     if(state.conclusion!=='success')throw Error('GitHub üretimi başarısız: '+(state.conclusion||'bilinmiyor')+(state.run_url?' — '+state.run_url:''));
     runId=state.run_id;break;
    }
   }
-  if(!runId)throw Error('İşlem zaman aşımına uğradı.');
+  if(!runId)throw Error('İşlem zaman aşımına uğradı (10 dakika). GitHub Actions sayfasını kontrol et.');
   audioStatus('Video tamamlandı. İndirme dosyası hazırlanıyor...');
   let zip=null,lastArtifactError=null;
   for(let retry=0;retry<12;retry++){
@@ -228,13 +228,13 @@ async function generateOrPlay(download=false){
   cachedRender={key:cacheKey,url}
   if(download)a.click();
   resetPlayback();showRenderedVideo(url);
-  if(!download)$('renderedVideo').play().catch(()=>{});
+  if(!download)$('renderedVideo').play().catch(()=>{status('Video hazır. Oynatmak için videonun üzerindeki ▶ düğmesine dokun.')});
   audioStatus(download?'Sesli MP4 hazır. iPhone indirmeyi açmazsa aşağıdaki İndirme bağlantısına dokun.':'Sesli MP4 hazır. Videoyu oynatabilir veya kaydedebilirsin.');
- }catch(error){audioStatus('Hata: '+error.message+(error.message==='Unauthorized'?' — Cloudflare APP_KEY ile buraya yazdığın değer eşleşmiyor.':'')+(error.message==='Origin not allowed'?' — Cloudflare ALLOWED_ORIGIN ayarını kontrol et.':''))}
- finally{audioBusy=false;$('audioSave').disabled=false}
+ }catch(error){status('❌ Video oluşturulamadı. Ayrıntılar yukarıdaki hata mesajında.');audioStatus('❌ Hata: '+error.message+(error.message==='Unauthorized'?' — Cloudflare APP_KEY ile buraya yazdığın değer eşleşmiyor.':'')+(error.message==='Origin not allowed'?' — Cloudflare ALLOWED_ORIGIN ayarını kontrol et.':''))}
+ finally{audioBusy=false;$('toggle').disabled=false;$('audioSave').disabled=false}
 };
 $('audioSave').onclick=()=>generateOrPlay(true);
 $('toggle').onclick=()=>generateOrPlay(false);
 
-prepare();showLivePreview();controls();
+prepare();showLivePreview();controls();status('Metni yazıp ▶ Başlat düğmesine bas. Cloudflare APP_KEY gereklidir.');
 </script></body></html>
