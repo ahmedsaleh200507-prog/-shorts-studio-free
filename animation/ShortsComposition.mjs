@@ -2,6 +2,8 @@ import {narrationAudio} from './narration-audio.mjs';
 import React from 'react';
 import {AbsoluteFill, Audio, Sequence, useCurrentFrame, interpolate} from 'remotion';
 import {makeScenePlan} from './scene-plan.mjs';
+import {aiSceneImages} from './ai-scene-images.mjs';
+import {staticFile} from 'remotion';
 
 const el=React.createElement;
 const pct=(n)=>n+'%';
@@ -226,7 +228,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const opacity=interpolate(local,[0,5,Math.max(6,scene.endFrame-scene.startFrame-6),scene.endFrame-scene.startFrame],[0,1,1,0],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
   el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom})`}},
-   scene.visualMode==='character'?el(React.Fragment,null,
+   aiImage?el('img',{src:staticFile(aiImage.replace(/^\\//,'')),style:{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}):scene.visualMode==='character'?el(React.Fragment,null,
     el(Background,{place:scene.place,frame:local}),
     el(Person,{frame:local,action:scene.action}),
     el(Prop,{action:scene.action,frame:local})):el(MotionGraphic,{scene,frame:local})),
