@@ -1,5 +1,6 @@
+import {narrationAudio} from './narration-audio.mjs';
 import React from 'react';
-import {AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, interpolate} from 'remotion';
+import {AbsoluteFill, Audio, Sequence, useCurrentFrame, interpolate} from 'remotion';
 import {makeScenePlan} from './scene-plan.mjs';
 
 const el=React.createElement;
@@ -67,7 +68,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
    el(Background,{place:scene.place,frame:local}),
    el(Person,{frame:local,action:scene.action}),
    el(Prop,{action:scene.action,frame:local})),
-  narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:staticFile(`audio/scene-${i}.mp3`)}))):null,
+  narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
   el('div',{style:{position:'absolute',top:85,left:65,color:'#fff',fontSize:34,fontWeight:800,letterSpacing:3,textShadow:'0 3px 8px #0009'}},'SHORTS STUDIO'),
   el('div',{style:{position:'absolute',bottom:140,left:45,right:45,opacity,background:'#14253bd9',borderRadius:30,padding:'32px 26px',color:'white',fontSize:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},scene.text)
  );
