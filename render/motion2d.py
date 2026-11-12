@@ -138,9 +138,55 @@ def action_kind(sentence):
     if any(w in t for w in ('liest','lesen','reading','reads','buch','book')): return 'read'
     return 'walk'
 
+def _wake_action(d, tick):
+    """Show an actual lying-to-sitting-to-standing wake-up sequence."""
+    skin='#e8b68f'
+    # Bedroom, window, bedside table and a clearly visible bed.
+    d.rectangle((0,190,W,810),fill='#e8ddd2')
+    d.rectangle((38,255,205,490),fill='#9bc6d8',outline='#ffffff',width=12)
+    d.line((120,260,120,485),fill='#ffffff',width=9)
+    d.line((44,370,200,370),fill='#ffffff',width=9)
+    d.rectangle((430,565,515,740),fill='#9a755a')
+    d.ellipse((447,525,499,578),fill='#f3d8a1')
+    d.rounded_rectangle((45,565,425,765),radius=22,fill='#6e85b4')
+    d.rounded_rectangle((60,560,410,632),radius=24,fill='#f4eee3')
+    # First lie down, then sit up, then stand next to the bed.
+    if tick < 1.2:
+        lift=min(1.0,tick/1.2)
+        hx=160+int(50*lift); hy=605-int(60*lift)
+        d.rounded_rectangle((175,603,390,690),radius=28,fill='#487fae')
+        d.ellipse((hx-51,hy-47,hx+51,hy+47),fill=skin)
+        d.pieslice((hx-53,hy-50,hx+53,hy+38),180,360,fill='#2b344b')
+        for ey in (-18,18):
+            d.arc((hx-20,hy+ey-2,hx-4,hy+ey+4),0,180,fill='#253449',width=2)
+        d.line((250,655,320,675),fill=skin,width=19)
+    elif tick < 2.4:
+        progress=min(1.0,(tick-1.2)/1.2)
+        hx=215+int(35*progress);hy=545-int(45*progress)
+        d.rounded_rectangle((170,560,330,685),radius=25,fill='#487fae')
+        d.line((200,670,200,760),fill='#263b55',width=24)
+        d.line((295,670,305,760),fill='#263b55',width=24)
+        d.ellipse((hx-52,hy-55,hx+52,hy+55),fill=skin)
+        d.pieslice((hx-54,hy-61,hx+54,hy+32),180,360,fill='#2b344b')
+        d.line((190,605,145,665-int(20*progress)),fill=skin,width=20)
+        d.line((315,605,365,650-int(30*progress)),fill=skin,width=20)
+    else:
+        progress=min(1.0,(tick-2.4)/0.8)
+        x=315+int(70*progress);y=540-int(45*progress)
+        d.line((x-25,y+140,x-30,y+245),fill='#263b55',width=27)
+        d.line((x+25,y+140,x+30,y+245),fill='#263b55',width=27)
+        d.rounded_rectangle((x-70,y+10,x+70,y+155),radius=28,fill='#487fae')
+        d.ellipse((x-61,y-115,x+61,y+15),fill=skin)
+        d.pieslice((x-64,y-127,x+64,y-18),180,360,fill='#2b344b')
+        for dx in (-23,23): d.ellipse((x+dx-5,y-62,x+dx+5,y-53),fill='#253449')
+        d.line((x-60,y+42,x-90,y+110-int(15*math.sin(tick*3))),fill=skin,width=21)
+        d.line((x+60,y+42,x+90,y+110+int(15*math.sin(tick*3))),fill=skin,width=21)
+    return True
+
 def _action(d, sentence, tick):
     action=action_kind(sentence)
     if action=='walk': return False
+    if action=='wake': return _wake_action(d,tick)
     x,y=265,535
     skin='#e8b68f'
     if action=='brush':
