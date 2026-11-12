@@ -31,12 +31,12 @@ jobs:
         run: |
           mkdir -p ../output
           npx remotion render entry.mjs ShortsDemo ../output/remotion-demo.mp4 --codec h264 --crf 27 --concurrency 1 --scale 0.5 --frames 0-47
-      - name: Generate German narration
+      - name: Generate scene-aligned German narration
         run: |
-          python -m pip install --quiet edge-tts
-          mkdir -p animation/public
-          edge-tts --voice de-DE-KatjaNeural --text "Ein Mann wacht morgens auf. Er putzt seine Zähne. Er nimmt einen Apfel. Er bezahlt an der Kasse." --write-media animation/public/narration.mp3
-          test -s animation/public/narration.mp3
+          python -m pip install --quiet edge-tts mutagen
+          python animation/generate-narration.py
+          test -s animation/public/audio/scene-0.mp3
+          cat animation/narration-plan.mjs
       - name: Render narrated 2D MP4
         working-directory: animation
         run: npx remotion render entry.mjs ShortsNarrated ../output/remotion-narrated.mp4 --codec h264 --crf 27 --concurrency 1 --scale 0.5
