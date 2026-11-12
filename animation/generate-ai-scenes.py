@@ -23,7 +23,9 @@ for i,sentence in enumerate(sentences):
                ". "+character_bible+
                (" Previous scene: "+previous_scene+". Preserve visual continuity." if previous_scene else ""))
     previous_scene=sentence
-    query=urllib.parse.urlencode({"model":os.environ.get("AI_IMAGE_MODEL","black-forest-labs/flux.1-schnell"),"width":576,"height":1024,"seed":42})
+    models=[m.strip() for m in os.environ.get("AI_IMAGE_MODELS","black-forest-labs/flux.1-schnell").split(",") if m.strip()][:3]
+    if not models: raise SystemExit("No image model configured")
+    query=urllib.parse.urlencode({"model":models[0],"width":576,"height":1024,"seed":42})
     url="https://gen.pollinations.ai/image/"+urllib.parse.quote(prompt,safe="")+"?"+query
     req=urllib.request.Request(url,headers={"Authorization":"Bearer "+key,"Accept":"image/*","User-Agent":"ShortsStudioFree/1.0"})
     try:
@@ -33,7 +35,23 @@ for i,sentence in enumerate(sentences):
     except urllib.error.HTTPError as exc:
         if exc.code in (401,402,403,429):
             raise SystemExit(f"AI provider unavailable (HTTP {exc.code}); check key, balance or quota.") from None
-        raise
+        if exc.code not in (400,404,500,502,503,504) or len(models)<2: raise
+        data=None
+        for fallback in models[1:]:
+            print(f"Model unavailable (HTTP {exc.code}); trying {fallback}",flush=True)
+            query=urllib.parse.urlencode({"model":fallback,"width":576,"height":1024,"seed":42})
+            url="https://gen.pollinations.ai/image/"+urllib.parse.quote(prompt,safe="")+"?"+query
+            req=urllib.request.Request(url,headers={"Authorization":"Bearer "+key,"Accept":"image/*","User-Agent":"ShortsStudioFree/1.0"})
+            try:
+                with urllib.request.urlopen(req,timeout=180) as resp:
+                    data=resp.read(12_000_001)
+                    mime=resp.headers.get("Content-Type","").split(";")[0].strip().lower()
+                break
+            except urllib.error.HTTPError as fallback_exc:
+                if fallback_exc.code in (401,402,403,429):
+                    raise SystemExit(f"AI provider unavailable (HTTP {fallback_exc.code}); quota or key issue.") from None
+                if fallback_exc.code not in (400,404,500,502,503,504): raise
+        if data is None: raise SystemExit("All configured image models failed")
     if len(data)>12_000_000 or len(data)<1000 or mime not in ("image/jpeg","image/png","image/webp"):
         raise SystemExit(f"Invalid AI image response for scene {i+1}: {mime}")
     ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[mime]
