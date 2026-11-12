@@ -13,3 +13,10 @@ test('English and invalid input',()=>{
   assert.throws(()=>makeScenePlan(''));
   assert.deepEqual(splitScript('A. B!'),['A.','B!']);
 });
+
+test('German separable verbs with intervening words',()=>{
+  for(const text of ['Ein Mann wacht morgens auf.','Er wacht auf.','Die Frau wacht um sieben Uhr auf.','Ein Kind erwacht.']){
+    const action=makeScenePlan(text).scenes[0].action;
+    assert.equal(action,'wake',text);
+  }
+});
