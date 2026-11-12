@@ -28,6 +28,7 @@ def main():
     p.add_argument("--language", choices=["de", "en"], default="de")
     p.add_argument("--output", type=Path, help="MP4 output path")
     p.add_argument("--setup", action="store_true", help="Install free dependencies")
+    p.add_argument("--piper-model", type=Path, help="Use installed Piper and this downloaded ONNX voice model for offline TTS")
     args = p.parse_args()
     if args.setup:
         run([sys.executable, "-m", "pip", "install", "edge-tts", "mutagen"])
@@ -48,6 +49,9 @@ def main():
     env = os.environ.copy()
     env["SCRIPT"] = script
     env["LANGUAGE"] = args.language
+    if args.piper_model:
+        env["TTS_ENGINE"] = "piper"
+        env["PIPER_MODEL"] = str(args.piper_model.expanduser().resolve())
     run([sys.executable, "prepare-job.py"], cwd=ANIMATION, env=env)
     OUTPUT.mkdir(exist_ok=True)
     target = args.output or OUTPUT / ("shorts-" + time.strftime("%Y%m%d-%H%M%S") + ".mp4")
