@@ -10,4 +10,10 @@ const Root=()=>React.createElement(Composition,{
   durationInFrames:plan.totalFrames,fps:plan.fps,
   width:plan.width,height:plan.height,defaultProps:{script}
 });
-registerRoot(Root);
+const NarratedRoot=()=>React.createElement(Composition,{
+  id:'ShortsNarrated',component:ShortsComposition,
+  durationInFrames:plan.totalFrames,fps:plan.fps,
+  width:plan.width,height:plan.height,defaultProps:{script,narration:true}
+});
+const App=()=>React.createElement(React.Fragment,null,React.createElement(Root),React.createElement(NarratedRoot));
+registerRoot(App);
