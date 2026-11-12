@@ -32,8 +32,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: pip
-          cache-dependency-path: render/requirements.txt
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -41,7 +39,7 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check --retries 5 edge-tts mutagen
           cd animation
-          npm ci --no-audit --no-fund
+          npm install --no-audit --no-fund
           npm test
           npx remotion browser ensure
       - name: Prepare real user script and synchronized narration
