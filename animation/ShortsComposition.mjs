@@ -122,6 +122,31 @@ function CinematicWorld({scene,frame}){
  );
 }
 
+
+function DocumentaryScene({scene,frame}){
+ if(!['map','history'].includes(scene.action))return null;
+ const map=scene.action==='map',t=frame/24;
+ const paper=map?'#172c35':'#d5c5a8',ink=map?'#9dd8d2':'#423a32';
+ const line=(x,y,w,angle=0)=>el('div',{style:{position:'absolute',left:x+'%',top:y+'%',width:w+'%',height:3,background:ink,opacity:.35,transform:`rotate(${angle}deg)`}});
+ return el('div',{style:{position:'absolute',inset:0,overflow:'hidden',background:map?'radial-gradient(circle at 50% 43%,#234951,#081821 82%)':'radial-gradient(circle at 48% 43%,#d9c6a4,#584c3c 90%)'}},
+  ...Array.from({length:16},(_,i)=>el('div',{key:i,style:{position:'absolute',left:((i*43)%110-5)+'%',top:((i*29)%100)+'%',width:'75%',height:1,background:ink,opacity:.08,transform:`rotate(${i%2?19:-17}deg)`}})),
+  map?el(React.Fragment,null,
+    ...Array.from({length:5},(_,i)=>el('div',{key:'land'+i,style:{position:'absolute',left:(i*19-10)+'%',top:(20+(i*13)%29)+'%',width:(27+i%3*8)+'%',height:(20+i%2*14)+'%',background:i%2?'#355c5b':'#48706b',clipPath:'polygon(7% 17%,42% 0,80% 19%,100% 51%,71% 93%,26% 100%,0 64%)',transform:`rotate(${i*31}deg)`,border:'2px solid #80b1a6'}})),
+    el('svg',{viewBox:'0 0 1080 1920',style:{position:'absolute',inset:0,width:'100%',height:'100%'}},
+      el('path',{d:'M 140 1080 Q 280 480 570 850 T 930 490',stroke:'#f0bd6a',strokeWidth:12,strokeDasharray:'28 16',fill:'none',strokeDashoffset:-frame*5}),
+      ...[[140,1080],[570,850],[930,490]].map(([x,y],i)=>el('circle',{key:i,cx:x,cy:y,r:18+i*3,fill:'#f4c77b',stroke:'#102b30',strokeWidth:8}))),
+    el('div',{style:{position:'absolute',top:'12%',left:'9%',color:'#e4ece4',fontSize:46,fontWeight:900,letterSpacing:7}},'ATLAS / ROUTE'))
+  :el(React.Fragment,null,
+    ...Array.from({length:4},(_,i)=>el('div',{key:'paper'+i,style:{position:'absolute',left:(8+i*6)+'%',top:(19+i*9)+'%',width:'72%',height:'42%',background:i%2?'#e4d8c1':'#f0e3c9',border:'2px solid #756c5c',boxShadow:'12px 18px 30px #23190e80',transform:`rotate(${-9+i*5}deg) translateY(${Math.sin(t+i)*8}px)`}},
+      el('div',{style:{margin:'9% 8% 4%',height:12,background:'#3b352e',opacity:.7}}),
+      ...Array.from({length:7},(_,j)=>el('div',{key:j,style:{margin:'5% 8%',height:4,background:'#5b5145',opacity:.3,width:(60+j%3*10)+'%'}})),
+      el('div',{style:{margin:'6% 8%',height:'22%',background:'linear-gradient(135deg,#655d51,#b8a58a)',filter:'grayscale(1)'}}))),
+    el('div',{style:{position:'absolute',top:'11%',left:'9%',color:'#302820',fontSize:51,fontWeight:900,letterSpacing:6,textShadow:'0 2px 3px #f5e9d3'}},'ARCHIVE / HISTORY')) ,
+  el('div',{style:{position:'absolute',left:'7%',right:'7%',bottom:'23%',height:4,background:map?'#8fc9c7':'#3d3328',opacity:.7}}),
+  el('div',{style:{position:'absolute',left:'7%',bottom:'23%',height:4,width:Math.min(86,frame/72*86)+'%',background:'#d85c55'}})
+ );
+}
+
 function MotionGraphic({scene,frame}){
  const t=frame/24, pulse=1+0.035*Math.sin(t*5), slide=Math.min(0, -90+frame*12);
  const title=(scene.keywords||[]).slice(0,3).join(' ').toUpperCase() || scene.action.toUpperCase();
@@ -133,7 +158,8 @@ function MotionGraphic({scene,frame}){
  return el('div',{style:{position:'absolute',inset:0,background:`radial-gradient(circle at 50% 42%,${accent}24,${bg} 70%)`,overflow:'hidden'}},
  ...dots,
  el(CinematicWorld,{scene,frame}),
- ['phone','door','clock','alert'].includes(scene.action)?el(StoryObject,{action:scene.action,frame,accent}):['space','nature','science'].includes(scene.action)?null:el('div',{style:panel},
+ el(DocumentaryScene,{scene,frame}),
+ ['phone','door','clock','alert'].includes(scene.action)?el(StoryObject,{action:scene.action,frame,accent}):['space','nature','science','map','history'].includes(scene.action)?null:el('div',{style:panel},
   el('div',{style:{fontSize:145,color:accent,fontWeight:900,lineHeight:1}},label),
   el('div',{style:{fontSize:50,color:'#fff',fontWeight:900,textAlign:'center',maxWidth:'90%',overflowWrap:'anywhere',letterSpacing:2}},title)),
  el('div',{style:{position:'absolute',left:'12%',right:'12%',top:'72%',height:7,borderRadius:10,background:'#ffffff24'}},
