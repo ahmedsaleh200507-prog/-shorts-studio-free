@@ -36,6 +36,8 @@ jobs:
           python -m pip install --quiet edge-tts mutagen
           python animation/generate-narration.py
           test -s animation/public/audio/scene-0.mp3
+          test -s animation/narration-audio.mjs
+          node --input-type=module -e "import {narrationAudio} from './animation/narration-audio.mjs'; if(narrationAudio.length!==4 || narrationAudio.some(x=>!x.startsWith('data:audio/mpeg;base64,'))) process.exit(1); console.log('Four embedded narration clips verified')"
           cat animation/narration-plan.mjs
       - name: Render narrated 2D MP4
         working-directory: animation
