@@ -220,8 +220,9 @@ function MotionGraphic({scene,frame}){
  el('div',{style:{position:'absolute',left:'12%',right:'12%',top:'72%',height:7,borderRadius:10,background:'#ffffff24'}},
   el('div',{style:{width:Math.min(100,frame/Math.max(1,scene.endFrame-scene.startFrame)*100)+'%',height:'100%',background:accent,borderRadius:10}})));
 }
-export function ShortsComposition({script='Ein Mann wacht morgens auf.',narration=false,durationsFrames=null}){
- const plan=makeScenePlan(script,{durationsFrames}),frame=useCurrentFrame();
+export function ShortsComposition({script='Ein Mann wacht morgens auf.',narration=false,durationsFrames=null,aspectRatio='9:16'}){
+ const plan=makeScenePlan(script,{durationsFrames,aspectRatio}),frame=useCurrentFrame();
+ const landscape=aspectRatio==='16:9';
  const scene=plan.scenes.find(s=>frame>=s.startFrame&&frame<s.endFrame)??plan.scenes.at(-1);
  const local=Math.max(0,frame-scene.startFrame);
  const sceneIndex=plan.scenes.indexOf(scene);
@@ -235,7 +236,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
     el(Person,{frame:local,action:scene.action}),
     el(Prop,{action:scene.action,frame:local})):el(MotionGraphic,{scene,frame:local})),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
-  el('div',{style:{position:'absolute',top:85,left:65,color:'#fff',fontSize:34,fontWeight:800,letterSpacing:3,textShadow:'0 3px 8px #0009'}},'SHORTS STUDIO'),
-  el('div',{style:{position:'absolute',bottom:140,left:45,right:45,opacity,background:'#14253bd9',borderRadius:30,padding:'32px 26px',color:'white',fontSize:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},scene.text)
+  el('div',{style:{position:'absolute',top:landscape?42:85,left:landscape?70:65,color:'#fff',fontSize:landscape?26:34,fontWeight:800,letterSpacing:3,textShadow:'0 3px 8px #0009'}},'SHORTS STUDIO'),
+  el('div',{style:{position:'absolute',bottom:landscape?58:140,left:landscape?'15%':45,right:landscape?'15%':45,opacity,background:'#14253bd9',borderRadius:landscape?18:30,padding:landscape?'18px 24px':'32px 26px',color:'white',fontSize:landscape?35:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},scene.text)
  );
 }
