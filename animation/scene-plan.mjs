@@ -34,7 +34,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
     const visualMode=['alert','phone','door','clock','space','science','nature','technology','number'].includes(action)?'motion-graphic':action==='talk'?'kinetic-type':'character';
-    const keywords=(text.match(/[\\p{L}\\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
+    const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
     return {id:`scene-${index+1}`,text,action,place,props,visualMode,keywords,characterId:'main',startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
   return {version:1,width:1080,height:1920,fps,totalFrames:scenes.at(-1).endFrame,scenes};
