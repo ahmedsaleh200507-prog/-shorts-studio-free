@@ -1,0 +1,38 @@
+name: Render Remotion 2D demo MP4
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  remotion-demo:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install video dependencies
+        working-directory: animation
+        run: npm install --no-audit --no-fund
+      - name: Check scene planner
+        working-directory: animation
+        run: npm test
+      - name: Download rendering browser
+        working-directory: animation
+        run: npx remotion browser ensure
+      - name: Render real MP4 sample
+        working-directory: animation
+        run: |
+          mkdir -p ../output
+          npx remotion render entry.mjs ShortsDemo ../output/remotion-demo.mp4 --codec h264 --crf 27 --concurrency 1 --scale 0.5 --frames 0-47
+      - name: Validate video frames
+        run: |
+          test -s output/remotion-demo.mp4
+          ffprobe -v error -show_entries stream=codec_name,width,height -of json output/remotion-demo.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: remotion-2d-demo-mp4
+          path: output/remotion-demo.mp4
+          if-no-files-found: error
+          retention-days: 3
