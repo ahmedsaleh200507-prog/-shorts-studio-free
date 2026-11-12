@@ -58,6 +58,30 @@ function Prop({action,frame}){
  return null;
 }
 
+
+function StoryObject({action,frame,accent}){
+ const progress=Math.min(1,frame/36),ease=1-Math.pow(1-progress,3);
+ const base={position:'absolute',left:'15%',top:'18%',width:'70%',height:'60%'};
+ if(action==='phone')return el('div',{style:{...base,left:'27%',width:'46%',borderRadius:64,border:'17px solid #26354e',background:'#d9edff',boxShadow:'0 30px 90px #0009',overflow:'hidden'}},
+  el('div',{style:{height:'9%',background:'#24354b',margin:'0 auto',width:'37%',borderRadius:'0 0 24px 24px'}}),
+  el('div',{style:{padding:'12% 7%',fontSize:37,color:'#20314a',fontWeight:800}},'12:45'),
+  el('div',{style:{margin:'5%',padding:'7%',borderRadius:25,background:'#fff',boxShadow:'0 8px 25px #52687a44',transform:`translateY(${(1-ease)*-280}px)`,opacity:ease}},
+   el('div',{style:{fontSize:26,color:'#348dba',fontWeight:800}},'● MESSAGE'),
+   el('div',{style:{fontSize:28,color:'#26354e',marginTop:14}},'Neue Nachricht')),
+  el('div',{style:{position:'absolute',bottom:'4%',left:'35%',width:'30%',height:9,borderRadius:10,background:'#24354b'}}));
+ if(action==='door')return el('div',{style:{...base,left:'21%',width:'58%',top:'14%',height:'69%',background:'#b7c4d1',border:'16px solid #263448',borderRadius:10,perspective:900}},
+  el('div',{style:{position:'absolute',inset:0,background:'linear-gradient(110deg,#9b613d,#e5ac6b)',border:'12px solid #7e4b2e',transformOrigin:'left center',transform:`rotateY(${-68*ease}deg)`,boxShadow:'15px 15px 45px #0008'}},
+   el('div',{style:{position:'absolute',right:'10%',top:'50%',width:26,height:26,background:'#f8d77c',borderRadius:'50%',boxShadow:'0 0 0 8px #9e673b'}})));
+ if(action==='clock')return el('div',{style:{...base,top:'22%',left:'18%',width:'64%',height:'36%',aspectRatio:'1',borderRadius:'50%',border:'22px solid #9de9f5',background:'#f0fbff',boxShadow:'0 0 65px #79cbe777'}},
+  ...Array.from({length:12},(_,i)=>el('div',{key:i,style:{position:'absolute',left:'49%',top:'7%',width:9,height:24,background:'#30465b',transformOrigin:'center 290px',transform:`rotate(${i*30}deg)`}})),
+  el('div',{style:{position:'absolute',left:'49%',top:'50%',height:'31%',width:13,background:'#273b55',borderRadius:12,transformOrigin:'top center',transform:`rotate(${180+frame*0.7}deg)`}}),
+  el('div',{style:{position:'absolute',left:'49%',top:'50%',height:'38%',width:8,background:'#ec6265',borderRadius:12,transformOrigin:'top center',transform:`rotate(${180+frame*6}deg)`}}),
+  el('div',{style:{position:'absolute',left:'47%',top:'47%',width:28,height:28,borderRadius:'50%',background:'#273b55'}}));
+ if(action==='alert')return el('div',{style:{...base,top:'25%',height:'42%',background:'#271a2b',border:'9px solid '+accent,borderRadius:32,boxShadow:`0 0 ${35+Math.sin(frame/3)*20}px ${accent}`,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}},
+  el('div',{style:{fontSize:190,color:accent,transform:`scale(${1+Math.sin(frame/4)*0.09})`}},'⚠'),
+  el('div',{style:{fontSize:52,color:'#fff',fontWeight:900,letterSpacing:7}},'ACHTUNG'));
+ return null;
+}
 function MotionGraphic({scene,frame}){
  const t=frame/24, pulse=1+0.035*Math.sin(t*5), slide=Math.min(0, -90+frame*12);
  const title=(scene.keywords||[]).slice(0,3).join(' ').toUpperCase() || scene.action.toUpperCase();
@@ -68,7 +92,7 @@ function MotionGraphic({scene,frame}){
  const dots=Array.from({length:22},(_,i)=>el('div',{key:i,style:{position:'absolute',left:(i*43%100)+'%',top:((i*29+frame*(i%2?0.12:-0.1))%100+100)%100+'%',width:3+i%4*2,height:3+i%4*2,borderRadius:'50%',background:accent,opacity:0.15+(i%4)*0.12}}));
  return el('div',{style:{position:'absolute',inset:0,background:`radial-gradient(circle at 50% 42%,${accent}24,${bg} 70%)`,overflow:'hidden'}},
  ...dots,
- el('div',{style:panel},
+ ['phone','door','clock','alert'].includes(scene.action)?el(StoryObject,{action:scene.action,frame,accent}):el('div',{style:panel},
   el('div',{style:{fontSize:145,color:accent,fontWeight:900,lineHeight:1}},label),
   el('div',{style:{fontSize:50,color:'#fff',fontWeight:900,textAlign:'center',maxWidth:'90%',overflowWrap:'anywhere',letterSpacing:2}},title)),
  el('div',{style:{position:'absolute',left:'12%',right:'12%',top:'72%',height:7,borderRadius:10,background:'#ffffff24'}},
