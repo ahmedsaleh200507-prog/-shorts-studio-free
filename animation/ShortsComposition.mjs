@@ -248,7 +248,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const zoom=1.035+0.065*(sceneIndex%2===0?progress:1-progress);
  const driftX=(sceneIndex%3-1)*2.4*(2*progress-1);
  const driftY=(sceneIndex%2===0?1:-1)*1.8*(2*progress-1);
- const words=scene.text.trim().split(/\\s+/).filter(Boolean);
+ const words=scene.text.trim().split(/\s+/).filter(Boolean);
  const revealedWords=Math.max(1,Math.min(words.length,Math.ceil(progress*words.length)));
  const caption=words.slice(0,revealedWords).join(' ');
  const opacity=interpolate(local,[0,5,Math.max(6,scene.endFrame-scene.startFrame-6),scene.endFrame-scene.startFrame],[0,1,1,0],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
