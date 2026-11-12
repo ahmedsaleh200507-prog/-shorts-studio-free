@@ -1,5 +1,10 @@
 name: Render Remotion 2D demo MP4
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'animation/**'
+      - '.github/workflows/remotion-demo.yml'
   workflow_dispatch:
 permissions:
   contents: read
