@@ -37,8 +37,8 @@ jobs:
           ffprobe -v error -show_entries stream=codec_name,width,height -of json output/blender-pilot.mp4
           ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 output/blender-pilot.mp4 | tee output/verification.txt
           grep -q 'codec_name=h264' output/verification.txt
-          grep -q 'width=540' output/verification.txt
-          grep -q 'height=960' output/verification.txt
+          grep -q 'width=720' output/verification.txt
+          grep -q 'height=1280' output/verification.txt
       - uses: actions/upload-artifact@v4
         with:
           name: blender-2d-engine-pilot
