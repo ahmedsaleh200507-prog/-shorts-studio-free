@@ -7,6 +7,14 @@ on:
         description: 'German or English text (up to 3000 characters)'
         required: true
         type: string
+      aspect_ratio:
+        description: 'Video orientation'
+        required: false
+        default: '9:16'
+        type: choice
+        options:
+          - '9:16'
+          - '16:9'
       job_id:
         description: 'Unique render request identifier'
         required: false
@@ -46,6 +54,7 @@ jobs:
         env:
           SCRIPT: ${{ inputs.script }}
           LANGUAGE: ${{ inputs.language }}
+          ASPECT_RATIO: ${{ inputs.aspect_ratio }}
         run: |
           python animation/prepare-job.py
           test -s animation/job-entry.mjs
