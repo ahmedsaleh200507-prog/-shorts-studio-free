@@ -14,6 +14,7 @@
     "remotion": "4.0.543",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "@remotion/cli": "4.0.543"
+    "@remotion/cli": "4.0.543",
+    "mediabunny": "1.65.2"
   }
 }
