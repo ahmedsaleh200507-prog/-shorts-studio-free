@@ -161,6 +161,25 @@ for i in range(len(route)-1):
 for i,(x,y) in enumerate([route[0],route[-1]]):
  pin=circle('map marker',x,y,.18,.5,gold if i else red);show(pin,145+i*48,240);scale_in(pin,145+i*48,155+i*48)
 cap=label('FINDE EINEN SICHEREN WEG',0,3.15,.8,.27,white);show(cap,145,240)
+# Script-dependent on-screen captions, timed to each scene (not hard-coded titles).
+# Split at word boundaries to keep long German and English sentences on screen.
+if plan_path:
+ import textwrap
+ for index,scene_item in enumerate(scenes):
+  first,last=new_ranges[order[index]]
+  words=scene_item['text'].strip()
+  lines=textwrap.wrap(words,width=31,break_long_words=False,break_on_hyphens=False)[:3]
+  if lines:
+   panel=rect('caption panel '+str(index),0,-3.72,6.3,.38+len(lines)*.36,.72,black)
+   # Use direct keyframes: these frame values are already in the new timeline.
+   panel.hide_render=True;panel.keyframe_insert(data_path='hide_render',frame=1)
+   panel.hide_render=False;panel.keyframe_insert(data_path='hide_render',frame=first)
+   panel.hide_render=True;panel.keyframe_insert(data_path='hide_render',frame=last+1)
+   for line_no,line in enumerate(lines):
+    txt=label(line,0,-3.48-line_no*.36,.78,min(.19,5.6/max(len(line),1)),white)
+    txt.hide_render=True;txt.keyframe_insert(data_path='hide_render',frame=1)
+    txt.hide_render=False;txt.keyframe_insert(data_path='hide_render',frame=first)
+    txt.hide_render=True;txt.keyframe_insert(data_path='hide_render',frame=last+1)
 # Orthographic camera, subtle movement per scene.
 camdata=bpy.data.cameras.new('orthographic');cam=bpy.data.objects.new('Camera',camdata);bpy.context.collection.objects.link(cam)
 cam.location=(0,0,14);camdata.type='ORTHO';camdata.ortho_scale=10.3;sc.camera=cam
