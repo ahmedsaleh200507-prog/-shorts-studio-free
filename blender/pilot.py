@@ -5,7 +5,7 @@ from mathutils import Vector
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 scene=bpy.context.scene
-scene.render.engine='BLENDER_EEVEE_NEXT' if hasattr(bpy.types,'BLENDER_EEVEE_NEXT') else 'BLENDER_EEVEE'
+scene.render.engine='BLENDER_EEVEE_NEXT' if bpy.app.version >= (4,2,0) else 'BLENDER_EEVEE'
 scene.render.resolution_x=480
 scene.render.resolution_y=854
 scene.render.resolution_percentage=100
@@ -26,6 +26,8 @@ def material(name, rgb):
     if bsdf:
         bsdf.inputs['Base Color'].default_value=(*rgb,1)
         bsdf.inputs['Roughness'].default_value=1
+        bsdf.inputs['Emission Color'].default_value=(*rgb,1) if 'Emission Color' in bsdf.inputs else (*rgb,1)
+        if 'Emission Strength' in bsdf.inputs: bsdf.inputs['Emission Strength'].default_value=1
     return m
 
 navy=material('midnight blue',(0.015,.035,.085))
