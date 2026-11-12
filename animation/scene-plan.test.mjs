@@ -80,3 +80,15 @@ test('Pronoun follow-up preserves location without inventing a new setting',()=>
  assert.deepEqual(plan.scenes.map(s=>s.place),['hospital','hospital','hospital']);
  assert.equal(makeScenePlan('Ein Mann ist im Büro. Danach geht er in die Schule.').scenes[1].place,'school');
 });
+
+test('Explicit place wins over broad action keywords',()=>{
+ const examples=[
+  ['Die Frau putzt im Krankenhaus den Boden.','hospital'],
+  ['Er arbeitet in der Schule.','school'],
+  ['She pays at the restaurant.','restaurant'],
+  ['Er telefoniert im Supermarkt.','supermarket']
+ ];
+ for(const [sentence,place] of examples){
+  assert.equal(makeScenePlan(sentence).scenes[0].place,place,sentence);
+ }
+});
