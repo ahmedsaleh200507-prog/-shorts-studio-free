@@ -68,7 +68,7 @@ async function generate(download=false){
  busy=true;el('toggle').disabled=true;el('audioSave').disabled=true;el('toggle').textContent='⏳ Hazırlanıyor...';
  try{
   setStatus('⏳ Video oluşturma isteği gönderiliyor...');
-  const response=await request('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script,language:lang,aspect_ratio:aspect})});
+  const response=await request('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script:aspect==='16:9'?'[[ASPECT_16_9]]\n'+script:script,language:lang,aspect_ratio:aspect})});
   const job=await response.json();if(!job.job_id)throw Error('GitHub iş kimliği alınamadı');
   let runId=null;
   for(let attempt=0;attempt<100;attempt++){
