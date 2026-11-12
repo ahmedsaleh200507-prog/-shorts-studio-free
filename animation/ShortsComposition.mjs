@@ -82,6 +82,33 @@ function StoryObject({action,frame,accent}){
   el('div',{style:{fontSize:52,color:'#fff',fontWeight:900,letterSpacing:7}},'ACHTUNG'));
  return null;
 }
+
+function CinematicWorld({scene,frame}){
+ const t=frame/24,space=scene.action==='space',nature=scene.action==='nature',science=scene.action==='science';
+ if(!space&&!nature&&!science)return null;
+ const glow=space?'#72b8ff':nature?'#b6f3c1':'#6ce8db';
+ const orb=space?'#477fc2':nature?'#f8d78d':'#68d9e8';
+ const stars=Array.from({length:space?85:35},(_,i)=>{
+  const x=(i*73.79+17)%100,y=(i*41.23+9)%72;
+  const size=(i%7===0?5:2)+(i%3);
+  return el('div',{key:'particle-'+i,style:{position:'absolute',left:x+'%',top:y+'%',width:size,height:size,borderRadius:'50%',background:i%5===0?glow:'#ffffff',opacity:.2+(i%6)*.12,boxShadow:i%9===0?'0 0 15px '+glow:'none',transform:`translateY(${Math.sin(t*.7+i)*5}px)`}})
+ });
+ const mountain=(x,y,w,h,c)=>el('div',{style:{position:'absolute',left:x+'%',top:y+'%',width:w+'%',height:h+'%',background:c,clipPath:'polygon(0 100%,45% 0,100% 100%)'}});
+ return el('div',{style:{position:'absolute',inset:0,overflow:'hidden',background:space?'radial-gradient(ellipse at 60% 40%,#243a73 0%,#0b1639 46%,#030613 90%)':nature?'linear-gradient(180deg,#0c2836 0%,#365d68 48%,#102b35 100%)':'radial-gradient(circle at 50% 43%,#154b5a,#06141f 75%)'}},
+  ...stars,
+  space?el('div',{style:{position:'absolute',left:'16%',top:'20%',width:'68%',aspectRatio:'1',borderRadius:'50%',background:'radial-gradient(circle at 32% 25%,#a7e9fc,#407bc1 34%,#164374 69%,#061b38 100%)',boxShadow:'-30px -25px 95px #6ca9fa80,35px 35px 80px #000c',transform:`translateY(${Math.sin(t*.8)*14}px) rotate(${t*1.6}deg)`}},
+   ...Array.from({length:6},(_,i)=>el('div',{key:i,style:{position:'absolute',left:(12+i*13)+'%',top:(23+(i*17)%43)+'%',width:(13+i%3*8)+'%',height:(8+i%2*9)+'%',borderRadius:'60% 40% 70% 30%',background:'#79c6ad',opacity:.7,transform:`rotate(${i*47}deg)`}}))):null,
+  nature?el(React.Fragment,null,
+    el('div',{style:{position:'absolute',left:'65%',top:'17%',width:'18%',aspectRatio:'1',borderRadius:'50%',background:'#ffdb9b',boxShadow:'0 0 100px 55px #e6b98060'}}),
+    mountain(-15,43,78,41,'#4c6f76'),mountain(24,38,100,47,'#2c5360'),mountain(-25,60,95,38,'#183e45'),mountain(45,61,95,39,'#102f39'),
+    ...Array.from({length:12},(_,i)=>el('div',{key:'tree'+i,style:{position:'absolute',left:(i*9-4)+'%',bottom:(i%4*2+10)+'%',width:0,height:0,borderLeft:'35px solid transparent',borderRight:'35px solid transparent',borderBottom:(120+i%3*30)+'px solid #0c292d',filter:'drop-shadow(0 8px 7px #0006)'}}))):null,
+  science?el(React.Fragment,null,
+    ...Array.from({length:3},(_,i)=>el('div',{key:'orbit'+i,style:{position:'absolute',left:'15%',top:'27%',width:'70%',height:'35%',border:'5px solid #6ce8db99',borderRadius:'50%',transform:`rotate(${i*60+t*13}deg)`,boxShadow:'0 0 30px #6ce8db35'}})),
+    el('div',{style:{position:'absolute',left:'43%',top:'39%',width:'14%',aspectRatio:'1',borderRadius:'50%',background:'#9ef9e6',boxShadow:'0 0 70px 30px #6ce8db80'}})):null,
+  el('div',{style:{position:'absolute',inset:0,background:'linear-gradient(180deg,#0000 0%,#0000 55%,#030b1caa 95%)'}})
+ );
+}
+
 function MotionGraphic({scene,frame}){
  const t=frame/24, pulse=1+0.035*Math.sin(t*5), slide=Math.min(0, -90+frame*12);
  const title=(scene.keywords||[]).slice(0,3).join(' ').toUpperCase() || scene.action.toUpperCase();
@@ -92,7 +119,8 @@ function MotionGraphic({scene,frame}){
  const dots=Array.from({length:22},(_,i)=>el('div',{key:i,style:{position:'absolute',left:(i*43%100)+'%',top:((i*29+frame*(i%2?0.12:-0.1))%100+100)%100+'%',width:3+i%4*2,height:3+i%4*2,borderRadius:'50%',background:accent,opacity:0.15+(i%4)*0.12}}));
  return el('div',{style:{position:'absolute',inset:0,background:`radial-gradient(circle at 50% 42%,${accent}24,${bg} 70%)`,overflow:'hidden'}},
  ...dots,
- ['phone','door','clock','alert'].includes(scene.action)?el(StoryObject,{action:scene.action,frame,accent}):el('div',{style:panel},
+ el(CinematicWorld,{scene,frame}),
+ ['phone','door','clock','alert'].includes(scene.action)?el(StoryObject,{action:scene.action,frame,accent}):['space','nature','science'].includes(scene.action)?null:el('div',{style:panel},
   el('div',{style:{fontSize:145,color:accent,fontWeight:900,lineHeight:1}},label),
   el('div',{style:{fontSize:50,color:'#fff',fontWeight:900,textAlign:'center',maxWidth:'90%',overflowWrap:'anywhere',letterSpacing:2}},title)),
  el('div',{style:{position:'absolute',left:'12%',right:'12%',top:'72%',height:7,borderRadius:10,background:'#ffffff24'}},
