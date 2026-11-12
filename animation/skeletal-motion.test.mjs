@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {characterPose,lipShapeAt,smooth} from './skeletal-motion.mjs';
+
+test('Pose is deterministic and finite for long renders',()=>{
+ for(const action of ['travel','carry','pick','brush','wake','checkout','talk']){
+  for(const frame of [0,12,24,720,14400]){
+   const a=characterPose(action,frame);
+   assert.deepEqual(a,characterPose(action,frame));
+   assert.ok(Object.values(a).every(Number.isFinite));
+  }
+ }
+});
+test('Walking legs counter-rotate and carrying hand remains steady',()=>{
+ const walking=characterPose('travel',6);
+ assert.equal(walking.leftLeg,-walking.rightLeg);
+ assert.ok(Math.abs(characterPose('carry',6).rightArm)<20);
+ assert.ok(Math.abs(characterPose('travel',6).rightArm)>10);
+});
+test('Pick gesture interpolates smoothly',()=>{
+ assert.equal(smooth(0),0);
+ assert.equal(smooth(1),1);
+ assert.equal(characterPose('pick',0).rightArm,Math.sin(1)*4);
+ assert.equal(characterPose('pick',48).rightArm,-55);
+});
+test('Lip cues support Rhubarb-style viseme timing without dependency',()=>{
+ const cues=[{start:0,end:.2,value:'A'},{start:.2,end:.5,value:'D'}];
+ assert.equal(lipShapeAt(.1,cues),'A');
+ assert.equal(lipShapeAt(.3,cues),'D');
+ assert.equal(lipShapeAt(.5,cues),'X');
+ assert.equal(lipShapeAt(.1,[{start:0,end:1,value:'bad'}]),'X');
+});
