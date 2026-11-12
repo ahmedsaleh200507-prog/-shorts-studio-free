@@ -87,7 +87,7 @@ class LongVideoTests(unittest.TestCase):
                 if path == SCRIPT_FILE:
                     return tmpdir / "generate-ai-scenes.py"
                 return original_resolve(path, *args, **kwargs)
-            with patch.dict(os.environ, {"SCRIPT": "[[VECTOR_2D]]\\n[[ASPECT_16_9]]\\nEin Mann liest Nachrichten.",
+            with patch.dict(os.environ, {"SCRIPT": "[[VECTOR_2D]]\n[[ASPECT_16_9]]\nEin Mann liest Nachrichten.",
                                       "POLLINATIONS_KEY": "sk_test"}), patch.object(
                     pathlib.Path, "resolve", fake_resolve
                 ), patch("urllib.request.urlopen", side_effect=AssertionError("No image API in vector mode")):
