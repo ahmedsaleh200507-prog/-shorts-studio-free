@@ -11,7 +11,7 @@ const pct=(n)=>n+'%';
 function Shape({x,y,w,h,color,r=0,rotate=0,children,style={}}){
  return el('div',{style:{position:'absolute',left:pct(x),top:pct(y),width:pct(w),height:pct(h),background:color,borderRadius:r,transform:`rotate(${rotate}deg)`,...style}},children);
 }
-function Person({frame,action}){
+function Person({frame,action,speaking=false}){
  // Vector character with independently articulated limbs and a gentle breathing cycle.
  const pose=characterPose(action,frame);
  const wake=action==='wake';
@@ -49,7 +49,7 @@ function Person({frame,action}){
     svg('ellipse',{cx:121,cy:146,rx:5,ry:7,fill:'#24364b'}),
     svg('ellipse',{cx:181,cy:146,rx:5,ry:7,fill:'#24364b'}),
     svg('path',{d:'M150 151 L145 171 Q151 176 158 171',fill:'none',stroke:'#c48068',strokeWidth:4,strokeLinecap:'round'}),
-    svg('path',{d:'M132 190 Q151 203 172 188',fill:'none',stroke:'#9d574f',strokeWidth:5,strokeLinecap:'round'}),
+    speaking?svg('ellipse',{cx:151,cy:192,rx:12+Math.abs(Math.sin(frame*.37))*4,ry:4+Math.abs(Math.sin(frame*.37))*12,fill:'#803e42',stroke:'#a65d54',strokeWidth:3}):svg('path',{d:'M132 190 Q151 203 172 188',fill:'none',stroke:'#9d574f',strokeWidth:5,strokeLinecap:'round'}),
     svg('ellipse',{cx:96,cy:175,rx:12,ry:8,fill:'#e99b86',opacity:.45}),
     svg('ellipse',{cx:203,cy:174,rx:12,ry:8,fill:'#e99b86',opacity:.45})
    )
@@ -263,10 +263,10 @@ function AiIllustration({image,sceneIndex,progress}){
   el('img',{src:staticFile(image.startsWith('/')?image.slice(1):image),style:{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',transform:`translate(${dx}%,${dy}%) scale(${zoom})`,filter:'saturate(1.12) contrast(1.06)'}}),
   el('div',{style:{position:'absolute',inset:0,pointerEvents:'none',background:'linear-gradient(180deg,#07102144 0%,transparent 35%,#08122288 100%)'}}));
 }
-function VectorScene({scene,frame}){
+function VectorScene({scene,frame,speaking=false}){
  return scene.visualMode==='character'?el(React.Fragment,null,
     el(Background,{place:scene.place,frame}),
-    el(Person,{frame,action:scene.action}),
+    el(Person,{frame,action:scene.action,speaking}),
     el(Prop,{action:scene.action,frame})):el(MotionGraphic,{scene,frame});
 }
 function MotionGraphic({scene,frame}){
@@ -306,7 +306,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const caption=words.slice(0,revealedWords).join(' ');
  const opacity=interpolate(local,[0,5,Math.max(6,scene.endFrame-scene.startFrame-6),scene.endFrame-scene.startFrame],[0,1,1,0],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
-  aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local})),
+  aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,speaking:narration})),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
   el('div',{style:{position:'absolute',top:landscape?42:85,left:landscape?70:65,color:'#fff',fontSize:landscape?26:34,fontWeight:800,letterSpacing:3,textShadow:'0 3px 8px #0009'}},'SHORTS STUDIO'),
   el('div',{style:{position:'absolute',bottom:landscape?58:140,left:landscape?'15%':45,right:landscape?'15%':45,opacity,background:'#14253bd9',borderRadius:landscape?18:30,padding:landscape?'18px 24px':'32px 26px',color:'white',fontSize:landscape?35:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},caption)
