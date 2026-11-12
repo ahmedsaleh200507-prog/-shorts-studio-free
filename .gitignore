@@ -1,0 +1,16 @@
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+output/
+animation/public/
+animation/job-entry.mjs
+animation/job-plan.json
+animation/narration-report.json
+animation/visual-report.json
+.env
+.env.*
+.dev.vars
+*.onnx
+*.onnx.json
+*.log
