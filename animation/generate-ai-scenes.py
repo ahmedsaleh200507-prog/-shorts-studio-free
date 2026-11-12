@@ -20,8 +20,11 @@ if script.startswith("[[ASPECT_16_9]]"):
     landscape = True
 
 key = os.environ.get("POLLINATIONS_KEY", "").strip()
-if not key.startswith("sk_"):
-    raise SystemExit("Missing POLLINATIONS_KEY GitHub Actions secret")
+# No paid image service is required: render the built-in 2D vector scenes
+# when the optional image provider is not configured.
+ai_enabled = key.startswith("sk_")
+if not ai_enabled:
+    print("No image key: using free built-in 2D vector animations", flush=True)
 
 sentences = [s.strip() for s in re.findall(r"[^.!?\n]+[.!?]?", script) if s.strip()]
 if not sentences or len(sentences) > 180 or len(script) > 12000:
@@ -109,13 +112,21 @@ for i in range(image_count):
         + ("Previous story segment: " + prior_segment[-320:] + ". " if prior_segment else "")
         + "Current story segment: " + segment[:1200]
     )
-    data, mime = fetch_image(prompt, seed=42 + i * 7919)
-    ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}[mime]
-    filename = f"scene-{i}.{ext}"
-    (out / filename).write_bytes(data)
-    manifest.extend(["/ai-scenes/" + filename] * (end - start))
+    if ai_enabled:
+        try:
+            data, mime = fetch_image(prompt, seed=42 + i * 7919)
+        except (SystemExit, urllib.error.URLError, TimeoutError, RuntimeError) as exc:
+            print(f"Image service unavailable ({exc}); falling back to free 2D vector scenes", flush=True)
+            ai_enabled = False
+    if ai_enabled:
+        ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}[mime]
+        filename = f"scene-{i}.{ext}"
+        (out / filename).write_bytes(data)
+        manifest.extend(["/ai-scenes/" + filename] * (end - start))
+        print(f"AI illustration {i+1}/{image_count} ready", flush=True)
+    else:
+        manifest.extend([None] * (end - start))
     prior_segment = segment
-    print(f"AI illustration {i+1}/{image_count} ready", flush=True)
 
 if len(manifest) != len(sentences):
     raise RuntimeError("Scene manifest mismatch")
