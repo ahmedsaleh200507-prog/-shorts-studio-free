@@ -157,9 +157,9 @@ function animate(){stopAnimation();frameStart=performance.now();const tick=now=>
 function finish(){resetPlayback();if(scenes.length)draw(scenes[scenes.length-1],5,1);status('Oynatma tamamlandı. Yeniden başlatabilirsin.')}
 function speak(){if(state!=='playing')return;if(index>=scenes.length){finish();return}const id=++generation;const u=new SpeechSynthesisUtterance(scenes[index].text);utter=u;u.lang=$('language').value;u.rate=1;const value=$('voice').value;if(value!==''&&voices[Number(value)])u.voice=voices[Number(value)];u.onstart=()=>{if(id!==generation||state!=='playing')return;sceneElapsed=0;animate();status('Okunuyor: '+(index+1)+'/'+scenes.length)};u.onend=()=>{if(id!==generation||state!=='playing')return;stopAnimation();index++;sceneElapsed=0;if(index>=scenes.length)finish();else{draw(scenes[index],0,0);speak()}};u.onerror=e=>{if(id!==generation)return;if(e.error==='interrupted'||e.error==='canceled')return;resetPlayback();status('Seslendirme hatası: '+e.error+'. Baştan deneyin.')};try{speechSynthesis.speak(u)}catch(e){resetPlayback();status('Ses başlatılamadı: '+e.message)}}
 $('toggle').onclick=()=>{if(audioBusy)return;$('audioSave').click()};
-$('reset').onclick=()=>{if(audioBusy)return;resetPlayback();showLivePreview();prepare();status('Yeni video için hazır. Başlat düğmesine bas.')};
-$('story').addEventListener('input',()=>{if(recording)return;resetPlayback();showLivePreview();if(downloadUrl){URL.revokeObjectURL(downloadUrl);downloadUrl='';}status('Metin değişti. Başlat düğmesine bas.')});
-$('language').onchange=()=>{resetPlayback();loadVoices();status('Dil değişti. Cihazdaki sesi seç.')};
+$('reset').onclick=()=>{if(audioBusy)return;resetPlayback();if(cachedRender){showRenderedVideo(cachedRender.url);$('renderedVideo').currentTime=0}else showLivePreview();status('Video başa alındı.')};
+$('story').addEventListener('input',()=>{if(recording)return;resetPlayback();showLivePreview();cachedRender=null;if(downloadUrl){URL.revokeObjectURL(downloadUrl);downloadUrl='';}status('Metin değişti. Başlat düğmesine bas.')});
+$('language').onchange=()=>{cachedRender=null;resetPlayback();loadVoices();status('Dil değişti. Cihazdaki sesi seç.')};
 $('voice').onchange=()=>{resetPlayback();status('Ses seçildi. Başlat düğmesine bas.')};
 if('speechSynthesis'in window){speechSynthesis.onvoiceschanged=loadVoices;loadVoices();setTimeout(loadVoices,400);setTimeout(loadVoices,1500)}else $('voice').innerHTML='<option>Seslendirme desteklenmiyor</option>';
 function mime(){if(!window.MediaRecorder)return'';return ['video/mp4;codecs="avc1.42E01E"','video/mp4','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(m=>MediaRecorder.isTypeSupported(m))||''}
@@ -173,10 +173,18 @@ async function api(path,key,options={}){
  if(!response.ok){let message='HTTP '+response.status;try{const body=await response.json();message=body.error||message;if(body.github_status)message+=' (GitHub '+body.github_status+')'}catch(e){}throw Error(message)}
  return response;
 }
-$('audioSave').onclick=async()=>{
+let cachedRender=null;
+async function generateOrPlay(download=false){
  if(audioBusy)return;
  const script=$('story').value.trim(),key=$('appkey').value.trim();
  if(!script){audioStatus('Önce metin yaz.');return}
+ const lang=$('language').value.startsWith('de')?'de':'en';
+ const cacheKey=JSON.stringify([script,lang]);
+ if(cachedRender&&cachedRender.key===cacheKey){
+   showRenderedVideo(cachedRender.url);
+   if(download){$('audioDownload').click();audioStatus('Hazır MP4 indiriliyor.')}else{audioStatus('Hazır video oynatılıyor.');$('renderedVideo').play().catch(()=>{});}
+   return;
+ }
  if(script.length>3000){audioStatus('En fazla 3000 karakter yaz.');return}
  if(!window.JSZip){audioStatus('İndirme kütüphanesi yüklenemedi. İnternet bağlantını kontrol et.');return}
  if(!key){audioStatus('Kaydetmek için Cloudflare APP_KEY değerini girmen gerekiyor. Şifreyi unuttuysan Cloudflare Settings bölümünden yenisini oluştur.');$('appkey').focus();return}
@@ -217,11 +225,16 @@ $('audioSave').onclick=async()=>{
   const bytes=await entry.async('blob'),url=URL.createObjectURL(new Blob([bytes],{type:'video/mp4'}));
   const a=$('audioDownload');if(a.dataset.url)URL.revokeObjectURL(a.dataset.url);
   a.dataset.url=url;a.href=url;a.download='shorts-studio-sesli.mp4';a.hidden=false;a.removeAttribute('aria-hidden');
-  a.click();
+  cachedRender={key:cacheKey,url}
+  if(download)a.click();
   resetPlayback();showRenderedVideo(url);
-  audioStatus('Sesli MP4 hazır. iPhone indirmeyi açmazsa aşağıdaki İndirme bağlantısına dokun.');
+  if(!download)$('renderedVideo').play().catch(()=>{});
+  audioStatus(download?'Sesli MP4 hazır. iPhone indirmeyi açmazsa aşağıdaki İndirme bağlantısına dokun.':'Sesli MP4 hazır. Videoyu oynatabilir veya kaydedebilirsin.');
  }catch(error){audioStatus('Hata: '+error.message+(error.message==='Unauthorized'?' — Cloudflare APP_KEY ile buraya yazdığın değer eşleşmiyor.':'')+(error.message==='Origin not allowed'?' — Cloudflare ALLOWED_ORIGIN ayarını kontrol et.':''))}
  finally{audioBusy=false;$('audioSave').disabled=false}
 };
+$('audioSave').onclick=()=>generateOrPlay(true);
+$('toggle').onclick=()=>generateOrPlay(false);
+
 prepare();showLivePreview();controls();
 </script></body></html>
