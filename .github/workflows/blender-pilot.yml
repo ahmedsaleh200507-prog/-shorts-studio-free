@@ -17,14 +17,16 @@ jobs:
       - name: Install open-source Blender and FFmpeg
         run: |
           sudo apt-get update -qq
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y blender ffmpeg
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y blender ffmpeg libegl1 libgl1 libopengl0 libglx-mesa0 libgl1-mesa-dri libgbm1 libxrender1 libxi6 libxkbcommon0 xvfb mesa-utils
+          test -e /usr/lib/x86_64-linux-gnu/libEGL.so.1
+          ldconfig -p | grep 'libEGL.so.1'
           blender --version | head -n 2
           ffmpeg -version | head -n 1
       - name: Render animated 2D frames
         run: |
           mkdir -p output/blender-frames
           python -m py_compile blender/cinematic_blackout.py
-          blender -b -t 2 --python-exit-code 1 --python blender/cinematic_blackout.py
+          xvfb-run -a -s '-screen 0 1280x1024x24' blender -b -t 2 --python-exit-code 1 --python blender/cinematic_blackout.py
           test -s output/blender-frames/frame_0001.png
           test -s output/blender-frames/frame_0240.png
           test "$(find output/blender-frames -name 'frame_*.png' | wc -l)" -eq 240
