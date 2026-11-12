@@ -1,5 +1,5 @@
 import React from 'react';
-import {AbsoluteFill, useCurrentFrame, interpolate} from 'remotion';
+import {AbsoluteFill, Audio, staticFile, useCurrentFrame, interpolate} from 'remotion';
 import {makeScenePlan} from './scene-plan.mjs';
 
 const el=React.createElement;
@@ -56,7 +56,7 @@ function Prop({action,frame}){
  if(action==='checkout')return el(React.Fragment,null,Shape({x:65,y:66,w:33,h:13,color:'#777e89',r:7}),Shape({x:67,y:61,w:15,h:7,color:'#2a405b',r:5}),Shape({x:58+Math.sin(frame/7)*3,y:54,w:12,h:6,color:'#f5d56c',r:5,rotate:15}));
  return null;
 }
-export function ShortsComposition({script='Ein Mann wacht morgens auf.'}){
+export function ShortsComposition({script='Ein Mann wacht morgens auf.',narration=false}){
  const plan=makeScenePlan(script),frame=useCurrentFrame();
  const scene=plan.scenes.find(s=>frame>=s.startFrame&&frame<s.endFrame)??plan.scenes.at(-1);
  const local=Math.max(0,frame-scene.startFrame);
@@ -67,6 +67,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.'}){
    el(Background,{place:scene.place,frame:local}),
    el(Person,{frame:local,action:scene.action}),
    el(Prop,{action:scene.action,frame:local})),
+  narration?el(Audio,{src:staticFile('narration.mp3')}):null,
   el('div',{style:{position:'absolute',top:85,left:65,color:'#fff',fontSize:34,fontWeight:800,letterSpacing:3,textShadow:'0 3px 8px #0009'}},'SHORTS STUDIO'),
   el('div',{style:{position:'absolute',bottom:140,left:45,right:45,opacity,background:'#14253bd9',borderRadius:30,padding:'32px 26px',color:'white',fontSize:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},scene.text)
  );
