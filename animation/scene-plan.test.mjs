@@ -61,3 +61,16 @@ test('Each sentence has its own non-overlapping frames',()=>{
  for(let i=1;i<p.scenes.length;i++)assert.equal(p.scenes[i-1].endFrame,p.scenes[i].startFrame);
  assert.equal(p.totalFrames,p.scenes.at(-1).endFrame);
 });
+
+test('Documentary reference topics use map and history motion graphics',()=>{
+ for(const [sentence,action] of [
+  ['Die Karte zeigt Europa.','map'],
+  ['Die Geschichte beginnt im Jahr 1900.','history'],
+  ['The map shows the region.','map'],
+  ['A historical newspaper is discovered.','history']
+ ]){
+  const scene=makeScenePlan(sentence).scenes[0];
+  assert.equal(scene.action,action,sentence);
+  assert.equal(scene.visualMode,'motion-graphic',sentence);
+ }
+});
