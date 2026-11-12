@@ -1,4 +1,4 @@
-name: Blender 2D engine pilot
+name: Blender cinematic 2D pilot
 on:
   push:
     branches: [main]
@@ -23,11 +23,11 @@ jobs:
       - name: Render animated 2D frames
         run: |
           mkdir -p output/blender-frames
-          python -m py_compile blender/pilot.py
-          blender -b -t 2 --python-exit-code 1 --python blender/pilot.py
+          python -m py_compile blender/cinematic_blackout.py
+          blender -b -t 2 --python-exit-code 1 --python blender/cinematic_blackout.py
           test -s output/blender-frames/frame_0001.png
-          test -s output/blender-frames/frame_0072.png
-          test "$(find output/blender-frames -name 'frame_*.png' | wc -l)" -eq 72
+          test -s output/blender-frames/frame_0240.png
+          test "$(find output/blender-frames -name 'frame_*.png' | wc -l)" -eq 240
       - name: Encode and verify MP4
         run: |
           ffmpeg -hide_banner -loglevel error -y -framerate 24 -i output/blender-frames/frame_%04d.png -c:v libx264 -pix_fmt yuv420p -crf 23 -movflags +faststart output/blender-pilot.mp4
@@ -35,8 +35,8 @@ jobs:
           ffprobe -v error -show_entries stream=codec_name,width,height -of json output/blender-pilot.mp4
           ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 output/blender-pilot.mp4 | tee output/verification.txt
           grep -q 'codec_name=h264' output/verification.txt
-          grep -q 'width=480' output/verification.txt
-          grep -q 'height=854' output/verification.txt
+          grep -q 'width=540' output/verification.txt
+          grep -q 'height=960' output/verification.txt
       - uses: actions/upload-artifact@v4
         with:
           name: blender-2d-engine-pilot
