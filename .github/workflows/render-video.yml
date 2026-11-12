@@ -63,6 +63,7 @@ jobs:
       - name: Generate real AI scene images
         env:
           SCRIPT: ${{ inputs.script }}
+          ASPECT_RATIO: ${{ inputs.aspect_ratio }}
           POLLINATIONS_KEY: ${{ secrets.POLLINATIONS_KEY }}
           AI_IMAGE_MODELS: black-forest-labs/flux.1-schnell,tongyi-mai/z-image-turbo
           AI_MAX_IMAGES: '18'
