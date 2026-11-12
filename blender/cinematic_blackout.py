@@ -164,6 +164,15 @@ cap=label('FINDE EINEN SICHEREN WEG',0,3.15,.8,.27,white);show(cap,145,240)
 # Orthographic camera, subtle movement per scene.
 camdata=bpy.data.cameras.new('orthographic');cam=bpy.data.objects.new('Camera',camdata);bpy.context.collection.objects.link(cam)
 cam.location=(0,0,14);camdata.type='ORTHO';camdata.ortho_scale=10.3;sc.camera=cam
-for frame,zoom in [(1,10.3),(72,9.8),(73,10.2),(144,9.8),(145,10.3),(240,9.6)]:
- camdata.ortho_scale=zoom;camdata.keyframe_insert(data_path='ortho_scale',frame=frame)
+# Camera timing follows the same scene permutation as visible objects.
+# Inserting keyframes in chronological order avoids unintended cross-scene interpolation.
+zoom_by_kind={'city':(10.3,9.8),'phone':(10.2,9.8),'map':(10.3,9.6)}
+for index,kind in enumerate(order):
+ first,last=new_ranges[kind]
+ zoom_start,zoom_end=zoom_by_kind[kind]
+ camdata.ortho_scale=zoom_start
+ camdata.keyframe_insert(data_path='ortho_scale',frame=first)
+ camdata.ortho_scale=zoom_end
+ camdata.keyframe_insert(data_path='ortho_scale',frame=last)
+print('Camera and scene sequence:',[(kind,new_ranges[kind]) for kind in order],flush=True)
 bpy.ops.render.render(animation=True)
