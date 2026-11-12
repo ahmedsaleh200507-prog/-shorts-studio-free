@@ -26,7 +26,8 @@ def material(name, rgb):
     if bsdf:
         bsdf.inputs['Base Color'].default_value=(*rgb,1)
         bsdf.inputs['Roughness'].default_value=1
-        bsdf.inputs['Emission Color'].default_value=(*rgb,1) if 'Emission Color' in bsdf.inputs else (*rgb,1)
+        if 'Emission Color' in bsdf.inputs: bsdf.inputs['Emission Color'].default_value=(*rgb,1)
+        elif 'Emission' in bsdf.inputs: bsdf.inputs['Emission'].default_value=(*rgb,1)
         if 'Emission Strength' in bsdf.inputs: bsdf.inputs['Emission Strength'].default_value=1
     return m
 
@@ -78,7 +79,7 @@ planet=disc('animated planet',(0,.4,0),2.15,teal)
 for i,(x,y,r) in enumerate([(-.65,.9,.65),(.65,1.1,.46),(.35,-.4,.72),(-1.1,-.55,.34)]):
     island=disc('continent '+str(i),(x,y,.07),r,green,7)
     island.parent=planet
-    island.matrix_parent_inverse=planet.matrix_world.inverted()
+    island.location=(x,y,.07)
 route=line('animated route',[(-1.9,-1.3,.2),(-1.2,-.6,.2),(-.3,-.9,.2),(.55,-.2,.2),(1.4,.65,.2)],gold,.045)
 for i,(x,y) in enumerate([(-1.9,-1.3),(-.3,-.9),(1.4,.65)]):
     marker=disc('pin '+str(i),(x,y,.25),.11,gold)
