@@ -39,7 +39,7 @@ test('Reference-style visual narration uses semantic motion graphics',()=>{
   assert.equal(scene.visualMode,'motion-graphic',text);
   assert.ok(scene.keywords.length>0,text);
  }
- assert.equal(makeScenePlan('Eine unbekannte Geschichte beginnt.').scenes[0].visualMode,'kinetic-type');
+ assert.equal(makeScenePlan('Eine unbekannte Erzählung beginnt.').scenes[0].visualMode,'kinetic-type');
  assert.equal(makeScenePlan('Sie putzt ihre Zähne.').scenes[0].visualMode,'character');
 });
 
