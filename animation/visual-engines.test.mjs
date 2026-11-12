@@ -32,3 +32,9 @@ test('Narrated 2D characters have animated mouth without 3D transforms',()=>{
  assert.doesNotMatch(source,/rotateY\(/);
  assert.doesNotMatch(source,/perspective:900/);
 });
+
+test('Wake-up and toothbrush are character-attached 2D actions',()=>{
+ assert.match(source,/const wakeProgress=wake\?/);
+ assert.match(source,/Hand holding toothbrush/);
+ assert.match(source,/if\(action==='brush'\)return null/);
+});
