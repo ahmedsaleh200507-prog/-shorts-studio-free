@@ -104,9 +104,12 @@ for i in range(image_count):
     prompt = (
         ("Wide horizontal 16:9 cinematic composition. " if landscape else
          "Vertical 9:16 cinematic composition. ")
-        + "Rich hand-painted 2D animation still, flat illustrated 2D only, "
-        "expressive characters, detailed scenery, coherent lighting, clean outlines, "
-        "no text, no subtitles, no watermark, no 3D, no photorealism. "
+        + "Professional 2D hand-painted animation keyframe, cinematic composition, "
+        "foreground and background depth layers, expressive character acting, "
+        "specific visible action from the CURRENT story segment, readable silhouettes, "
+        "consistent clean linework, rich environmental detail, coherent light direction, "
+        "balanced negative space for captions at bottom, no embedded words or letters, "
+        "no subtitles, no watermark, strictly 2D, no 3D, no photorealism. "
         + sky_rule
         + "One continuous story with recurring character appearance, same facial "
         "features, hairstyle, costume and proportions when the character returns. "
@@ -137,4 +140,4 @@ if len(manifest) != len(sentences):
     "export const aiSceneImages = " + json.dumps(manifest) + ";\n",
     encoding="utf-8",
 )
-print(f"Generated {image_count} AI images for {len(sentences)} scenes", flush=True)
+print(f"Prepared {len(sentences)} scenes with optional AI illustrations; vector fallback available", flush=True)
