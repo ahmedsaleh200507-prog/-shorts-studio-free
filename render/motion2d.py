@@ -100,12 +100,71 @@ def _character(d, tick, kind):
     d.ellipse((x+19,y-65,x+27,y-57),fill='#1b283b')
     d.arc((x-18,y-48,x+18,y-25),0,180,fill='#9c6257',width=3)
 
+
+def action_kind(sentence):
+    t=sentence.casefold()
+    if any(w in t for w in ('zähne','zahn','teeth','tooth','brush','putzt')): return 'brush'
+    if any(w in t for w in ('kasse','bezahlt','bezahlen','checkout','cashier','pays')): return 'checkout'
+    if any(w in t for w in ('apfel','apple','nimmt','picks up')): return 'pick'
+    if any(w in t for w in ('aufwach','wacht','wake','bett','bed')): return 'wake'
+    return 'walk'
+
+def _action(d, sentence, tick):
+    action=action_kind(sentence)
+    if action=='walk': return False
+    x,y=265,535
+    skin='#e8b68f'
+    if action=='brush':
+        d.rectangle((0,180,W,810),fill='#d8eff0')
+        for a in range(0,W,75): d.line((a,180,a,810),fill='#b8d9e0',width=3)
+        d.rounded_rectangle((75,250,465,510),radius=15,fill='#f8ffff',outline='#85b4be',width=8)
+        d.ellipse((95,690,445,785),fill='#ffffff',outline='#779fa9',width=8)
+    elif action in ('pick','checkout'):
+        d.rectangle((0,190,W,810),fill='#e9d8bc')
+        for yy in (350,535): d.rectangle((0,yy,W,yy+28),fill='#996e50')
+        for xx in range(30,520,90):
+            d.ellipse((xx,295,xx+43,337),fill='#d44e42')
+    else:
+        d.rectangle((0,190,W,810),fill='#e9ded4')
+        d.rectangle((50,315,230,530),fill='#a3cfe0',outline='#ffffff',width=12)
+        d.rounded_rectangle((50,680,490,790),radius=18,fill='#6581ac')
+    d.line((x-25,y+140,x-30,y+245),fill='#263b55',width=29)
+    d.line((x+25,y+140,x+30,y+245),fill='#263b55',width=29)
+    d.rounded_rectangle((x-70,y+10,x+70,y+155),radius=28,fill='#487fae')
+    d.ellipse((x-61,y-115,x+61,y+15),fill=skin)
+    d.pieslice((x-64,y-127,x+64,y-18),180,360,fill='#2b344b')
+    for dx in (-23,23): d.ellipse((x+dx-5,y-62,x+dx+5,y-53),fill='#253449')
+    d.arc((x-17,y-45,x+17,y-23),0,180,fill='#9a615a',width=3)
+    d.line((x-60,y+42,x-98,y+126),fill=skin,width=23)
+    if action=='brush':
+        hx,hy=x+17,y-26+int(15*math.sin(tick*12))
+        d.line((x+60,y+42,hx,hy),fill=skin,width=23)
+        d.line((hx,hy-15,hx,hy+14),fill='#ffffff',width=9)
+        d.rectangle((hx-8,hy-18,hx+8,hy-12),fill='#3aa6d4')
+    elif action=='pick':
+        reach=(1-math.cos(min(1,tick/1.3)*math.pi))/2
+        hx,hy=int(x+65+105*reach),int(y+70-145*reach)
+        d.line((x+60,y+42,hx,hy),fill=skin,width=23)
+        ax,ay=(hx+14,hy-18) if reach>0.65 else (445,455)
+        d.ellipse((ax-20,ay-20,ax+20,ay+20),fill='#d64e40')
+        d.line((ax,ay-20,ax+4,ay-31),fill='#477944',width=4)
+    elif action=='checkout':
+        hx,hy=x+100+int(25*math.sin(tick*4)),y+55
+        d.line((x+60,y+42,hx,hy),fill=skin,width=23)
+        d.rounded_rectangle((hx-12,hy-10,hx+33,hy+16),radius=4,fill='#edc76f')
+        d.rounded_rectangle((395,455,505,605),radius=12,fill='#304659')
+        d.rectangle((412,476,487,520),fill='#9bd4b0')
+    else:
+        d.line((x+60,y+42,x+90,y+92-int(24*math.sin(tick*3))),fill=skin,width=23)
+    return True
+
 def frame(sentence, index, count, tick, duration):
     kind=classify(sentence)
     im=Image.new('RGB',(W,H))
     d=ImageDraw.Draw(im)
     _background(d,kind,tick)
-    _character(d,tick,kind)
+    if not _action(d,sentence,tick):
+        _character(d,tick,kind)
     # Animated caption highlight, synchronized to elapsed scene fraction.
     words=sentence.split()
     if words:
