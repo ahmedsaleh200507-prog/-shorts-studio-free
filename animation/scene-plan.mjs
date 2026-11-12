@@ -13,7 +13,7 @@ const rules=[
   ['space', /weltraum|universum|planet|erde|earth|space|moon|mond|galax|sonne|sun/i, 'space', ['planet','stars']],
   ['science', /wissenschaft|forschung|experiment|physik|science|research|labor|laboratory|atom|molek/i, 'science', ['diagram','particles']],
   ['nature', /wald|forest|baum|tree|meer|ocean|fluss|river|berg|mountain|natur|nature/i, 'nature', ['landscape']],
-  ['technology', /computer|internet|ki|künstliche intelligenz|artificial intelligence|software|code|roboter|robot/i, 'technology', ['screen','network']],
+  ['technology', /computer|internet|\bki\b|künstliche intelligenz|artificial intelligence|software|code|roboter|robot/i, 'technology', ['screen','network']],
   ['hospital', /krankenhaus|hospital|arzt|ärztin|doctor|patient|klinik|clinic/i, 'hospital', ['bed','medical-monitor']],
   ['school', /schule|school|klassenzimmer|classroom|lehrer|teacher|unterricht/i, 'school', ['desk','blackboard']],
   ['restaurant', /restaurant|café|cafe|küche|kitchen|kocht|cooks?|essen|eating/i, 'restaurant', ['table','food']],
