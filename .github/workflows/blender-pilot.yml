@@ -39,6 +39,29 @@ jobs:
           grep -q 'codec_name=h264' output/verification.txt
           grep -q 'width=720' output/verification.txt
           grep -q 'height=1280' output/verification.txt
+          duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 output/blender-pilot.mp4)
+          python -c "import sys; d=float(sys.argv[1]); assert 9.9 <= d <= 10.1, f'Unexpected video duration: {d}'" "$duration"
+          mkdir -p output/quality
+          for t in 1.5 4.5 8.5; do
+            ffmpeg -hide_banner -loglevel error -y -ss "$t" -i output/blender-pilot.mp4 -frames:v 1 "output/quality/scene-$t.png"
+          done
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          frames = sorted(Path('output/quality').glob('scene-*.png'))
+          assert len(frames) == 3, 'Missing scene preview'
+          hashes = [hashlib.sha256(f.read_bytes()).hexdigest() for f in frames]
+          assert len(set(hashes)) == 3, 'Different scenes rendered as identical frames'
+          assert all(f.stat().st_size > 10000 for f in frames), 'Scene frame too small or blank'
+          print('Scene variation verified:', [f.name for f in frames])
+          PY
+      - name: Upload scene quality previews
+        uses: actions/upload-artifact@v4
+        with:
+          name: blender-scene-previews
+          path: output/quality/*.png
+          if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: blender-2d-engine-pilot
