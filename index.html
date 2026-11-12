@@ -46,9 +46,10 @@ canvas{display:none!important}.legacy-actions{display:none!important}
 <textarea id="story" maxlength="12000" aria-label="Video senaryosu">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea>
 <div id="scriptEstimate" class="long-note" aria-live="polite"></div>
 <p class="long-note">Uzun video: 10 dakika için yaklaşık 7.000–12.000 karakterlik metin gerekir. AI görselleri kota tasarrufu için tekrar kullanılabilir; üretim uzun sürebilir.</p><div class="row"><div class="field"><label for="language">Ses dili</label><select id="language"><option value="de-DE">🇩🇪 Almanca</option><option value="en-US">🇬🇧 İngilizce</option></select></div><div class="field"><label for="voice">Cihazdaki ses</label><select id="voice"><option value="">Sesler yükleniyor...</option></select></div></div>
+<div class="row"><div class="field"><label for="styleMode">Video tarzı</label><select id="styleMode"><option value="ai">✨ AI çizimli video (kredi kullanabilir)</option><option value="vector">🎨 2D çizgi animasyon (AI görsel kredisi yok)</option></select></div></div>
 <div class="row"><div class="field"><label for="aspect">Video formatı</label><select id="aspect"><option value="9:16">📱 Dikey · 9:16</option><option value="16:9">🖥️ Yatay · 16:9</option></select></div></div>
 <div class="row legacy-actions" hidden><button id="toggle">▶ Başlat</button><button id="reset">↺ Baştan</button></div>
-<details class="advanced"><summary>⚙️ Bağlantı ayarları</summary><div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div></details><div class="row primary-action"><button id="audioSave">✨ AI videoyu oluştur</button></div><div id="audioStatus" role="status" aria-live="polite"></div><button id="resumeJob" type="button" hidden>↻ Devam eden videoyu kontrol et</button><a id="audioDownload" hidden aria-hidden="true">📥 MP4 dosyasını indir</a><button id="iosShare" hidden type="button">📱 iPhone’da Paylaş / Dosyalara Kaydet</button><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
+<details class="advanced"><summary>⚙️ Bağlantı ayarları</summary><div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div></details><div class="row primary-action"><button id="audioSave">🎬 Videoyu oluştur</button></div><div id="audioStatus" role="status" aria-live="polite"></div><button id="resumeJob" type="button" hidden>↻ Devam eden videoyu kontrol et</button><a id="audioDownload" hidden aria-hidden="true">📥 MP4 dosyasını indir</a><button id="iosShare" hidden type="button">📱 iPhone’da Paylaş / Dosyalara Kaydet</button><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
 <small>iPhone Safari uyumlu · 9:16 / 16:9 sesli MP4 · AI görselleri · Ücretsiz servislerin kullanım kotası olabilir. Bağlantı anahtarını kimseyle paylaşma.</small></main>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
@@ -70,7 +71,7 @@ async function generate(download=false,resume=false){
  if(busy)return;
  const pending=resume?getPending():null;
  if(resume&&!pending?.job_id){setStatus('Devam eden kayıt bulunamadı.');return}
- const script=resume?pending.script:el('story').value.trim(),key=el('appkey').value.trim(),lang=resume?pending.lang:(el('language').value.startsWith('de')?'de':'en'),aspect=resume?pending.aspect:el('aspect').value,signature=JSON.stringify([script,lang,aspect]),version=requestVersion;
+ const script=resume?pending.script:el('story').value.trim(),key=el('appkey').value.trim(),lang=resume?pending.lang:(el('language').value.startsWith('de')?'de':'en'),aspect=resume?pending.aspect:el('aspect').value,styleMode=resume?(pending.styleMode||'ai'):el('styleMode').value,signature=JSON.stringify([script,lang,aspect,styleMode]),version=requestVersion;
  if(!script){setStatus('Önce metin yaz.');return}
  if(script.length>3000){setStatus('Uzun video isteği gönderiliyor. Cloudflare Worker 3000 karakter sınırı uyguluyorsa Worker da güncellenmelidir.')}
  if(cache?.signature===signature){displayVideo(cache.url);if(download){el('iosShare').hidden=false;setStatus('MP4 hazır. iPhone’da paylaş veya indir.')}else{el('renderedVideo').play().catch(()=>{});setStatus('Video hazır. ▶ ile oynatabilirsin.')}return}
@@ -81,9 +82,9 @@ async function generate(download=false,resume=false){
   setStatus('⏳ Video oluşturma isteği gönderiliyor...');
   let job;
   if(resume){job=pending}else{
-   const response=await request('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script:aspect==='16:9'?'[[ASPECT_16_9]]\n'+script:script,language:lang,aspect_ratio:aspect})});
+   const response=await request('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script:(styleMode==='vector'?'[[VECTOR_2D]]\n':'')+(aspect==='16:9'?'[[ASPECT_16_9]]\n':'')+script,language:lang,aspect_ratio:aspect})});
    job=await response.json();if(!job.job_id)throw Error('GitHub iş kimliği alınamadı');
-   savePending({job_id:job.job_id,script,lang,aspect,createdAt:Date.now()});
+   savePending({job_id:job.job_id,script,lang,aspect,styleMode,createdAt:Date.now()});
   }
   let runId=null;
   for(let attempt=0;attempt<900;attempt++){
@@ -134,10 +135,11 @@ el('appkey').addEventListener('change',showPending);
 el('reset').addEventListener('click',()=>{if(cache){displayVideo(cache.url);el('renderedVideo').currentTime=0;setStatus('Video başa alındı.')}else setStatus('Henüz video oluşturulmadı. ▶ Başlat düğmesine bas.')});
 function updateEstimate(){const s=el('story').value.trim();const words=(s.match(/\S+/g)||[]).length;el('scriptEstimate').textContent=`${s.length.toLocaleString('tr-TR')} / 12.000 karakter · Tahmini anlatım ${Math.max(1,Math.round(words/135))} dakika (gerçek süre sese bağlı)`}
 el('story').addEventListener('input',()=>{updateEstimate();invalidate();setStatus('Metin değişti. Yeni video oluşturabilirsin.')});
+el('styleMode').addEventListener('change',()=>{invalidate();setStatus('Video tarzı değişti. Yeni video oluşturabilirsin.')});
 el('aspect').addEventListener('change',()=>{invalidate();setStatus('Video formatı değişti. Yeni video oluşturabilirsin.')});
 el('language').addEventListener('change',()=>{invalidate();setStatus('Dil değişti. Yeni video için ▶ Başlat düğmesine bas.')});
 el('voice').innerHTML='<option>Otomatik seslendirme</option>';
 el('canvas').hidden=true;
 updateEstimate();
-setStatus('Hazır. Senaryonu yazıp AI videoyu oluştur düğmesine bas.');
+setStatus('Hazır. Senaryonu yazıp Videoyu oluştur düğmesine bas.');
 </script></body></html>
