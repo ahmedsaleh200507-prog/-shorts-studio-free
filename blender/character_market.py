@@ -114,4 +114,18 @@ for side in [-1,1]:
 camdata=bpy.data.cameras.new('camera');cam=bpy.data.objects.new('Camera',camdata)
 bpy.context.collection.objects.link(cam)
 cam.location=(0,0,12);camdata.type='ORTHO';camdata.ortho_scale=8.3;sc.camera=cam
+# Gentle shot progression: wide establishing view, medium action, closer pickup.
+for frame,x,scale in [(1,0,8.3),(65,.15,8.0),(90,.45,7.0),(120,.6,6.4),(144,.45,7.1)]:
+ cam.location.x=x
+ camdata.ortho_scale=scale
+ cam.keyframe_insert(data_path='location',frame=frame)
+ camdata.keyframe_insert(data_path='ortho_scale',frame=frame)
+# Slight vertical walk bounce; settle before reaching the shelf.
+for frame,y in [(1,-1.65),(12,-1.60),(24,-1.65),(36,-1.60),(48,-1.65),(60,-1.60),(75,-1.65),(144,-1.65)]:
+ root.location.y=y
+ root.keyframe_insert(data_path='location',frame=frame)
+# Keep hands and prop readable during pickup, avoiding sudden jumps.
+for frame,angle in [(75,0),(88,-.45),(100,-.95),(108,-1.15),(118,-.85),(132,-.35),(144,-.25)]:
+ rotate(arm_r,frame,angle)
+
 bpy.ops.render.render(animation=True)
