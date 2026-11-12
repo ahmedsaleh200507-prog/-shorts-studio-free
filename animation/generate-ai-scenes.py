@@ -102,7 +102,7 @@ for i in range(image_count):
         "expressive characters, detailed scenery, coherent lighting, clean outlines, "
         "no text, no subtitles, no watermark, no 3D, no photorealism. "
         + sky_rule
-        "One continuous story with recurring character appearance, same facial "
+        + "One continuous story with recurring character appearance, same facial "
         "features, hairstyle, costume and proportions when the character returns. "
         "Only change location when the story does. Overall context: "
         + context + ". "
