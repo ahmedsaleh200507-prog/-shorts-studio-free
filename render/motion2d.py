@@ -132,7 +132,7 @@ def action_kind(sentence):
     if any(w in t for w in ('zähne','zahn','teeth','tooth','brush','putzt')): return 'brush'
     if any(w in t for w in ('kasse','bezahlt','bezahlen','checkout','cashier','pays')): return 'checkout'
     if any(w in t for w in ('apfel','apple','nimmt','picks up')): return 'pick'
-    if any(w in t for w in ('aufwach','wacht','erwacht','wake','bett','bed')): return 'wake'
+    if any(w in t for w in ('aufwach','wacht','erwacht','wake','woke','bett','bed','aufgestanden','steht auf','stand auf')): return 'wake'
     if any(w in t for w in ('kaffee','coffee','trinkt','drinks','cup')): return 'drink'
     if any(w in t for w in ('telefon','handy','phone','message','nachricht')): return 'phone'
     if any(w in t for w in ('liest','lesen','reading','reads','buch','book')): return 'read'
@@ -255,7 +255,10 @@ def frame(sentence, index, count, tick, duration):
     im=Image.new('RGB',(W,H))
     d=ImageDraw.Draw(im)
     _background(d,kind,tick)
-    if not _action(d,sentence,tick):
+    # Normalize wake-up choreography to each scene's actual narration duration.
+    # This guarantees the lying, sitting and standing phases even in short clips.
+    action_tick = min(3.2, max(0.0, tick / max(duration, 0.1) * 3.2)) if action_kind(sentence) == 'wake' else tick
+    if not _action(d,sentence,action_tick):
         _character(d,tick,kind)
     # Animated caption highlight, synchronized to elapsed scene fraction.
     words=sentence.split()
