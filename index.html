@@ -18,7 +18,7 @@ select,input{background:#182840;color:#fff;width:100%;border:1px solid #3c506e}
 canvas,#renderedVideo{grid-column:2;grid-row:3/span 8;display:block;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto 18px;background:#14233a;border:6px solid #253750;border-radius:27px;box-shadow:0 22px 70px #0009}
 #renderedVideo{display:block;width:100%;max-width:360px;aspect-ratio:9/16;margin:0 auto 18px;background:#101a2e;border:6px solid #253750;border-radius:27px;box-shadow:0 22px 70px #0009;object-fit:contain}\n[hidden]{display:none!important}\n#status,#audioStatus{grid-column:1;min-height:26px;color:var(--mint);overflow-wrap:anywhere;font-size:14px}
 #audioStatus:not(:empty){background:#142a33;border:1px solid #285b5d;border-radius:12px;padding:12px 14px;margin:5px 0}
-#audioDownload{grid-column:1;color:#081f19;background:var(--mint);font-weight:700;border-radius:12px;padding:12px 18px;text-align:center;text-decoration:none;margin:8px 0}
+#iosShare{grid-column:1;width:100%;background:#23334b;color:#e5efff;border:1px solid #3a4d69;margin:8px 0}#audioDownload{grid-column:1;color:#081f19;background:var(--mint);font-weight:700;border-radius:12px;padding:12px 18px;text-align:center;text-decoration:none;margin:8px 0}
 small{grid-column:1;color:#a5b8cf;line-height:1.6;display:block;margin-top:12px}
 [hidden]{display:none!important}
 @media(max-width:760px){main{display:flex;flex-direction:column;gap:0;padding:18px 16px calc(35px + env(safe-area-inset-bottom))}h1{margin-top:6px}h1+p{margin-bottom:18px}textarea{height:175px}main>.row{width:100%}canvas,#renderedVideo{order:7;width:min(100%,330px);margin:18px auto}#status{order:6}#audioStatus{order:4;width:100%}#audioDownload{order:5;width:100%}small{order:8}#toggle,#reset{flex:1}#audioSave{width:100%}}
@@ -28,7 +28,7 @@ small{grid-column:1;color:#a5b8cf;line-height:1.6;display:block;margin-top:12px}
 <textarea id="story" maxlength="3000" aria-label="Video senaryosu">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea>
 <div class="row"><div class="field"><label for="language">Ses dili</label><select id="language"><option value="de-DE">🇩🇪 Almanca</option><option value="en-US">🇬🇧 İngilizce</option></select></div><div class="field"><label for="voice">Cihazdaki ses</label><select id="voice"><option value="">Sesler yükleniyor...</option></select></div></div>
 <div class="row"><button id="toggle">▶ Başlat</button><button id="reset">↺ Baştan</button></div>
-<div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div><div class="row"><button id="audioSave">📥 Videoyu kaydet</button></div><div id="audioStatus" role="status" aria-live="polite"></div><a id="audioDownload" hidden aria-hidden="true">📥 MP4 dosyasını indir</a><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
+<div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div><div class="row"><button id="audioSave">📥 Videoyu kaydet</button></div><div id="audioStatus" role="status" aria-live="polite"></div><a id="audioDownload" hidden aria-hidden="true">📥 MP4 dosyasını indir</a><button id="iosShare" hidden type="button">📱 iPhone’da Paylaş / Dosyalara Kaydet</button><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
 <small>📱 iPhone 16 Pro Max ve Safari için: Bu sayfa telefonda çalışır; MP4 üretimi uzaktaki GitHub Actions iş akışında yapılır. Windows veya bilgisayar gerekmez. ▶ Başlat ve 📥 Videoyu kaydet aynı MP4 üretimini başlatır. Cloudflare APP_KEY gerekir; GitHub tokenını buraya girme. Ücretsiz servislerin kullanım kotası olabilir.</small></main>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
@@ -39,7 +39,7 @@ const setStatus=message=>{el('status').textContent=message;el('audioStatus').tex
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let busy=false,cache=null,requestVersion=0;
 function displayVideo(url){const video=el('renderedVideo');video.src=url;video.hidden=false;el('canvas').hidden=true;video.load()}
-function invalidate(){requestVersion++;if(cache){URL.revokeObjectURL(cache.url);cache=null}el('renderedVideo').pause();el('renderedVideo').removeAttribute('src');el('renderedVideo').load();el('renderedVideo').hidden=true;el('audioDownload').hidden=true;el('canvas').hidden=true}
+function invalidate(){requestVersion++;if(cache){URL.revokeObjectURL(cache.url);cache=null}el('renderedVideo').pause();el('renderedVideo').removeAttribute('src');el('renderedVideo').load();el('renderedVideo').hidden=true;el('audioDownload').hidden=true;el('iosShare').hidden=true;el('canvas').hidden=true}
 async function request(path,key,options={}){const response=await fetch(WORKER+path,{...options,headers:{'x-app-key':key,...(options.headers||{})}});if(!response.ok){let reason='HTTP '+response.status;try{const body=await response.json();reason=body.error||body.message||reason}catch{}throw Error(reason)}return response}
 async function generate(download=false){
  if(busy)return;
@@ -72,13 +72,26 @@ async function generate(download=false){
   if(version!==requestVersion)throw Error('Metin veya dil değişti. Yeni video için Başlat düğmesine bas.');
   const url=URL.createObjectURL(new Blob([blob],{type:'video/mp4'}));
   if(cache)URL.revokeObjectURL(cache.url);
-  cache={signature,url};const link=el('audioDownload');link.href=url;link.download='shorts-studio-sesli.mp4';link.hidden=false;link.removeAttribute('aria-hidden');
+  cache={signature,url,blob};el('iosShare').hidden=false;const link=el('audioDownload');link.href=url;link.download='shorts-studio-sesli.mp4';link.hidden=false;link.removeAttribute('aria-hidden');
   displayVideo(url);
-  if(download){link.click();setStatus('✅ MP4 hazır. İndirme başlamazsa aşağıdaki İndirme bağlantısı düğmesine dokun.');}
+  if(download){setStatus('✅ MP4 hazır. iPhone’da Paylaş / Dosyalara Kaydet düğmesine dokun veya MP4 indirme bağlantısını kullan.');}
   else{el('renderedVideo').play().catch(()=>{});setStatus('✅ MP4 hazır. Oynatıcıdaki ▶ düğmesine dokunarak izleyebilirsin.');}
  }catch(e){setStatus('❌ '+(e?.message||String(e)))}
  finally{busy=false;el('toggle').disabled=false;el('audioSave').disabled=false;el('toggle').textContent='▶ Başlat'}
 }
+el('iosShare').addEventListener('click',async()=>{
+ if(!cache?.blob){setStatus('Önce MP4 oluştur.');return}
+ const file=new File([cache.blob],'shorts-studio-sesli.mp4',{type:'video/mp4'});
+ try{
+  if(navigator.canShare?.({files:[file]}) && navigator.share){
+   await navigator.share({files:[file],title:'Shorts Studio Free MP4'});
+   setStatus('Paylaşım menüsü açıldı. Dosyalara Kaydet veya Videoyu Kaydet seçeneğini kullanabilirsin.');
+  }else{
+   el('audioDownload').click();
+   setStatus('Bu tarayıcıda dosya paylaşımı desteklenmiyor. MP4 indirme bağlantısını kullan.');
+  }
+ }catch(e){if(e?.name!=='AbortError')setStatus('Paylaşım açılamadı: '+(e?.message||String(e)))}
+});
 el('toggle').addEventListener('click',()=>generate(false));
 el('audioSave').addEventListener('click',()=>generate(true));
 el('reset').addEventListener('click',()=>{if(cache){displayVideo(cache.url);el('renderedVideo').currentTime=0;setStatus('Video başa alındı.')}else setStatus('Henüz video oluşturulmadı. ▶ Başlat düğmesine bas.')});
