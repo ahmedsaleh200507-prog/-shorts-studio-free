@@ -34,17 +34,26 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: render/requirements.txt
-      - name: Install FFmpeg and FFprobe
-        uses: AnimMouse/setup-ffmpeg@v1
+      - name: Install static FFmpeg and FFprobe (no apt)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/shorts-ffmpeg"
+          curl --fail --location --retry 4 --retry-all-errors --connect-timeout 20 --max-time 180 \
+            https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz \
+            -o "$RUNNER_TEMP/ffmpeg-static.tar.xz"
+          tar -xJf "$RUNNER_TEMP/ffmpeg-static.tar.xz" \
+            --wildcards --no-anchored 'ffmpeg' 'ffprobe' \
+            --strip-components=1 -C "$RUNNER_TEMP/shorts-ffmpeg"
+          chmod +x "$RUNNER_TEMP/shorts-ffmpeg/ffmpeg" "$RUNNER_TEMP/shorts-ffmpeg/ffprobe"
+          echo "$RUNNER_TEMP/shorts-ffmpeg" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/shorts-ffmpeg/ffmpeg" -version | head -n 1
+          "$RUNNER_TEMP/shorts-ffmpeg/ffprobe" -version | head -n 1
       - name: Verify FFmpeg and install renderer
         run: |
           set -euo pipefail
-          # FFmpeg and FFprobe are provided by the setup action above.
-          # Do not depend on preinstalled runner tools or apt mirrors.
-          command -v ffmpeg || { echo "::error::FFmpeg is missing on this runner"; exit 1; }
-          command -v ffprobe || { echo "::error::FFprobe is missing on this runner"; exit 1; }
-          ffmpeg -version | sed -n '1p'
-          ffprobe -version | sed -n '1p'
+          command -v ffmpeg
+          command -v ffprobe
           python -m pip install --disable-pip-version-check --retries 5 --timeout 30 -r render/requirements.txt
       - name: Check renderer syntax and FFmpeg codecs
         run: |
