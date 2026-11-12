@@ -28,7 +28,7 @@ small{grid-column:1;color:#a5b8cf;line-height:1.6;display:block;margin-top:12px}
 <textarea id="story" maxlength="3000" aria-label="Video senaryosu">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea>
 <div class="row"><div class="field"><label for="language">Ses dili</label><select id="language"><option value="de-DE">🇩🇪 Almanca</option><option value="en-US">🇬🇧 İngilizce</option></select></div><div class="field"><label for="voice">Cihazdaki ses</label><select id="voice"><option value="">Sesler yükleniyor...</option></select></div></div>
 <div class="row"><button id="toggle">▶ Başlat</button><button id="reset">↺ Baştan</button></div>
-<div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div><div class="row"><button id="audioSave">📥 Videoyu kaydet</button></div><div id="audioStatus" role="status" aria-live="polite"></div><a id="audioDownload" hidden aria-hidden="true">İndirme bağlantısı</a><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
+<div class="row"><div class="field"><label for="appkey">Cloudflare APP_KEY (özel)</label><input id="appkey" type="password" autocomplete="off" placeholder="APP_KEY değerini gir" style="width:100%;padding:13px;background:#1e2a42;color:white;border:1px solid #667b96;border-radius:12px"></div></div><div class="row"><button id="audioSave">📥 Videoyu kaydet</button></div><div id="audioStatus" role="status" aria-live="polite"></div><a id="audioDownload" hidden aria-hidden="true">📥 MP4 dosyasını indir</a><div id="status" role="status">Hazır.</div><canvas id="canvas" width="540" height="960"></canvas><video id="renderedVideo" hidden playsinline controls preload="metadata" aria-label="Oluşturulan gerçek sesli MP4 önizlemesi"></video>
 <small>▶ Başlat ve 📥 Videoyu kaydet aynı MP4 üretimini başlatır. Oluşturulan gerçek video önizlemede gösterilir. Cloudflare APP_KEY değeri gerekir; GitHub tokenını buraya girme.</small></main>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
@@ -37,18 +37,18 @@ const el=id=>document.getElementById(id);
 const WORKER='https://shorts-studio-free.ahmed-saleh2005.workers.dev';
 const setStatus=message=>{el('status').textContent=message;el('audioStatus').textContent=message};
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-let busy=false,cache=null;
+let busy=false,cache=null,requestVersion=0;
 function displayVideo(url){const video=el('renderedVideo');video.src=url;video.hidden=false;el('canvas').hidden=true;video.load()}
-function invalidate(){if(cache){URL.revokeObjectURL(cache.url);cache=null}el('renderedVideo').pause();el('renderedVideo').removeAttribute('src');el('renderedVideo').load();el('renderedVideo').hidden=true;el('audioDownload').hidden=true;el('canvas').hidden=true}
+function invalidate(){requestVersion++;if(cache){URL.revokeObjectURL(cache.url);cache=null}el('renderedVideo').pause();el('renderedVideo').removeAttribute('src');el('renderedVideo').load();el('renderedVideo').hidden=true;el('audioDownload').hidden=true;el('canvas').hidden=true}
 async function request(path,key,options={}){const response=await fetch(WORKER+path,{...options,headers:{'x-app-key':key,...(options.headers||{})}});if(!response.ok){let reason='HTTP '+response.status;try{const body=await response.json();reason=body.error||body.message||reason}catch{}throw Error(reason)}return response}
 async function generate(download=false){
  if(busy)return;
- const script=el('story').value.trim(),key=el('appkey').value.trim(),lang=el('language').value.startsWith('de')?'de':'en',signature=JSON.stringify([script,lang]);
+ const script=el('story').value.trim(),key=el('appkey').value.trim(),lang=el('language').value.startsWith('de')?'de':'en',signature=JSON.stringify([script,lang]),version=requestVersion;
  if(!script){setStatus('Önce metin yaz.');return}
- if(cache?.signature===signature){displayVideo(cache.url);if(download)el('audioDownload').click();else el('renderedVideo').play().catch(()=>{});setStatus('Video hazır.');return}
+ if(cache?.signature===signature){displayVideo(cache.url);if(download){el('audioDownload').click();setStatus('MP4 hazır. İndirme başlamazsa İndirme bağlantısı düğmesine dokun.')}else{el('renderedVideo').play().catch(()=>{});setStatus('Video hazır. ▶ ile oynatabilirsin.')}return}
  if(!key){setStatus('Cloudflare APP_KEY girmen gerekiyor.');el('appkey').focus();return}
  if(!window.JSZip){setStatus('ZIP kütüphanesi yüklenemedi. Sayfayı yeniden aç.');return}
- busy=true;el('toggle').disabled=true;el('audioSave').disabled=true;
+ busy=true;el('toggle').disabled=true;el('audioSave').disabled=true;el('toggle').textContent='⏳ Hazırlanıyor...';
  try{
   setStatus('⏳ Video oluşturma isteği gönderiliyor...');
   const response=await request('/render',key,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script,language:lang})});
@@ -56,6 +56,7 @@ async function generate(download=false){
   let runId=null;
   for(let attempt=0;attempt<100;attempt++){
    await wait(6000);
+   if(version!==requestVersion)throw Error('Metin veya dil değişti. Yeni video için Başlat düğmesine bas.');
    const res=await request('/status?job_id='+encodeURIComponent(job.job_id),key),info=await res.json();
    setStatus('⏳ GitHub video hazırlıyor: '+(info.status||'bekleniyor')+' ('+((attempt+1)*6)+' sn)');
    if(info.status==='completed'){if(info.conclusion!=='success')throw Error('GitHub video üretimi başarısız: '+(info.conclusion||'bilinmiyor'));runId=info.run_id;break}
@@ -67,19 +68,22 @@ async function generate(download=false){
   const zip=await JSZip.loadAsync(await archiveResponse.arrayBuffer());
   const entry=Object.values(zip.files).find(f=>!f.dir&&f.name.toLowerCase().endsWith('.mp4'));
   if(!entry)throw Error('GitHub arşivinde MP4 bulunamadı');
-  const blob=await entry.async('blob'),url=URL.createObjectURL(new Blob([blob],{type:'video/mp4'}));
+  const blob=await entry.async('blob');
+  if(version!==requestVersion)throw Error('Metin veya dil değişti. Yeni video için Başlat düğmesine bas.');
+  const url=URL.createObjectURL(new Blob([blob],{type:'video/mp4'}));
   if(cache)URL.revokeObjectURL(cache.url);
   cache={signature,url};const link=el('audioDownload');link.href=url;link.download='shorts-studio-sesli.mp4';link.hidden=false;link.removeAttribute('aria-hidden');
-  displayVideo(url);if(download)link.click();else el('renderedVideo').play().catch(()=>{});
-  setStatus('✅ MP4 hazır. Videoyu oynatabilir veya kaydedebilirsin.');
+  displayVideo(url);
+  if(download){link.click();setStatus('✅ MP4 hazır. İndirme başlamazsa aşağıdaki İndirme bağlantısı düğmesine dokun.');}
+  else{el('renderedVideo').play().catch(()=>{});setStatus('✅ MP4 hazır. Oynatıcıdaki ▶ düğmesine dokunarak izleyebilirsin.');}
  }catch(e){setStatus('❌ '+(e?.message||String(e)))}
- finally{busy=false;el('toggle').disabled=false;el('audioSave').disabled=false}
+ finally{busy=false;el('toggle').disabled=false;el('audioSave').disabled=false;el('toggle').textContent='▶ Başlat'}
 }
 el('toggle').addEventListener('click',()=>generate(false));
 el('audioSave').addEventListener('click',()=>generate(true));
 el('reset').addEventListener('click',()=>{if(cache){displayVideo(cache.url);el('renderedVideo').currentTime=0;setStatus('Video başa alındı.')}else setStatus('Henüz video oluşturulmadı. ▶ Başlat düğmesine bas.')});
-el('story').addEventListener('input',invalidate);
-el('language').addEventListener('change',invalidate);
+el('story').addEventListener('input',()=>{invalidate();setStatus('Metin değişti. Yeni video için ▶ Başlat düğmesine bas.')});
+el('language').addEventListener('change',()=>{invalidate();setStatus('Dil değişti. Yeni video için ▶ Başlat düğmesine bas.')});
 el('voice').innerHTML='<option>Otomatik seslendirme</option>';
 el('canvas').hidden=true;
 setStatus('Hazır. ▶ Başlat düğmesine bas.');
