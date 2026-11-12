@@ -99,3 +99,16 @@ test('History keywords do not match substrings in everyday words',()=>{
  assert.equal(makeScenePlan('The war ended.').scenes[0].action,'history');
  assert.equal(makeScenePlan('The warehouse is large.').scenes[0].action,'talk');
 });
+
+test('Long-form plan supports 180 scenes and both aspect ratios',()=>{
+ const script=Array.from({length:180},(_,i)=>'Scene '+i+' continues.').join(' ');
+ const durations=Array(180).fill(80);
+ const portrait=makeScenePlan(script,{durationsFrames:durations,aspectRatio:'9:16'});
+ const landscape=makeScenePlan(script,{durationsFrames:durations,aspectRatio:'16:9'});
+ assert.equal(portrait.scenes.length,180);
+ assert.equal(landscape.totalFrames,14400);
+ assert.equal(landscape.width,1920);
+ assert.equal(landscape.height,1080);
+ assert.equal(portrait.width,1080);
+ assert.equal(portrait.height,1920);
+});
