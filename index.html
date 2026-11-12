@@ -43,6 +43,7 @@ canvas{display:none!important}.legacy-actions{display:none!important}
 </style></head>
 <body><main><h1>Shorts <span style="color:#84f0d0">Studio</span></h1><p>Hikâyeni yaz. AI sahnelerini oluştur. Videonu indir.</p>
 <textarea id="story" maxlength="12000" aria-label="Video senaryosu">Ein Mann wacht morgens auf. Er geht ins Badezimmer und putzt seine Zähne. Danach geht er in den Supermarkt. Er nimmt einen Apfel und bezahlt an der Kasse.</textarea>
+<div id="scriptEstimate" class="long-note" aria-live="polite"></div>
 <p class="long-note">Uzun video: 10 dakika için yaklaşık 7.000–12.000 karakterlik metin gerekir. AI görselleri kota tasarrufu için tekrar kullanılabilir; üretim uzun sürebilir.</p><div class="row"><div class="field"><label for="language">Ses dili</label><select id="language"><option value="de-DE">🇩🇪 Almanca</option><option value="en-US">🇬🇧 İngilizce</option></select></div><div class="field"><label for="voice">Cihazdaki ses</label><select id="voice"><option value="">Sesler yükleniyor...</option></select></div></div>
 <div class="row"><div class="field"><label for="aspect">Video formatı</label><select id="aspect"><option value="9:16">📱 Dikey · 9:16</option><option value="16:9">🖥️ Yatay · 16:9</option></select></div></div>
 <div class="row legacy-actions" hidden><button id="toggle">▶ Başlat</button><button id="reset">↺ Baştan</button></div>
@@ -114,10 +115,12 @@ el('iosShare').addEventListener('click',async()=>{
 el('toggle').addEventListener('click',()=>generate(false));
 el('audioSave').addEventListener('click',()=>generate(true));
 el('reset').addEventListener('click',()=>{if(cache){displayVideo(cache.url);el('renderedVideo').currentTime=0;setStatus('Video başa alındı.')}else setStatus('Henüz video oluşturulmadı. ▶ Başlat düğmesine bas.')});
-el('story').addEventListener('input',()=>{invalidate();setStatus('Metin değişti. Yeni video için ▶ Başlat düğmesine bas.')});
+function updateEstimate(){const s=el('story').value.trim();const words=(s.match(/\S+/g)||[]).length;el('scriptEstimate').textContent=`${s.length.toLocaleString('tr-TR')} / 12.000 karakter · Tahmini anlatım ${Math.max(1,Math.round(words/135))} dakika (gerçek süre sese bağlı)`}
+el('story').addEventListener('input',()=>{updateEstimate();invalidate();setStatus('Metin değişti. Yeni video için ▶ Başlat düğmesine bas.')});
 el('aspect').addEventListener('change',()=>{invalidate();setStatus('Video formatı değişti. Yeni video oluşturabilirsin.')});
 el('language').addEventListener('change',()=>{invalidate();setStatus('Dil değişti. Yeni video için ▶ Başlat düğmesine bas.')});
 el('voice').innerHTML='<option>Otomatik seslendirme</option>';
 el('canvas').hidden=true;
-setStatus('Hazır. ▶ Başlat düğmesine bas.');
+updateEstimate();
+setStatus('Hazır. Senaryonu yazıp AI videoyu oluştur düğmesine bas.');
 </script></body></html>
