@@ -1,5 +1,5 @@
 """Prepare dynamic Remotion narration and composition for the actual web-app job."""
-import asyncio, base64, json, math, os, re
+import asyncio, base64, json, math, os, re, shutil, subprocess
 from pathlib import Path
 import edge_tts
 from mutagen.mp3 import MP3
@@ -14,18 +14,33 @@ async def main():
     sentences=[s.strip() for s in re.findall(r'[^.!?\n]+[.!?]?',script) if s.strip()]
     if not sentences or len(sentences)>60: raise ValueError('Invalid number of scenes')
     voice={'de':'de-DE-KatjaNeural','en':'en-US-JennyNeural'}[lang]
+    offline=os.environ.get('TTS_ENGINE','edge')=='piper'
+    piper_model=os.environ.get('PIPER_MODEL','')
+    if offline:
+        if not shutil.which('piper'): raise RuntimeError('Offline TTS requires the piper executable on PATH')
+        if not piper_model or not Path(piper_model).is_file(): raise RuntimeError('PIPER_MODEL must point to a downloaded .onnx voice model')
+        if not shutil.which('ffmpeg'): raise RuntimeError('FFmpeg required for offline Piper conversion')
     out=ROOT/'public'/'audio';out.mkdir(parents=True,exist_ok=True)
     durations=[];uris=[]
     for i,sentence in enumerate(sentences):
         file=out/f'job-{i}.mp3'
-        for attempt in range(3):
-            try:
-                await asyncio.wait_for(edge_tts.Communicate(sentence,voice).save(str(file)),timeout=90)
-                if file.stat().st_size<1000: raise RuntimeError('Empty audio')
-                break
-            except Exception:
-                if attempt==2: raise
-                await asyncio.sleep(2*(attempt+1))
+        if offline:
+            wav=out/f'job-{i}.wav'
+            subprocess.run(['piper','--model',piper_model,'--output_file',str(wav)],
+                           input=sentence+'\\n',text=True,check=True,timeout=180)
+            subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-i',str(wav),
+                            '-codec:a','libmp3lame','-q:a','3',str(file)],check=True,timeout=90)
+            wav.unlink(missing_ok=True)
+            if file.stat().st_size<1000: raise RuntimeError('Empty offline narration')
+        else:
+            for attempt in range(3):
+                try:
+                    await asyncio.wait_for(edge_tts.Communicate(sentence,voice).save(str(file)),timeout=90)
+                    if file.stat().st_size<1000: raise RuntimeError('Empty audio')
+                    break
+                except Exception:
+                    if attempt==2: raise
+                    await asyncio.sleep(2*(attempt+1))
         seconds=MP3(file).info.length
         if not math.isfinite(seconds) or seconds<=0: raise RuntimeError('Invalid narration')
         durations.append(max(1,math.ceil((seconds+0.2)*FPS)))
