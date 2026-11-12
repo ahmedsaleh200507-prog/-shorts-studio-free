@@ -14,6 +14,9 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent
 script = os.environ.get("SCRIPT", "").strip()
+vector_mode = script.startswith("[[VECTOR_2D]]")
+if vector_mode:
+    script = script[len("[[VECTOR_2D]]"):].strip()
 landscape = os.environ.get("ASPECT_RATIO", "9:16") == "16:9"
 if script.startswith("[[ASPECT_16_9]]"):
     script = script[len("[[ASPECT_16_9]]"):].strip()
@@ -22,7 +25,7 @@ if script.startswith("[[ASPECT_16_9]]"):
 key = os.environ.get("POLLINATIONS_KEY", "").strip()
 # No paid image service is required: render the built-in 2D vector scenes
 # when the optional image provider is not configured.
-ai_enabled = key.startswith("sk_")
+ai_enabled = key.startswith("sk_") and not vector_mode
 if not ai_enabled:
     print("No image key: using free built-in 2D vector animations", flush=True)
 
