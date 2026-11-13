@@ -111,13 +111,25 @@ function Background({place,frame}){
   floor);
  return el(React.Fragment,null,Shape({x:0,y:0,w:100,h:72,color:'#bcd7e8'}),floor);
 }
-function Prop({action,frame}){
+function Prop({action,frame,objects=[]}){
  const bob=Math.sin(frame/4)*2;
  if(action==='brush')return null; // Toothbrush is attached to the character's animated hand in Person.
  if(action==='pick'){
   // Keep the apple attached to the same grasp timeline as the hand rig.
   // The object stays on the shelf until contact, then follows the hand.
   const {x,y,grasp}=pickupPropPose(frame);
+  const item=objects.includes('banana')?'banana':objects.includes('bottle')?'bottle':objects.includes('cup')?'cup':objects.includes('book')?'book':'apple';
+  if(item==='banana')return el(React.Fragment,null,
+   Shape({x,y:y+1,w:12,h:4,color:'#f4c54e',r:'0 0 80% 65%',rotate:-24,style:{borderBottom:'4px solid #c08b32'}}),
+   grasp>.5?Shape({x:x-1,y:y+2,w:3,h:3,color:'#e5ad8c',r:'50%'}):null);
+  if(item==='bottle')return el(React.Fragment,null,
+   Shape({x:x+2,y:y-3,w:5,h:12,color:'#62b9d8',r:8,style:{border:'2px solid #c7f4fa'}}),
+   Shape({x:x+3,y:y-5,w:3,h:3,color:'#347aa6',r:2}));
+  if(item==='cup')return el(React.Fragment,null,
+   Shape({x,y:y-1,w:9,h:9,color:'#f2f0e5',r:'3px 3px 40% 40%'}),
+   Shape({x:x+8,y:y+1,w:4,h:4,color:'transparent',r:'50%',style:{border:'3px solid #f2f0e5'}}));
+  if(item==='book')return el(React.Fragment,null,
+   Shape({x,y,w:12,h:8,color:'#4d8bc4',r:2,rotate:-10,style:{borderLeft:'3px solid #f5cf80'}}));
   return el(React.Fragment,null,
    Shape({x,y,w:9,h:7,color:'#d8443e',r:'48% 48% 52% 52%',style:{boxShadow:'inset -5px -4px 0 #a92b2b'}}),
    Shape({x:x+4,y:y-2,w:1.3,h:3,color:'#60422d',r:3,rotate:15}),
@@ -288,7 +300,7 @@ function VectorScene({scene,frame,mouthLevel=0}){
       Shape({x:39,y:70,w:3,h:18,color:'#69442f',r:3}),
       Shape({x:58,y:70,w:3,h:18,color:'#69442f',r:3})):null,
     el(Person,{frame,action:scene.action,mouthLevel}),
-    el(Prop,{action:scene.action,frame})):el(MotionGraphic,{scene,frame});
+    el(Prop,{action:scene.action,frame,objects:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame});
 }
 function MotionGraphic({scene,frame}){
  const t=frame/24, pulse=1+0.035*Math.sin(t*5), slide=Math.min(0, -90+frame*12);
