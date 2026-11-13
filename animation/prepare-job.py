@@ -38,6 +38,11 @@ async def main():
         if not piper_model or not Path(piper_model).is_file(): raise RuntimeError('PIPER_MODEL must point to a downloaded .onnx voice model')
         if not shutil.which('ffmpeg'): raise RuntimeError('FFmpeg required for offline Piper conversion')
     out=ROOT/'public'/'audio';out.mkdir(parents=True,exist_ok=True)
+    # Old jobs must never leak extra narration scenes into the next render.
+    for stale in out.glob('job-*.mp3'):
+        if re.fullmatch(r'job-\\d+\\.mp3',stale.name):
+            stale.unlink()
+    (out/'word-timings.json').unlink(missing_ok=True)
     durations=[];uris=[];word_alignments=[]
     for i,sentence in enumerate(sentences):
         file=out/f'job-{i}.mp3'
