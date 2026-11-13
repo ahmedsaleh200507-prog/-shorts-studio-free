@@ -73,3 +73,12 @@ test('Documentary topics remain distinct in native 2D exports',()=>{
     assert.ok(plan.scenes[0].frames>0);
   }
 });
+
+
+test('Walking running and sitting are preserved as native character motions',()=>{
+  const examples=[['She walks through the city.','walk'],['Er rennt nach Hause.','run'],['Die Frau sitzt auf einem Stuhl.','sit']];
+  for(const [script,action] of examples){
+    const plan=exportPlan(script);
+    assert.equal(plan.scenes[0].action,action,script);
+  }
+});
