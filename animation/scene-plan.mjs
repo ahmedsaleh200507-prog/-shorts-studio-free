@@ -126,6 +126,8 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
     return {id:`scene-${index+1}`,text,action:resolvedAction,place,props:resolvedProps,visualMode,keywords,characterId:'main',narrative,startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
+  // Reject jobs beyond the currently supported 10-minute production target.
+  if(cursor>fps*600) throw new RangeError('Video exceeds 10-minute limit');
   const landscape=aspectRatio==="16:9";
   return {version:1,width:landscape?1920:1080,height:landscape?1080:1920,fps,totalFrames:scenes.at(-1).endFrame,scenes};
 }
