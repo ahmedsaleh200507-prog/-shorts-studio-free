@@ -48,6 +48,27 @@ class AnimatedCaptionsTests(unittest.TestCase):
         self.assertIn("gut", output)
         self.assertIn("lesbare", output)
 
+    def test_scene_timeline_and_video_validation(self):
+        scenes = [
+            {"text": "Hello", "frames": 48, "startFrame": 0, "endFrame": 48},
+            {"text": "World", "frames": 24, "startFrame": 48, "endFrame": 72},
+        ]
+        self.assertEqual(story.validate_scene_plan(scenes), 72)
+        broken = [dict(scenes[0]), dict(scenes[1], startFrame=47)]
+        with self.assertRaisesRegex(ValueError, "wrong frame"):
+            story.validate_scene_plan(broken)
+        streams = [
+            {"codec_type": "video", "codec_name": "h264", "width": 540, "height": 960, "duration": "3.0"},
+            {"codec_type": "audio", "codec_name": "aac"},
+        ]
+        self.assertTrue(story.validate_final_video(streams, "9:16", 3.0))
+        with self.assertRaisesRegex(RuntimeError, "dimensions"):
+            story.validate_final_video(streams, "16:9", 3.0)
+        with self.assertRaisesRegex(RuntimeError, "duration"):
+            story.validate_final_video(streams, "9:16", 5.0)
+        with self.assertRaisesRegex(RuntimeError, "AAC"):
+            story.validate_final_video(streams[:1], "9:16", 3.0)
+
     def test_character_and_object_continuity(self):
         doctor = {"narrative": {"actor": "doctor", "objects": ["phone"]}, "props": ["irrelevant"]}
         follow_up = {"narrative": {"actor": "doctor", "objects": ["phone"]}, "props": []}
