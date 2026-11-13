@@ -181,9 +181,7 @@ func _draw_topic_graphic(t: float) -> void:
 		"science":
 			var center := Vector2(270, 440)
 			for i in range(3):
-				draw_set_transform(Vector2.ZERO, t * 0.23 + float(i) * PI / 3.0, Vector2.ONE)
-				draw_arc(center, 150, 0, TAU, 90, cyan, 3.0, true)
-				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				draw_arc(center, 105.0 + float(i) * 25.0, t * 0.23 + float(i), t * 0.23 + float(i) + PI * 1.5, 70, cyan, 3.0, true)
 			draw_circle(center, 38 * pulse, gold)
 			for i in range(6):
 				var angle := t + float(i) * TAU / 6.0
