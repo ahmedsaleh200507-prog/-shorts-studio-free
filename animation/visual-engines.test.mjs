@@ -51,3 +51,10 @@ test('2D characters blink both eyes using deterministic frame timing',()=>{
  assert.match(source,/cx:121,cy:146,rx:5,ry:7\*eyeOpen/);
  assert.match(source,/cx:181,cy:146,rx:5,ry:7\*eyeOpen/);
 });
+
+test('2D eyes follow scene actions while retaining blink animation',()=>{
+ assert.match(source,/const gazeX=action==='pick'\?3:action==='checkout'\?2:/);
+ assert.match(source,/const gazeY=action==='pick'\?2:/);
+ assert.match(source,/cx:121\+gazeX,cy:146\+gazeY,rx:5,ry:7\*eyeOpen/);
+ assert.match(source,/cx:181\+gazeX,cy:146\+gazeY,rx:5,ry:7\*eyeOpen/);
+});
