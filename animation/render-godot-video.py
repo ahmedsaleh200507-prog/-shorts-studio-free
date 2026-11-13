@@ -9,6 +9,7 @@ Godot 4 and FFmpeg/ffprobe must be on PATH. All subprocesses are checked.
 import argparse
 import json
 import math
+import struct
 import shutil
 import subprocess
 import tempfile
@@ -47,9 +48,26 @@ def render(action, place, seconds, aspect, audio, output, character=0, emotion="
     with tempfile.TemporaryDirectory(prefix="shorts-godot-") as temp:
         frame_dir = Path(temp) / "frames"
         frame_dir.mkdir()
+        mouth_args = []
+        if audio:
+            # Decode speech into 24fps amplitude values without microphone permission.
+            pcm = subprocess.run(["ffmpeg", "-v", "error", "-i", str(audio), "-ac", "1", "-ar", "12000", "-f", "s16le", "-"], check=True, capture_output=True).stdout
+            samples = memoryview(pcm).cast("h") if pcm else []
+            per_frame = 12000 // FPS
+            levels = []
+            for index in range(frames):
+                block = samples[index * per_frame:(index + 1) * per_frame]
+                if len(block):
+                    rms = math.sqrt(sum(int(s) ** 2 for s in block) / len(block)) / 32768.0
+                    levels.append(round(min(1.0, max(0.0, (rms - 0.009) * 9.0)), 4))
+                else:
+                    levels.append(0.0)
+            mouth_file = Path(temp) / "mouth.json"
+            mouth_file.write_text(json.dumps(levels))
+            mouth_args = [f"--mouth-file={mouth_file}"]
         run(["godot", "--path", str(ROOT / "godot"), "--rendering-driver", "opengl3", "--",
              f"--action={action}", f"--place={place}", f"--frames={frames}",
-             f"--aspect={aspect}", f"--character={character}", f"--emotion={emotion}", f"--camera={camera}", f"--out={frame_dir}"], timeout=max(120, frames * 2))
+             f"--aspect={aspect}", f"--character={character}", f"--emotion={emotion}", f"--camera={camera}", f"--out={frame_dir}", *mouth_args], timeout=max(120, frames * 2))
         images = sorted(frame_dir.glob("frame_*.png"))
         if len(images) != frames:
             raise RuntimeError(f"Expected {frames} rendered frames, got {len(images)}")
