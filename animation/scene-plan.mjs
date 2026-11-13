@@ -31,7 +31,7 @@ const rules=[
 // Context-aware classification: explicit settings beat incidental action words.
 // A mention of a device does not automatically replace a named location.
 const settingRules=[
-  ['metro', /\\b(?:metro|subway|u-bahn|ubahn|untergrundbahn|metrostation)\\b/i],
+  ['metro', /\b(?:metro|subway|u-bahn|ubahn|untergrundbahn|metrostation)\b/i],
   ['hospital', /krankenhaus|hospital|klinik|clinic|notaufnahme|emergency room/i],
   ['school', /schule|school|klassenzimmer|classroom|universit[aä]t|university/i],
   ['supermarket', /supermarkt|supermarket|grocery store|lebensmittelgesch[aä]ft/i],
@@ -39,20 +39,20 @@ const settingRules=[
   ['office', /b[uü]ro|office/i],
   ['bathroom', /badezimmer|bathroom/i],
   ['bedroom', /schlafzimmer|bedroom/i],
-  ['transport', /\\b(?:bus|zug|train|bahnhof|railway station)\\b/i]
+  ['transport', /\b(?:bus|zug|train|bahnhof|railway station)\b/i]
 ];
 const topicRules=[
   ['alert', /warnung|warnmeldung|alarm|gefahr|notfall|emergency|warning|alert|achtung|sirene/i],
   ['phone', /handy|smartphone|telefon|phone|nachricht|message|notification|benachrichtigung|sms/i],
-  ['radio', /\\bradio\\b|rundfunk|broadcast|radioger[aä]t/i],
-  ['map', /landkarte|stadtplan|\\bmap\\b|grenze|border|europa|europe|kurdistan/i],
-  ['clock', /\\buhr\\b|countdown|timer|mitternacht|midnight/i],
+  ['radio', /\bradio\b|rundfunk|broadcast|radioger[aä]t/i],
+  ['map', /landkarte|stadtplan|\bmap\b|grenze|border|europa|europe|kurdistan/i],
+  ['clock', /\buhr\b|countdown|timer|mitternacht|midnight/i],
   ['space', /weltraum|universum|planet|erde|earth|space|moon|mond|galax|sonne|sun/i],
   ['science', /wissenschaft|forschung|experiment|physik|science|research|labor|atom|molek/i],
   ['nature', /wald|forest|baum|tree|meer|ocean|fluss|river|berg|mountain/i],
-  ['technology', /computer|internet|\\bki\\b|k[uü]nstliche intelligenz|artificial intelligence|software|roboter/i],
-  ['history', /geschichte|historisch|history|historical|jahrhundert|century|\\bkrieg\\b|\\bwar\\b/i],
-  ['infographic', /\\b\\d+(?:[.,]\\d+)?\\s*(?:%|prozent|percent|euro|€|dollar|kilometer|km|million|milliard|billion)\\b|\\b\\d+\\s*%/i]
+  ['technology', /computer|internet|\bki\b|k[uü]nstliche intelligenz|artificial intelligence|software|roboter/i],
+  ['history', /geschichte|historisch|history|historical|jahrhundert|century|\bkrieg\b|\bwar\b/i],
+  ['infographic', /\b\d+(?:[.,]\d+)?\s*(?:%|prozent|percent|euro|€|dollar|kilometer|km|million|milliard|billion)\b|\b\d+\s*%/i]
 ];
 function chooseContext(text, previousPlace){
   const settings=settingRules.filter(([,re])=>re.test(text));
@@ -62,7 +62,7 @@ function chooseContext(text, previousPlace){
   // Explicit warnings are the main subject only without a more concrete device.
   const subject=topics.find(([name])=>name!=='alert')||topics[0];
   if(subject) return {place:subject[0],setting:false};
-  if(/^(?:er|sie|es|they|he|she|it|dann|danach|anschließend|then|afterwards|plötzlich|suddenly|dort|there)\\b/i.test(text))
+  if(/^(?:er|sie|es|they|he|she|it|dann|danach|anschließend|then|afterwards|plötzlich|suddenly|dort|there)\b/i.test(text))
     return {place:previousPlace,setting:false};
   return {place:'generic',setting:false};
 }
