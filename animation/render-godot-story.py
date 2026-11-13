@@ -239,7 +239,12 @@ def visual_props(scene):
                "bed", "toothbrush", "computer", "book", "food"}
     objects = scene.get("narrative", {}).get("objects", [])
     result = [name for name in objects if name in allowed]
-    return result if result else scene.get("props", [])[:8]
+    # Keep scene-specific scenery as well as the tracked story object.
+    # Stable ordering avoids visual flicker caused by unordered sets.
+    for prop in scene.get("props", []):
+        if isinstance(prop, str) and prop not in result:
+            result.append(prop)
+    return result[:8]
 
 
 def render_story(script, aspect, audio_dir, output, alignment_file=None):
