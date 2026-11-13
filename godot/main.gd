@@ -69,38 +69,113 @@ func _draw() -> void:
 			draw_rect(Rect2(x, 230, 115, 470), Color("#8b5e43"))
 			for y in [270, 390, 510]:
 				draw_rect(Rect2(x + 12, y, 90, 14), Color("#f1cc69"))
-	var stand := Vector2(260, 440)
-	var wake := clampf((frame_index - 10.0) / 38.0, 0.0, 1.0)
-	if action == "wake":
-		stand += Vector2(-80 * (1.0 - wake), 130 * (1.0 - wake))
+	_draw_character(float(frame_index) / FPS)
+
+func _draw_character(t: float) -> void:
+	# Layered vector character with articulated joints, clothing, hair, face and props.
+	var skin := Color("#e8ac8a")
+	var shadow := Color("#c78267")
+	var shirt := Color("#397fb2")
+	var shirt_dark := Color("#235c8c")
+	var trousers := Color("#273d61")
+	var outline := Color("#24354a")
+	var hair := Color("#263044")
+	var phase := sin(t * 7.0)
 	var walking := action == "travel" or action == "carry"
-	var gait := sin(t * 7.0) * 25.0 if walking else 0.0
-	var torso := stand + Vector2(0, sin(t * 2.5) * 2.0)
-	var hip := torso + Vector2(0, 150)
-	var shoulder := torso + Vector2(0, -35)
-	var skin := Color("#e9ad8b")
-	var blue := Color("#397fb2")
-	draw_line(hip, hip + Vector2(-30 + gait, 185), Color("#304969"), 29, true)
-	draw_line(hip, hip + Vector2(30 - gait, 185), Color("#304969"), 29, true)
-	draw_line(shoulder + Vector2(-37, 0), shoulder + Vector2(-62 - gait * .4, 135), blue, 27, true)
-	var right_hand := shoulder + Vector2(62 + gait * .4, 135)
+	var gait := phase * 28.0 if walking else 0.0
+	var sway := sin(t * 3.5) * 3.0
+	var breathe := sin(t * 2.4) * 2.5
+	var root := Vector2(270 + (sin(t * 1.3) * 4.0), 420 + breathe)
+	if action == "wake":
+		var rise := smoothstep(0.0, 1.5, t)
+		root += Vector2(-75.0 * (1.0 - rise), 130.0 * (1.0 - rise))
+		root = root.rotated(-0.22 * (1.0 - rise))
+	var hip := root + Vector2(0, 150)
+	var shoulder := root + Vector2(sway, -30)
+	var left_ankle := hip + Vector2(-29 + gait, 185 - abs(gait) * 0.32)
+	var right_ankle := hip + Vector2(29 - gait, 185 - abs(gait) * 0.32)
+	# Back leg, shoes and seams.
+	draw_line(hip + Vector2(-19, 0), left_ankle, outline, 36, true)
+	draw_line(hip + Vector2(-19, 0), left_ankle, trousers, 29, true)
+	draw_line(hip + Vector2(19, 0), right_ankle, outline, 36, true)
+	draw_line(hip + Vector2(19, 0), right_ankle, trousers, 29, true)
+	for ankle in [left_ankle, right_ankle]:
+		draw_line(ankle + Vector2(-9, 3), ankle + Vector2(22, 4), outline, 18, true)
+		draw_line(ankle + Vector2(-7, 0), ankle + Vector2(19, 1), Color("#f4f1e8"), 11, true)
+	var left_elbow := shoulder + Vector2(-63 - gait * 0.35, 72)
+	var left_hand := shoulder + Vector2(-59 - gait * 0.5, 139)
+	var right_elbow := shoulder + Vector2(62 + gait * 0.25, 70)
+	var right_hand := shoulder + Vector2(62 + gait * 0.5, 139)
 	if action == "brush":
-		right_hand = stand + Vector2(30, -108 + sin(t * 9) * 5)
-	draw_line(shoulder + Vector2(37, 0), right_hand, blue, 27, true)
-	draw_circle(right_hand, 13, skin)
-	draw_rect(Rect2(torso.x - 48, torso.y - 45, 96, 195), blue)
-	var head := torso + Vector2(0, -110)
-	draw_circle(head, 55, skin)
-	draw_arc(head + Vector2(0, -14), 47, PI, TAU, 28, Color("#26364b"), 18, true)
-	draw_circle(head + Vector2(-19, -4), 4, Color("#283449"))
-	draw_circle(head + Vector2(19, -4), 4, Color("#283449"))
-	draw_arc(head + Vector2(0, 20), 15, .2, PI - .2, 12, Color("#9a5149"), 3, true)
+		right_elbow = shoulder + Vector2(76, 34)
+		right_hand = root + Vector2(19, -104 + sin(t * 11.0) * 5.0)
+	elif action == "pick":
+		var reach := smoothstep(0.0, 1.0, t)
+		right_elbow = shoulder + Vector2(90, 56)
+		right_hand = Vector2(385, 538).lerp(Vector2(307, 494), reach)
+	elif action == "talk":
+		right_hand += Vector2(24, -35 + sin(t * 5.0) * 17)
+	# Arms have jointed sleeves and visible hands.
+	for points in [[shoulder + Vector2(-40, 0), left_elbow, left_hand], [shoulder + Vector2(40, 0), right_elbow, right_hand]]:
+		draw_line(points[0], points[1], outline, 35, true)
+		draw_line(points[0], points[1], shirt_dark, 28, true)
+		draw_line(points[1], points[2], outline, 24, true)
+		draw_line(points[1], points[2], skin, 19, true)
+		draw_circle(points[2], 13, skin)
+		draw_circle(points[2] + Vector2(3, 3), 5, shadow)
+	# Tailored silhouette instead of a rectangular torso.
+	var body := PackedVector2Array([
+		shoulder + Vector2(-45, -12), shoulder + Vector2(45, -12),
+		hip + Vector2(43, 0), hip + Vector2(-43, 0)])
+	draw_colored_polygon(body, outline)
+	var inner := PackedVector2Array([
+		shoulder + Vector2(-40, -8), shoulder + Vector2(40, -8),
+		hip + Vector2(37, -5), hip + Vector2(-37, -5)])
+	draw_colored_polygon(inner, shirt)
+	draw_line(shoulder + Vector2(-26, 8), hip + Vector2(-25, -18), Color("#5aa0cc"), 5, true)
+	draw_line(hip + Vector2(-37, -4), hip + Vector2(37, -4), shirt_dark, 9, true)
+	# Neck, ears, head and hairstyle, all 2D vector primitives.
+	var head := root + Vector2(sway * 0.4, -110)
+	draw_line(shoulder + Vector2(0, -15), head + Vector2(0, 37), outline, 27, true)
+	draw_line(shoulder + Vector2(0, -15), head + Vector2(0, 37), skin, 20, true)
+	draw_circle(head + Vector2(-53, 4), 14, shadow)
+	draw_circle(head + Vector2(53, 4), 14, shadow)
+	draw_circle(head, 57, outline)
+	draw_circle(head, 53, skin)
+	draw_arc(head + Vector2(-6, 1), 47, 1.8, 2.6, 12, shadow, 3, true)
+	# Asymmetric hair cap and fringe.
+	draw_arc(head + Vector2(0, -14), 47, PI * 1.03, TAU * 1.02, 30, hair, 19, true)
+	draw_colored_polygon(PackedVector2Array([
+		head + Vector2(-44, -38), head + Vector2(-20, -62),
+		head + Vector2(23, -58), head + Vector2(45, -39),
+		head + Vector2(11, -37), head + Vector2(-13, -27)]), hair)
+	var blink := fmod(t + 0.1, 3.6) > 3.48
+	for x in [-20.0, 20.0]:
+		var eye := head + Vector2(x, -5)
+		if blink:
+			draw_line(eye + Vector2(-8, 0), eye + Vector2(8, 0), outline, 3, true)
+		else:
+			draw_circle(eye, 9, Color("#fffaf3"))
+			draw_circle(eye + Vector2(1, 1), 4, outline)
+			draw_circle(eye + Vector2(2, -1), 1.5, Color.WHITE)
+		draw_line(eye + Vector2(-9, -15), eye + Vector2(8, -17), hair, 4, true)
+	draw_line(head + Vector2(0, 1), head + Vector2(-3, 17), shadow, 3, true)
+	var mouth_open := action == "talk" and sin(t * 10.0) > 0
+	if mouth_open:
+		draw_circle(head + Vector2(0, 29), 9, Color("#923f4a"))
+		draw_line(head + Vector2(-5, 32), head + Vector2(5, 32), Color("#f5b2aa"), 3, true)
+	else:
+		draw_arc(head + Vector2(0, 22), 15, 0.25, PI - 0.25, 12, Color("#9d5050"), 3, true)
 	if action == "brush":
-		draw_line(right_hand, head + Vector2(0, 24), Color.WHITE, 7, true)
-		draw_line(head + Vector2(-8, 22), head + Vector2(9, 22), Color("#4cc0d0"), 7, true)
+		draw_line(right_hand, head + Vector2(0, 27), Color("#f6ffff"), 7, true)
+		draw_line(head + Vector2(-8, 27), head + Vector2(10, 27), Color("#44c8d7"), 7, true)
 	if action == "pick":
-		var reach := clampf(frame_index / 25.0, 0.0, 1.0)
-		var apple := Vector2(380 - 90 * reach, 540 - 70 * reach)
-		draw_circle(apple, 20, Color("#dd333e"))
-		draw_line(apple + Vector2(0, -19), apple + Vector2(5, -30), Color("#5b4934"), 4, true)
-		draw_line(shoulder + Vector2(37, 0), apple, blue, 22, true)
+		var apple := right_hand + Vector2(5, -10)
+		draw_circle(apple, 18, Color("#d83f47"))
+		draw_line(apple + Vector2(0, -16), apple + Vector2(5, -27), Color("#554333"), 4, true)
+		draw_circle(apple + Vector2(-6, -6), 4, Color("#f47a7b"))
+	if action == "carry":
+		var bag := left_hand + Vector2(-7, 20)
+		draw_rect(Rect2(bag + Vector2(-30, -7), Vector2(62, 69)), outline)
+		draw_rect(Rect2(bag + Vector2(-25, -3), Vector2(52, 60)), Color("#e2ad64"))
+		draw_arc(bag + Vector2(0, -7), 16, PI, TAU, 14, outline, 5, true)
