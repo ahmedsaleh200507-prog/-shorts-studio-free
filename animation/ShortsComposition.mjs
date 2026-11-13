@@ -361,15 +361,16 @@ function ReferenceDiagram({scene,frame}){
  const text=scene.text||'';
  const social=/sozial|social|netzwerk|network|internet|verbind|connect|kommunik/i.test(text);
  const crowd=/menschen|people|bevölkerung|population|millionen|millions|frauen|women|gruppe|group/i.test(text);
- const city=/stadt|city|kilometer|\\bkm\\b|entfernung|distance|weg|route/i.test(text);
+ const city=/stadt|city|kilometer|\bkm\b|entfernung|distance|weg|route/i.test(text);
  const garment=/jacke|jacket|mantel|coat|kleidung|clothing/i.test(text);
  const t=frame/24;
  const root={position:'absolute',inset:0,pointerEvents:'none'};
  if(social){
   const points=Array.from({length:9},(_,i)=>({x:50+32*Math.cos(i*Math.PI*2/9),y:45+23*Math.sin(i*Math.PI*2/9)}));
+  const progress=Math.min(1,Math.max(0,frame/Math.max(1,scene.endFrame-scene.startFrame)));
   return el('div',{style:root},
    el('svg',{viewBox:'0 0 100 100',preserveAspectRatio:'none',style:{position:'absolute',inset:0,width:'100%',height:'100%'}},
-    ...points.map((p,i)=>el('line',{key:'l'+i,x1:p.x,y1:p.y,x2:points[(i+1)%points.length].x,y2:points[(i+1)%points.length].y,stroke:'#5489d8',strokeWidth:.24,opacity:.8})),
+    ...points.map((p,i)=>el('line',{key:'l'+i,x1:p.x,y1:p.y,x2:points[(i+1)%points.length].x,y2:points[(i+1)%points.length].y,stroke:'#5489d8',strokeWidth:.24,opacity:.25+.65*progress,strokeDasharray:'1.4 .8',strokeDashoffset:-frame*.07})),
     ...points.map((p,i)=>el('circle',{key:'c'+i,cx:p.x,cy:p.y,r:1.6+Math.sin(t*2+i)*.25,fill:i===Math.floor(t)%9?'#ff607b':'#0e244b',stroke:'#73b3ff',strokeWidth:.35})),
     el('circle',{cx:50,cy:45,r:1.5,fill:'#ffd166',style:{filter:'drop-shadow(0 0 5px #ffd166)'}})));
  }
@@ -480,7 +481,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
   el('div',{style:{position:'absolute',inset:0,opacity:shotTransitionOpacity(local,duration,plan.fps)}},aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,mouthLevel:narration?speechMouthLevel(local,narrationWordTimings[sceneIndex],plan.fps):0}))),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
-  scene.visualMode==='character'?null:el(EditorialHud,{scene,sceneIndex,landscape}),
+  null // Never burn internal scene labels into exported videos,
   el('div',{style:{position:'absolute',bottom:landscape?58:140,left:landscape?'15%':45,right:landscape?'15%':45,opacity,background:'linear-gradient(180deg,#07102000,#071020d9 35%,#071020ed)',borderRadius:landscape?8:12,padding:landscape?'14px 20px':'24px 18px',color:'white',fontSize:landscape?35:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},el(CaptionWords,{caption,landscape}))
  );
 }
