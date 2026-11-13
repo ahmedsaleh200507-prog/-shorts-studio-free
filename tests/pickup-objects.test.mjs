@@ -175,6 +175,8 @@ test('repeated pickup of already-held item does not animate a second grasp',()=>
  const scenes=makeScenePlan('She picks up a cup. Then she picks up the cup again.').scenes;
  assert.equal(scenes[0].narrative.hasPhysicalInteraction,true);
  assert.equal(scenes[1].narrative.heldObject,'cup');
+ assert.equal(scenes[1].action,'carry');
+ assert.equal(scenes[1].narrative.interaction,'carry');
  assert.equal(scenes[1].narrative.hasPhysicalInteraction,false);
 });
 test('pickup of a different item still triggers a new interaction',()=>{
