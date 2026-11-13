@@ -24,6 +24,9 @@ function Person({frame,action,mouthLevel=0}){
  // Deterministic blink: short eyelid closure every ~3.7 seconds.
  const blinkPhase=((frame+17)%89+89)%89;
  const eyeOpen=blinkPhase<3?Math.max(.12,Math.abs(blinkPhase-1)*.55):1;
+ // Gaze alternates gently between viewer and nearby scene objects.
+ const gazeX=action==='pick'?3:action==='checkout'?2:Math.sin(frame/63)*2;
+ const gazeY=action==='pick'?2:Math.sin(frame/87)*.7;
  const wakeProgress=wake?Math.min(1,Math.max(0,(frame-9)/42)):1;
  const svg=(tag,props,...children)=>el(tag,props,...children);
  return el('div',{style:{position:'absolute',left:'29%',top:'28%',width:'42%',height:'55%',transform:wake?`translate(${-29*(1-wakeProgress)}%,${27*(1-wakeProgress)}%) rotate(${-68*(1-wakeProgress)}deg) scale(${.82+.18*wakeProgress})`:`translateY(${bounce}px)`,transformOrigin:'50% 70%'}},
@@ -57,8 +60,8 @@ function Person({frame,action,mouthLevel=0}){
     svg('ellipse',{cx:151,cy:133,rx:71,ry:87,fill:'url(#skinShade)',stroke:'#b87860',strokeWidth:5}),
     svg('path',{d:'M82 127 Q68 40 136 39 Q210 25 224 110 L213 124 Q196 98 192 83 Q157 114 105 101 L94 142 Z',fill:'#27364b',stroke:'#1b2738',strokeWidth:5}),
     svg('path',{d:'M107 137 Q122 129 135 137 M166 137 Q181 129 195 137',fill:'none',stroke:'#343849',strokeWidth:6,strokeLinecap:'round'}),
-    svg('ellipse',{cx:121,cy:146,rx:5,ry:7*eyeOpen,fill:'#24364b'}),
-    svg('ellipse',{cx:181,cy:146,rx:5,ry:7*eyeOpen,fill:'#24364b'}),
+    svg('ellipse',{cx:121+gazeX,cy:146+gazeY,rx:5,ry:7*eyeOpen,fill:'#24364b'}),
+    svg('ellipse',{cx:181+gazeX,cy:146+gazeY,rx:5,ry:7*eyeOpen,fill:'#24364b'}),
     svg('path',{d:'M150 151 L145 171 Q151 176 158 171',fill:'none',stroke:'#c48068',strokeWidth:4,strokeLinecap:'round'}),
     mouthLevel>.035?svg('ellipse',{cx:151,cy:192,rx:12+mouthLevel*4,ry:3+mouthLevel*13,fill:'#803e42',stroke:'#a65d54',strokeWidth:3}):svg('path',{d:'M132 190 Q151 203 172 188',fill:'none',stroke:'#9d574f',strokeWidth:5,strokeLinecap:'round'}),
     svg('ellipse',{cx:96,cy:175,rx:12,ry:8,fill:'#e99b86',opacity:.45}),
