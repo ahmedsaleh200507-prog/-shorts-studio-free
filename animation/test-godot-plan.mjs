@@ -90,3 +90,9 @@ test('Godot exports preserve distinct text-derived visual objects',()=>{
   assert.ok(plan.scenes.every(s=>Array.isArray(s.props)&&Array.isArray(s.keywords)));
   assert.notDeepEqual(plan.scenes[0].keywords,plan.scenes[1].keywords);
 });
+
+test('Radio and metro have distinct native documentary scenes',()=>{
+  const plan=exportPlan('The radio broadcasts a warning. Die U-Bahn fährt in die Station. Eine Nachricht erscheint auf dem Smartphone.');
+  assert.deepEqual(plan.scenes.map(s=>s.place),['radio','metro','phone']);
+  assert.ok(plan.scenes.every(s=>s.frames>0));
+});
