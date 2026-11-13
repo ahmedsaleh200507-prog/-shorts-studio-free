@@ -51,7 +51,17 @@ func _draw() -> void:
 	var t := float(frame_index) / FPS
 	draw_rect(Rect2(0, 0, 540, 960), Color("#c6dfeb"))
 	draw_rect(Rect2(0, 690, 540, 270), Color("#b88e70"))
-	if place == "bedroom":
+	if place == "bathroom":
+		draw_rect(Rect2(35, 200, 180, 300), Color("#eaf4f5"))
+		draw_rect(Rect2(45, 460, 160, 25), Color("#83adb8"))
+		draw_rect(Rect2(70, 485, 110, 80), Color("#f5f8f8"))
+		draw_rect(Rect2(110, 400, 15, 60), Color("#a5b4bd"))
+	elif place == "transport":
+		draw_rect(Rect2(20, 260, 500, 340), Color("#537a9c"))
+		for x in [55, 205, 355]:
+			draw_rect(Rect2(x, 295, 110, 130), Color("#b8e3ef"))
+		draw_rect(Rect2(30, 570, 480, 35), Color("#243b52"))
+	elif place == "bedroom":
 		draw_rect(Rect2(20, 625, 305, 85), Color("#f3e8e0"))
 		draw_rect(Rect2(30, 611, 95, 36), Color.WHITE)
 	elif place == "supermarket":
