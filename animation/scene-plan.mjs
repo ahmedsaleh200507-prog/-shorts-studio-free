@@ -1,8 +1,8 @@
 // Shared, deterministic scene-plan contract for browser preview and MP4 rendering.
 // No API calls, secrets or GPU required.
 const rules=[
-  ['radio', /\\bradio\\b|rundfunk|broadcast|radiogerät|radioger[aä]t|transistor/i, 'radio', ['radio','signal']],
-  ['metro', /\\bmetro\\b|\\bsubway\\b|\\bu-bahn\\b|\\bubahn\\b|\\buntergrundbahn\\b|\\bmetrostation\\b/i, 'metro', ['train','platform']],
+  ['radio', /\bradio\b|rundfunk|broadcast|radiogerät|radioger[aä]t|transistor/i, 'radio', ['radio','signal']],
+  ['metro', /\bmetro\b|\bsubway\b|\bu-bahn\b|\bubahn\b|\buntergrundbahn\b|\bmetrostation\b/i, 'metro', ['train','platform']],
   ['run', /\b(?:runs?|running|jogs?|jogging|sprints?)\b|\brenn(?:t|en|e|st)?\b|\bläuft\b|\blaufen\b|\brennt\b/i, 'generic', ['motion-trail']],
   ['sit', /\b(?:sits?|sitting|sat down|takes? a seat)\b|\b(?:sitzt|sitzen|setzt sich|hinsetzen)\b/i, 'generic', ['chair']],
   ['walk', /\b(?:walks?|walking|strolls?)\b|\b(?:geht|gehen|spaziert|spazieren)\b/i, 'generic', ['path']],
