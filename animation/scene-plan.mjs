@@ -151,9 +151,13 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
       ['cup',/\b(?:cups?|tasse)\b/i],
       ['book',/\b(?:books?|buch|bücher)\b/i]
     ];
-    const verbMatch=/\b(?:picks?\s+(?:(?:it|them)\s+)?up|grabs?|takes?|lifts?|nimmt|greift|hebt)\b/i.exec(text);
-    const targetClause=verbMatch?text.slice(verbMatch.index+verbMatch[0].length).split(/\b(?:and|und|then|dann)\b|[.!?;,]/i)[0]:'';
-    const targetedItem=pickupTargets.find(([,re])=>re.test(targetClause))?.[0]||null;
+    // Inspect each manipulation verb separately. The first "takes" may
+    // describe transport, while a later "picks up" targets the actual prop.
+    const pickupVerbs=/\b(?:picks?\s+(?:(?:it|them)\s+)?up|grabs?|takes?|lifts?|nimmt|greift|hebt)\b/gi;
+    const targetedItem=Array.from(text.matchAll(pickupVerbs)).map(match=>{
+      const clause=text.slice(match.index+match[0].length).split(/\b(?:and|und|then|dann)\b|[.!?;,]/i)[0];
+      return pickupTargets.find(([,re])=>re.test(clause))?.[0]||null;
+    }).find(Boolean)||null;
     const pickupItem=resolvedAction==='pick'?(targetedItem||(pronounPickup?previousObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o)):null)):null;
     // Do not replace an already-held prop with an unrelated inferred object.
     // Repeated references to the same item remain a single continuous hold.
