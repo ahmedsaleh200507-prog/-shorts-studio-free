@@ -6,7 +6,7 @@ import {AbsoluteFill, Audio, Sequence, useCurrentFrame, interpolate} from 'remot
 import {makeScenePlan} from './scene-plan.mjs';
 import {aiSceneImages} from './ai-scene-images.mjs';
 import {staticFile} from 'remotion';
-import {characterPose} from './skeletal-motion.mjs';
+import {characterPose,pickupPropPose} from './skeletal-motion.mjs';
 
 const el=React.createElement;
 const pct=(n)=>n+'%';
@@ -116,9 +116,7 @@ function Prop({action,frame}){
  if(action==='pick'){
   // Keep the apple attached to the same grasp timeline as the hand rig.
   // The object stays on the shelf until contact, then follows the hand.
-  const grasp=characterPose('pick',frame).grasp;
-  const lift=grasp*grasp*(3-2*grasp);
-  const x=72-19*lift,y=57-9*lift+(grasp>0?bob*.12:0);
+  const {x,y,grasp}=pickupPropPose(frame);
   return el(React.Fragment,null,
    Shape({x,y,w:9,h:7,color:'#d8443e',r:'48% 48% 52% 52%',style:{boxShadow:'inset -5px -4px 0 #a92b2b'}}),
    Shape({x:x+4,y:y-2,w:1.3,h:3,color:'#60422d',r:3,rotate:15}),
