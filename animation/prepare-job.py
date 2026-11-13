@@ -30,9 +30,10 @@ async def main():
         if not piper_model or not Path(piper_model).is_file(): raise RuntimeError('PIPER_MODEL must point to a downloaded .onnx voice model')
         if not shutil.which('ffmpeg'): raise RuntimeError('FFmpeg required for offline Piper conversion')
     out=ROOT/'public'/'audio';out.mkdir(parents=True,exist_ok=True)
-    durations=[];uris=[]
+    durations=[];uris=[];word_alignments=[]
     for i,sentence in enumerate(sentences):
         file=out/f'job-{i}.mp3'
+        words=[]
         if offline:
             wav=out/f'job-{i}.wav'
             subprocess.run(['piper','--model',piper_model,'--output_file',str(wav)],
@@ -44,7 +45,17 @@ async def main():
         else:
             for attempt in range(3):
                 try:
-                    await asyncio.wait_for(edge_tts.Communicate(sentence,voice).save(str(file)),timeout=90)
+                    words=[]
+                    async def synthesize():
+                        with file.open('wb') as stream:
+                            async for chunk in edge_tts.Communicate(sentence,voice).stream():
+                                if chunk['type']=='audio':
+                                    stream.write(chunk['data'])
+                                elif chunk['type']=='WordBoundary':
+                                    words.append({'word':chunk['text'],
+                                                  'start':round(chunk['offset']/10_000_000,4),
+                                                  'end':round((chunk['offset']+chunk['duration'])/10_000_000,4)})
+                    await asyncio.wait_for(synthesize(),timeout=90)
                     if file.stat().st_size<1000: raise RuntimeError('Empty audio')
                     break
                 except Exception:
@@ -53,9 +64,11 @@ async def main():
         seconds=MP3(file).info.length
         if not math.isfinite(seconds) or seconds<=0: raise RuntimeError('Invalid narration')
         durations.append(max(1,math.ceil((seconds+0.2)*FPS)))
+        word_alignments.append(words)
         uris.append('data:audio/mpeg;base64,'+base64.b64encode(file.read_bytes()).decode('ascii'))
     total_seconds=sum(durations)/FPS
     if total_seconds>660: raise ValueError('Narration exceeds 11 minutes; shorten the script')
+    (out/'word-timings.json').write_text(json.dumps(word_alignments,ensure_ascii=False),encoding='utf-8')
     (ROOT/'narration-audio.mjs').write_text('export const narrationAudio = '+json.dumps(uris)+';\n',encoding='utf-8')
     (ROOT/'narration-plan.mjs').write_text('export const narrationFrames = '+json.dumps(durations)+';\n',encoding='utf-8')
     entry="""import React from 'react';
