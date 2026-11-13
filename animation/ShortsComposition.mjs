@@ -340,7 +340,7 @@ function VectorScene({scene,frame,mouthLevel=0}){
  const sceneDuration=Math.max(1,(scene.endFrame||72)-(scene.startFrame||0));
  const progress=Math.min(1,Math.max(0,frame/sceneDuration));
  const eased=progress*progress*(3-2*progress);
- const direction=(Number((scene.id||'').match(/\\d+/)?.[0]||1)%2===0)?-1:1;
+ const direction=(Number((scene.id||'').match(/\d+/)?.[0]||1)%2===0)?-1:1;
  const zoom=1.015+eased*.045;
  const panX=direction*(1-eased)*1.3;
  const panY=(eased-.5)*1.1;
