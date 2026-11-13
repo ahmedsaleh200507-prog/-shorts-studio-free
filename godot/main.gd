@@ -9,6 +9,7 @@ var action := "wake"
 var place := "bedroom"
 var output_dir := "/tmp/shorts-godot-frames"
 var render_size := Vector2i(540, 960)
+var scene_progress := 0.0
 
 func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
@@ -24,6 +25,7 @@ func _ready() -> void:
 	# One sequential capture loop prevents overlapping asynchronous _process calls.
 	for i in range(total_frames):
 		frame_index = i
+		scene_progress = float(i) / float(maxi(total_frames - 1, 1))
 		queue_redraw()
 		await RenderingServer.frame_post_draw
 		if not _save_frame():
@@ -72,6 +74,10 @@ func _draw() -> void:
 			for y in [270, 390, 510]:
 				draw_rect(Rect2(x + 12, y, 90, 14), Color("#f1cc69"))
 	_draw_character(float(frame_index) / FPS)
+	# Subtle scene fade at clip boundaries; character animation remains continuous within the scene.
+	var fade_in := 1.0 - smoothstep(0.0, 0.10, scene_progress)
+	var fade_out := smoothstep(0.90, 1.0, scene_progress)
+	draw_rect(Rect2(0, 0, 540, 960), Color(0.04, 0.07, 0.12, maxf(fade_in, fade_out) * 0.65))
 
 func _draw_character(t: float) -> void:
 	# Layered vector character with articulated joints, clothing, hair, face and props.
@@ -87,15 +93,16 @@ func _draw_character(t: float) -> void:
 	var gait := phase * 28.0 if walking else 0.0
 	var sway := sin(t * 3.5) * 3.0
 	var breathe := sin(t * 2.4) * 2.5
-	var root := Vector2(270 + (sin(t * 1.3) * 4.0 if not walking else 0.0), 420 + (absf(phase) * 3.0 if walking else breathe))
+	var travel_x := lerpf(-78.0, 78.0, smoothstep(0.0, 1.0, scene_progress)) if walking else 0.0
+	var root := Vector2(270 + travel_x + (sin(t * 1.3) * 4.0 if not walking else 0.0), 420 + (absf(phase) * 3.0 if walking else breathe))
 	if action == "wake":
 		var rise := smoothstep(0.0, 1.5, t)
 		root += Vector2(-75.0 * (1.0 - rise), 130.0 * (1.0 - rise))
 		root += Vector2(0, -12.0 * (1.0 - rise))
 	var hip := root + Vector2(0, 150)
 	var shoulder := root + Vector2(sway, -30)
-	var left_ankle := FootPlant.foot(t, -1) if walking else hip + Vector2(-29, 185)
-	var right_ankle := FootPlant.foot(t, 1) if walking else hip + Vector2(29, 185)
+	var left_ankle := FootPlant.foot(t, -1) + Vector2(travel_x, 0) if walking else hip + Vector2(-29, 185)
+	var right_ankle := FootPlant.foot(t, 1) + Vector2(travel_x, 0) if walking else hip + Vector2(29, 185)
 	var left_hip := hip + Vector2(-19, 0)
 	var right_hip := hip + Vector2(19, 0)
 	var left_knee: Vector2 = TwoBoneIK.solve(left_hip, left_ankle, 96.0, 96.0, 1.0)[0]
