@@ -41,6 +41,21 @@ jobs:
           xvfb-run -a godot --path godot --rendering-driver opengl3 -- --action=brush --place=bathroom --frames=48 --out="$PWD/output/godot-frames"
           test "$(find output/godot-frames -name 'frame_*.png' | wc -l)" -eq 48
           file output/godot-frames/frame_00000.png
+      - name: Verify landscape Godot output
+        run: |
+          mkdir -p output/godot-landscape
+          xvfb-run -a godot --path godot --rendering-driver opengl3 -- --action=travel --place=transport --frames=24 --aspect=16:9 --out="$PWD/output/godot-landscape"
+          test "$(find output/godot-landscape -name 'frame_*.png' | wc -l)" -eq 24
+          python - <<'PY'
+          from pathlib import Path
+          import struct
+          p = Path("output/godot-landscape/frame_00000.png")
+          data = p.read_bytes()
+          assert data[:8] == b"\\x89PNG\\r\\n\\x1a\\n"
+          width, height = struct.unpack(">II", data[16:24])
+          assert (width, height) == (960, 540), (width, height)
+          print("Landscape PNG verified:", width, height)
+          PY
       - name: Encode and validate real MP4
         run: |
           ffmpeg -hide_banner -loglevel error -y -framerate 24 -i output/godot-frames/frame_%05d.png -c:v libx264 -pix_fmt yuv420p output/godot-demo.mp4
