@@ -342,8 +342,8 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const revealedWords=narration?captionRevealCount(scene.text,local,duration,narrationWordTimings[sceneIndex],plan.fps):Math.max(1,Math.min(words.length,Math.ceil(progress*words.length)));
  const caption=words.slice(0,revealedWords).join(' ');
  // Short scenes need non-overlapping fade windows to avoid invalid interpolation ranges.
- const fade=Math.max(1,Math.min(5,Math.floor((duration-1)/3)));
- const opacity=interpolate(local,[0,fade,Math.max(fade,duration-fade-1),duration-1],[0,1,1,0],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
+ const fade=Math.max(1,Math.min(5,Math.floor(duration/3)));
+ const opacity=duration<=2?1:Math.max(0,Math.min(1,local/fade,(duration-1-local)/fade));
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
   aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,mouthLevel:narration?speechMouthLevel(local,narrationWordTimings[sceneIndex],plan.fps):0})),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
