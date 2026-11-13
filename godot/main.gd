@@ -261,6 +261,11 @@ func _draw_topic_graphic(t: float) -> void:
 				draw_rect(Rect2(wx + 8, 321, 69, 104), Color("#74afc6"))
 				for j in range(3):
 					draw_line(Vector2(wx + 12, 350 + j * 25), Vector2(wx + 72, 350 + j * 25), Color("#9ed0d7"), 2, true)
+			var opening := 72.0 * smoothstep(0.15, 0.8, scene_progress)
+			draw_rect(Rect2(167 - opening, 445, 104, 235), Color("#546d88"))
+			draw_rect(Rect2(272 + opening, 445, 104, 235), Color("#546d88"))
+			draw_line(Vector2(271 - opening, 450), Vector2(271 - opening, 680), gold, 4, true)
+			draw_line(Vector2(272 + opening, 450), Vector2(272 + opening, 680), gold, 4, true)
 			# A waiting passenger and platform warning stripes add visual storytelling.
 			var passenger_x := 112.0 + 58.0 * smoothstep(0.2, 0.9, scene_progress)
 			draw_circle(Vector2(passenger_x, 492), 25, Color("#d8a07c"))
@@ -268,11 +273,6 @@ func _draw_topic_graphic(t: float) -> void:
 			for dx in [-12.0, 12.0]:
 				draw_line(Vector2(passenger_x + dx, 604), Vector2(passenger_x + dx, 672), Color("#1c2d47"), 15, true)
 			draw_line(Vector2(passenger_x - 24, 540), Vector2(passenger_x - 45, 583), Color("#d8a07c"), 13, true)
-			var opening := 72.0 * smoothstep(0.15, 0.8, scene_progress)
-			draw_rect(Rect2(167 - opening, 445, 104, 235), Color("#546d88"))
-			draw_rect(Rect2(272 + opening, 445, 104, 235), Color("#546d88"))
-			draw_line(Vector2(271 - opening, 450), Vector2(271 - opening, 680), gold, 4, true)
-			draw_line(Vector2(272 + opening, 450), Vector2(272 + opening, 680), gold, 4, true)
 			draw_rect(Rect2(0, 720, 540, 28), Color("#d9ad5c"))
 			for i in range(12):
 				draw_rect(Rect2(i * 48, 746, 27, 8), Color("#a2b5c8"))
