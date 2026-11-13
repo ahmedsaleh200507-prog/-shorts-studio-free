@@ -63,7 +63,7 @@ def caption_word_timings(scene, cursor, alignment=None):
                 normalized = []
                 break
             token = str(item.get("word", "")).strip()
-            if token and not re.sub(r"\\W", "", token) and normalized:
+            if token and not re.sub(r"\W", "", token) and normalized:
                 try:
                     normalized[-1] = dict(normalized[-1],
                         word=str(normalized[-1]["word"]) + token,
