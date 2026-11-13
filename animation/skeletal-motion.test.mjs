@@ -30,3 +30,16 @@ test('Lip cues support Rhubarb-style viseme timing without dependency',()=>{
  assert.equal(lipShapeAt(.5,cues),'X');
  assert.equal(lipShapeAt(.1,[{start:0,end:1,value:'bad'}]),'X');
 });
+
+test('running uses faster stronger 2D stride than walking',()=>{
+ const at=.15*24;
+ const run=characterPose('run',at),walk=characterPose('walk',at);
+ assert.ok(Math.abs(run.leftLeg)>Math.abs(walk.leftLeg));
+ assert.equal(run.leftLeg,-run.rightLeg);
+ assert.equal(walk.leftLeg,-walk.rightLeg);
+ for(const action of ['run','walk']){
+  for(const frame of [0,1,24,240,14400]){
+   assert.ok(Object.values(characterPose(action,frame)).every(Number.isFinite));
+  }
+ }
+});
