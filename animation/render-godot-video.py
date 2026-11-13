@@ -27,8 +27,8 @@ def render(action, place, seconds, aspect, audio, output):
         raise ValueError(f"Unsupported action: {action}")
     if place not in PLACES:
         raise ValueError(f"Unsupported place: {place}")
-    if not (0.5 <= seconds <= 100):
-        raise ValueError("Scene length must be between 0.5 and 100 seconds")
+    if not (1 / FPS <= seconds <= 100):
+        raise ValueError("Scene length must be between one frame and 100 seconds")
     if aspect not in ("9:16", "16:9"):
         raise ValueError("Unsupported aspect ratio")
     for binary in ("godot", "ffmpeg", "ffprobe"):
