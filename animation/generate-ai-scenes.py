@@ -30,7 +30,7 @@ key = os.environ.get("POLLINATIONS_KEY", "").strip()
 # when the optional image provider is not configured.
 ai_enabled = key.startswith("sk_") and not vector_mode
 if not ai_enabled:
-    print("No image key: using free built-in 2D vector animations", flush=True)
+    print("AI image provider unavailable: built-in 2D vector scenes will be used", flush=True)
 
 sentences = [s.strip() for s in re.findall(r"[^.!?\n]+[.!?]?", script) if s.strip()]
 if not sentences or len(sentences) > 180 or len(script) > 12000:
@@ -136,6 +136,14 @@ for i in range(image_count):
     else:
         manifest.extend([None] * (end - start))
     prior_segment = segment
+
+# Never advertise an AI-illustrated render when the provider returned no images.
+# Vector mode remains available without any external image service.
+if not vector_mode and not any(manifest):
+    raise SystemExit(
+        "AI_IMAGE_UNAVAILABLE: No AI scene images were generated. "
+        "Configure POLLINATIONS_KEY or explicitly select the 2D vector mode."
+    )
 
 if len(manifest) != len(sentences):
     raise RuntimeError("Scene manifest mismatch")
