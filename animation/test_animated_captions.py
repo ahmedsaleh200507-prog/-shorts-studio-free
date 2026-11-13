@@ -85,7 +85,8 @@ class AnimatedCaptionsTests(unittest.TestCase):
         follow_up = {"narrative": {"actor": "doctor", "objects": ["phone"]}, "props": []}
         self.assertEqual(story.stable_character(doctor, 0), 2)
         self.assertEqual(story.stable_character(follow_up, 2), 2)
-        self.assertEqual(story.visual_props(follow_up), ["phone"])\n        self.assertEqual(story.visual_props({"narrative": {"objects": ["phone"]}, "props": ["desk", "phone", "window"]}), ["phone", "desk", "window"])
+        self.assertEqual(story.visual_props(follow_up), ["phone"])
+        self.assertEqual(story.visual_props({"narrative": {"objects": ["phone"]}, "props": ["desk", "phone", "window"]}), ["phone", "desk", "window"])
         self.assertEqual(story.stable_character({"narrative": {"actor": "main"}}, 2), 2)
 
     def test_landscape_and_empty_scenes(self):
