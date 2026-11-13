@@ -317,9 +317,14 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const duration=Math.max(1,scene.endFrame-scene.startFrame);
  const progress=Math.min(1,local/duration);
  // Vary framing across scenes instead of using the same push-in on every still.
- const zoom=1.035+0.065*(sceneIndex%2===0?progress:1-progress);
- const driftX=(sceneIndex%3-1)*2.4*(2*progress-1);
- const driftY=(sceneIndex%2===0?1:-1)*1.8*(2*progress-1);
+ // Smooth, action-aware 2D camera movement. Ease at scene boundaries to
+ // prevent mechanical constant-speed panning and keep the frame covered.
+ const ease=progress*progress*(3-2*progress);
+ const focusAction=['pick','brush','checkout','phone','door'].includes(scene.action);
+ const direction=sceneIndex%2===0?1:-1;
+ const zoom=focusAction?1.07+0.045*ease:1.055+0.035*(sceneIndex%2===0?ease:1-ease);
+ const driftX=(sceneIndex%3-1)*(focusAction?1.2:1.7)*(2*ease-1);
+ const driftY=direction*(focusAction?0.7:1.1)*(2*ease-1);
  const words=scene.text.trim().split(/\s+/).filter(Boolean);
  const revealedWords=narration?captionRevealCount(scene.text,local,duration,narrationWordTimings[sceneIndex],plan.fps):Math.max(1,Math.min(words.length,Math.ceil(progress*words.length)));
  const caption=words.slice(0,revealedWords).join(' ');
