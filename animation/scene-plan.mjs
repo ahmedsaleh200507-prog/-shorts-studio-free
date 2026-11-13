@@ -47,6 +47,7 @@ const settingRules=[
   ['transport', /\b(?:bus|zug|train|bahnhof|railway station)\b/i]
 ];
 const topicRules=[
+  ['infographic', /sozial(?:e|en|er)?\\s+netzwerk|social\\s+network|bevölkerung|population|millionen|millions|frauen|women|stadt|city|kilometer|\\bkm\\b|jacke|jacket|mantel|coat/i],
   ['alert', /warnung|warnmeldung|alarm|gefahr|notfall|emergency|warning|alert|achtung|sirene/i],
   ['phone', /handy|smartphone|telefon|phone|nachricht|message|notification|benachrichtigung|sms/i],
   ['radio', /\bradio\b|rundfunk|broadcast|radioger[aä]t/i],
@@ -187,7 +188,8 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
-    const visualMode=(carriedObject||place==='window'||place==='house'||place==='kitchen')?'character':(['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(place)||['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(action)?'motion-graphic':'character');
+    const referenceDiagram=/sozial(?:e|en|er)?\\s+netzwerk|social\\s+network|bevölkerung|population|millionen|millions|frauen|women|stadt|city|kilometer|\\bkm\\b|jacke|jacket|mantel|coat/i.test(text);
+    const visualMode=referenceDiagram&&!carriedObject?'motion-graphic':(carriedObject||place==='window'||place==='house'||place==='kitchen')?'character':(['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(place)||['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(action)?'motion-graphic':'character');
     const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
     return {id:`scene-${index+1}`,text,action:effectiveAction,place,props:resolvedProps,visualMode,keywords,characterId:'main',narrative,startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
