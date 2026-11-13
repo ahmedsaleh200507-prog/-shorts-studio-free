@@ -57,3 +57,11 @@ test('put-down verbs override object name pickup detection',()=>{
   assert.equal(scene.action,'put',script);
  }
 });
+
+test('mentioning an object without pickup verbs does not animate a pickup',()=>{
+ for(const script of ['She reads a book.','The cup is on the table.','A bottle is on the shelf.','She likes bananas.']){
+  const scene=makeScenePlan(script).scenes[0];
+  assert.notEqual(scene.action,'pick',script);
+  assert.equal(scene.narrative.heldObject,null,script);
+ }
+});
