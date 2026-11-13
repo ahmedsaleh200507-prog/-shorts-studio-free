@@ -60,7 +60,7 @@ function chooseContext(text, previousPlace){
   // A named physical setting is primary; its props can still contain devices.
   if(settings.length) return {place:settings[0][0],setting:true};
   // Explicit warnings are the main subject only without a more concrete device.
-  const subject=topics.find(([name])=>name!=='alert')||topics[0];
+  const subject=topics.find(([name])=>name==='radio') || topics.find(([name])=>name!=='alert') || topics[0];
   if(subject) return {place:subject[0],setting:false};
   if(/^(?:er|sie|es|they|he|she|it|dann|danach|anschließend|then|afterwards|plötzlich|suddenly|dort|there)\b/i.test(text))
     return {place:previousPlace,setting:false};
