@@ -78,6 +78,10 @@ jobs:
           assert len(digests) >= 12, f"Animation appears frozen: {len(digests)} unique frames"
           print(f"Verified {len(frames)} actual PNG frames, {len(digests)} distinct frames, size 540x960")
           PY
+      - name: Generate Godot visual review contact sheet
+        run: |
+          ffmpeg -hide_banner -loglevel error -y -framerate 24 -i output/godot-frames/frame_%05d.png -vf "select='not(mod(n,8))',scale=270:480,tile=3x2" -frames:v 1 output/godot-contact-sheet.png
+          test -s output/godot-contact-sheet.png
       - name: Verify landscape Godot output
         run: |
           mkdir -p output/godot-landscape
@@ -93,6 +97,10 @@ jobs:
           assert (width, height) == (960, 540), (width, height)
           print("Landscape PNG verified:", width, height)
           PY
+      - name: Generate landscape visual review frame
+        run: |
+          ffmpeg -hide_banner -loglevel error -y -i output/godot-landscape/frame_00012.png -frames:v 1 output/godot-landscape-preview.png
+          test -s output/godot-landscape-preview.png
       - name: Encode and validate real MP4
         run: |
           ffmpeg -hide_banner -loglevel error -y -framerate 24 -i output/godot-frames/frame_%05d.png -c:v libx264 -pix_fmt yuv420p output/godot-demo.mp4
@@ -116,6 +124,8 @@ jobs:
             output/godot-demo.mp4
             output/godot-narrated.mp4
             output/godot-story.mp4
+            output/godot-contact-sheet.png
+            output/godot-landscape-preview.png
           if-no-files-found: error
           retention-days: 3
       - uses: actions/upload-artifact@v4
