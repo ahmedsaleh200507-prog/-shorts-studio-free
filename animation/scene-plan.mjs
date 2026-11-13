@@ -127,12 +127,17 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     previousActor=narrative.actor;
     if(narrative.objects.length) previousObjects=narrative.objects;
     // Persist the item between shots, and clear it only after an explicit release.
+    // A new pickup must be the object mentioned in this sentence, not stale pronoun memory.
     const pickupItem=resolvedAction==='pick'?narrative.objects.find(o=>['apple','banana','bottle','cup','book'].includes(o)):null;
     if(pickupItem)heldObject=pickupItem;
     const carriedObject=heldObject;
     if(resolvedAction==='put')heldObject=null;
     narrative.heldObject=carriedObject;
     narrative.releaseObject=resolvedAction==='put'?carriedObject:null;
+    // Track which item is actually being manipulated, even when the text
+    // mentions another object in the same scene.
+    narrative.interactionObject=resolvedAction==='put'?carriedObject:pickupItem;
+
     narrative.hasPhysicalInteraction=Boolean(pickupItem||(resolvedAction==='put'&&carriedObject));
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
