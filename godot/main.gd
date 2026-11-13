@@ -138,6 +138,11 @@ func _draw() -> void:
 			draw_rect(Rect2(x, 230, 115, 470), Color("#8b5e43"))
 			for y in [270, 390, 510]:
 				draw_rect(Rect2(x + 12, y, 90, 14), Color("#f1cc69"))
+	if action == "sit":
+		draw_rect(Rect2(192, 655, 156, 18), Color("#80624b"))
+		draw_rect(Rect2(200, 670, 12, 96), Color("#58453c"))
+		draw_rect(Rect2(330, 670, 12, 96), Color("#58453c"))
+		draw_rect(Rect2(192, 520, 16, 150), Color("#80624b"))
 	# Contact shadow keeps the character visually grounded.
 	var shadow_x := 270.0 + (lerpf(-78.0, 78.0, smoothstep(0.0, 1.0, scene_progress)) if action == "travel" or action == "carry" else 0.0)
 	draw_circle(Vector2(shadow_x, 755), 48, Color(0.12, 0.14, 0.20, 0.16))
@@ -243,8 +248,10 @@ func _draw_character(t: float) -> void:
 	var outline := Color("#24354a")
 	var hair := Color(palette[5])
 	var phase := sin(t * 7.0)
-	var walking := action == "travel" or action == "carry"
-	var gait := phase * 28.0 if walking else 0.0
+	var walking := action in ["travel", "carry", "walk", "run"]
+	var running := action == "run"
+	var sitting := action == "sit"
+	var gait := sin(t * (12.0 if running else 7.0)) * (45.0 if running else 28.0) if walking else 0.0
 	var sway := sin(t * 3.5) * 3.0
 	var breathe := sin(t * 2.4) * 2.5
 	var travel_x := lerpf(-78.0, 78.0, smoothstep(0.0, 1.0, scene_progress)) if walking else 0.0
@@ -253,12 +260,14 @@ func _draw_character(t: float) -> void:
 		var rise := smoothstep(0.0, 1.5, t)
 		root += Vector2(-75.0 * (1.0 - rise), 130.0 * (1.0 - rise))
 		root += Vector2(0, -12.0 * (1.0 - rise))
+	if sitting:
+		root += Vector2(0, 135)
 	var hip := root + Vector2(0, 150)
 	var shoulder := root + Vector2(sway, -30)
 	var stride := 156.0 * 0.9 / maxf(float(total_frames) / FPS, 0.9)
 	var foot_origin := Vector2((t / 0.9) * stride - 78.0, 0)
-	var left_ankle := FootPlant.foot(t, -1, stride) + foot_origin if walking else hip + Vector2(-29, 185)
-	var right_ankle := FootPlant.foot(t, 1, stride) + foot_origin if walking else hip + Vector2(29, 185)
+	var left_ankle := FootPlant.foot(t * (1.65 if running else 1.0), -1, stride) + foot_origin if walking else hip + Vector2(-75, 85) if sitting else hip + Vector2(-29, 185)
+	var right_ankle := FootPlant.foot(t * (1.65 if running else 1.0), 1, stride) + foot_origin if walking else hip + Vector2(75, 85) if sitting else hip + Vector2(29, 185)
 	var left_hip := hip + Vector2(-19, 0)
 	var right_hip := hip + Vector2(19, 0)
 	var left_knee: Vector2 = TwoBoneIK.solve(left_hip, left_ankle, 96.0, 96.0, 1.0)[0]
