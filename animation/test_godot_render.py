@@ -26,6 +26,10 @@ class RenderValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsupported place"):
             module.render("wake", "mars", 2, "9:16", None, self.output)
 
+    def test_documentary_places_are_supported(self):
+        expected = {"hospital", "school", "space", "science", "nature", "technology", "phone", "clock", "alert", "map", "history", "infographic", "door", "restaurant", "office"}
+        self.assertTrue(expected.issubset(module.PLACES))
+
     def test_rejects_invalid_aspect(self):
         with self.assertRaisesRegex(ValueError, "Unsupported aspect"):
             module.render("wake", "bedroom", 2, "4:3", None, self.output)
