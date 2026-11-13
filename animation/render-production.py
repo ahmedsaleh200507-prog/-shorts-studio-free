@@ -82,10 +82,15 @@ def main():
             str(output), "--codec", "h264", "--crf", "26",
             "--concurrency", "1", "--scale", "0.5"
         ]
-    subprocess.run(command, check=True, cwd=ROOT / "animation")
-    if not output.is_file() or output.stat().st_size < 10000:
-        raise RuntimeError("Production MP4 is missing or empty")
-    validate_mp4(output, aspect)
+    try:
+        subprocess.run(command, check=True, cwd=ROOT / "animation")
+        if not output.is_file() or output.stat().st_size < 10000:
+            raise RuntimeError("Production MP4 is missing or empty")
+        validate_mp4(output, aspect)
+    except Exception:
+        # A partially encoded or invalid MP4 must never be offered as a download.
+        output.unlink(missing_ok=True)
+        raise
     print("Rendered", "Godot native 2D" if vector else "Remotion AI illustration", output)
 
 if __name__ == "__main__":
