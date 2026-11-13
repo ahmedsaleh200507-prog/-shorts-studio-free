@@ -141,6 +141,9 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     // explicit pickup verb. Prefer a newly named object over earlier context.
     const pronounPickup=/\b(?:picks?\s+(?:it|them)\s+up|grabs?\s+(?:it|them)|takes?\s+(?:it|them)|lifts?\s+(?:it|them))\b|\b(?:nimmt|greift|hebt)\s+(?:es|sie|ihn)\b/i.test(text);
     const pickupItem=resolvedAction==='pick'?(currentObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o))||(pronounPickup?previousObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o)):null)):null;
+    // Do not replace an already-held prop with an unrelated inferred object.
+    // Repeated references to the same item remain a single continuous hold.
+    const alreadyHeld=Boolean(pickupItem&&heldObject===pickupItem);
     if(pickupItem)heldObject=pickupItem;
     const carriedObject=heldObject;
     if(resolvedAction==='put')heldObject=null;
@@ -150,7 +153,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     // mentions another object in the same scene.
     narrative.interactionObject=resolvedAction==='put'?carriedObject:pickupItem;
 
-    narrative.hasPhysicalInteraction=Boolean(pickupItem||(resolvedAction==='put'&&carriedObject));
+    narrative.hasPhysicalInteraction=Boolean((pickupItem&&!alreadyHeld)||(resolvedAction==='put'&&carriedObject));
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
