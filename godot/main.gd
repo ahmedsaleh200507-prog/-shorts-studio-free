@@ -526,6 +526,13 @@ func _draw_character(t: float) -> void:
 		right_hand = Vector2(385, 538).lerp(Vector2(307, 494), reach)
 	elif action == "talk":
 		right_hand += Vector2(24, -35 + sin(t * 5.0) * 17)
+	# Scene-aware gestures: the same actor now interacts with a meaningful prop.
+	if place == "hospital" and action not in ["walk", "run", "travel", "brush"]:
+		right_hand = root + Vector2(112, 24 + sin(t * 2.5) * 7)
+	elif place == "school" and action not in ["walk", "run", "travel", "brush"]:
+		right_hand = root + Vector2(115, -23 + sin(t * 3.0) * 12)
+	elif place == "supermarket" and action not in ["walk", "run", "travel", "brush"]:
+		left_hand = root + Vector2(-97, 75 + sin(t * 3.0) * 5)
 	# Two-bone IK maintains forearm/upper-arm lengths while tracking props.
 	var left_shoulder := shoulder + Vector2(-40, 0)
 	var right_shoulder := shoulder + Vector2(40, 0)
@@ -613,6 +620,19 @@ func _draw_character(t: float) -> void:
 		draw_circle(apple, 18, Color("#d83f47"))
 		draw_line(apple + Vector2(0, -16), apple + Vector2(5, -27), Color("#554333"), 4, true)
 		draw_circle(apple + Vector2(-6, -6), 4, Color("#f47a7b"))
+	# Props are attached to tracked hand joints, not floating in the scene.
+	if place == "hospital" and action not in ["walk", "run", "travel", "brush"]:
+		var clipboard := right_hand + Vector2(-4, -10)
+		draw_rect(Rect2(clipboard + Vector2(-31, -48), Vector2(62, 83)), Color("#e9f3f4"))
+		draw_rect(Rect2(clipboard + Vector2(-11, -55), Vector2(22, 12)), Color("#648fa2"))
+		for i in range(3):
+			draw_line(clipboard + Vector2(-20, -27 + i * 17), clipboard + Vector2(20, -27 + i * 17), Color("#719ba6"), 3, true)
+	elif place == "school" and action not in ["walk", "run", "travel", "brush"]:
+		draw_line(right_hand + Vector2(-6, 7), right_hand + Vector2(8, -18), Color("#f2f0e5"), 7, true)
+	elif place == "supermarket" and action not in ["walk", "run", "travel", "brush"]:
+		var basket := left_hand + Vector2(0, 28)
+		draw_rect(Rect2(basket + Vector2(-36, 0), Vector2(72, 42)), Color("#d48b52"))
+		draw_arc(basket + Vector2(0, 0), 32, PI, TAU, 20, Color("#344b62"), 5, true)
 	if action == "carry":
 		var bag := left_hand + Vector2(-7, 20)
 		draw_rect(Rect2(bag + Vector2(-30, -7), Vector2(62, 69)), outline)
