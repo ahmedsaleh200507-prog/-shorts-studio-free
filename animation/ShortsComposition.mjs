@@ -111,11 +111,13 @@ function Background({place,frame}){
   floor);
  return el(React.Fragment,null,Shape({x:0,y:0,w:100,h:72,color:'#bcd7e8'}),floor);
 }
-function Prop({action,frame,objects=[],heldObject=null}){
+function Prop({action,frame,objects=[],heldObject=null,hasPhysicalInteraction=false}){
  const bob=Math.sin(frame/4)*2;
  if(action==='brush')return null; // Toothbrush is attached to the character's animated hand in Person.
  // A release without a previously held object must never invent an apple.
  if(action==='put'&&!heldObject)return null;
+ // Do not fabricate a fallback apple for unrecognized pickup objects.
+ if(action==='pick'&&!hasPhysicalInteraction)return null;
  if(action==='pick'||action==='put'||heldObject){
   // The same deterministic pickup trajectory is reversed for put-down.
   // Keep the apple attached to the same grasp timeline as the hand rig.
@@ -303,7 +305,7 @@ function VectorScene({scene,frame,mouthLevel=0}){
       Shape({x:39,y:70,w:3,h:18,color:'#69442f',r:3}),
       Shape({x:58,y:70,w:3,h:18,color:'#69442f',r:3})):null,
     el(Person,{frame,action:scene.action,mouthLevel}),
-    el(Prop,{action:scene.action,frame,heldObject:scene.action==='pick'?null:scene.narrative?.heldObject,objects:scene.narrative?.heldObject?[scene.narrative.heldObject]:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame});
+    el(Prop,{action:scene.action,frame,hasPhysicalInteraction:scene.narrative?.hasPhysicalInteraction===true,heldObject:scene.action==='pick'?null:scene.narrative?.heldObject,objects:scene.narrative?.heldObject?[scene.narrative.heldObject]:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame});
 }
 function MotionGraphic({scene,frame}){
  const t=frame/24, pulse=1+0.035*Math.sin(t*5), slide=Math.min(0, -90+frame*12);
