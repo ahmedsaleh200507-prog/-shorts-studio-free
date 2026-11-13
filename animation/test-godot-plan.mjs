@@ -131,3 +131,15 @@ test('Narrative memory preserves actor and objects for follow-up shots',()=>{
  assert.equal(plan.scenes[2].place,'hospital');
  assert.ok(plan.scenes.every(s=>s.narrative&&typeof s.narrative.interaction==='string'));
 });
+
+test('German subject pronouns do not imply carrying the previous object',()=>{
+ const plan=exportPlan('Die Frau nimmt ein Handy. Danach läuft sie. Sie betritt die Schule.');
+ assert.deepEqual(plan.scenes[0].narrative.objects,['phone']);
+ assert.deepEqual(plan.scenes[1].narrative.objects,[]);
+ assert.equal(plan.scenes[1].narrative.actor,'woman');
+ assert.equal(plan.scenes[2].place,'school');
+});
+
+test('Reject invalid orientation before video rendering',()=>{
+ assert.throws(()=>makeScenePlan('Hello world.',{aspectRatio:'1:1'}),/aspect ratio/);
+});
