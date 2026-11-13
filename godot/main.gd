@@ -2,6 +2,7 @@ extends Node2D
 ## Native 2D renderer prototype. All objects are flat 2D geometry.
 const FPS := 24
 const TwoBoneIK = preload("res://two_bone_ik.gd")
+const FootPlant = preload("res://foot_plant.gd")
 var frame_index := 0
 var total_frames := 72
 var action := "wake"
@@ -86,15 +87,15 @@ func _draw_character(t: float) -> void:
 	var gait := phase * 28.0 if walking else 0.0
 	var sway := sin(t * 3.5) * 3.0
 	var breathe := sin(t * 2.4) * 2.5
-	var root := Vector2(270 + (sin(t * 1.3) * 4.0), 420 + breathe)
+	var root := Vector2(270 + (sin(t * 1.3) * 4.0 if not walking else 0.0), 420 + (absf(phase) * 3.0 if walking else breathe))
 	if action == "wake":
 		var rise := smoothstep(0.0, 1.5, t)
 		root += Vector2(-75.0 * (1.0 - rise), 130.0 * (1.0 - rise))
 		root += Vector2(0, -12.0 * (1.0 - rise))
 	var hip := root + Vector2(0, 150)
 	var shoulder := root + Vector2(sway, -30)
-	var left_ankle := hip + Vector2(-29 + gait, 185 - abs(gait) * 0.32)
-	var right_ankle := hip + Vector2(29 - gait, 185 - abs(gait) * 0.32)
+	var left_ankle := FootPlant.foot(t, -1) if walking else hip + Vector2(-29, 185)
+	var right_ankle := FootPlant.foot(t, 1) if walking else hip + Vector2(29, 185)
 	var left_hip := hip + Vector2(-19, 0)
 	var right_hip := hip + Vector2(19, 0)
 	var left_knee: Vector2 = TwoBoneIK.solve(left_hip, left_ankle, 96.0, 96.0, 1.0)[0]
