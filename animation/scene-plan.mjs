@@ -28,6 +28,44 @@ const rules=[
   ['history', /geschichte|historisch|history|historical|jahrhundert|century|\bkrieg\b|\bwar\b|archiv|archive|zeitung|newspaper/i, 'history', ['archive','timeline']],
   ['number', /\b\d+(?:[.,]\d+)?\s*(?:%|prozent|percent|euro|€|dollar|kilometer|km|million|milliard|billion)\b|\b\d+\s*%/i, 'infographic', ['number','chart']],
 ];
+// Context-aware classification: explicit settings beat incidental action words.
+// A mention of a device does not automatically replace a named location.
+const settingRules=[
+  ['metro', /\\b(?:metro|subway|u-bahn|ubahn|untergrundbahn|metrostation)\\b/i],
+  ['hospital', /krankenhaus|hospital|klinik|clinic|notaufnahme|emergency room/i],
+  ['school', /schule|school|klassenzimmer|classroom|universit[aä]t|university/i],
+  ['supermarket', /supermarkt|supermarket|grocery store|lebensmittelgesch[aä]ft/i],
+  ['restaurant', /restaurant|caf[eé]|k[uü]che|kitchen/i],
+  ['office', /b[uü]ro|office/i],
+  ['bathroom', /badezimmer|bathroom/i],
+  ['bedroom', /schlafzimmer|bedroom/i],
+  ['transport', /\\b(?:bus|zug|train|bahnhof|railway station)\\b/i]
+];
+const topicRules=[
+  ['alert', /warnung|warnmeldung|alarm|gefahr|notfall|emergency|warning|alert|achtung|sirene/i],
+  ['phone', /handy|smartphone|telefon|phone|nachricht|message|notification|benachrichtigung|sms/i],
+  ['radio', /\\bradio\\b|rundfunk|broadcast|radioger[aä]t/i],
+  ['map', /landkarte|stadtplan|\\bmap\\b|grenze|border|europa|europe|kurdistan/i],
+  ['clock', /\\buhr\\b|countdown|timer|mitternacht|midnight/i],
+  ['space', /weltraum|universum|planet|erde|earth|space|moon|mond|galax|sonne|sun/i],
+  ['science', /wissenschaft|forschung|experiment|physik|science|research|labor|atom|molek/i],
+  ['nature', /wald|forest|baum|tree|meer|ocean|fluss|river|berg|mountain/i],
+  ['technology', /computer|internet|\\bki\\b|k[uü]nstliche intelligenz|artificial intelligence|software|roboter/i],
+  ['history', /geschichte|historisch|history|historical|jahrhundert|century|\\bkrieg\\b|\\bwar\\b/i],
+  ['infographic', /\\b\\d+(?:[.,]\\d+)?\\s*(?:%|prozent|percent|euro|€|dollar|kilometer|km|million|milliard|billion)\\b|\\b\\d+\\s*%/i]
+];
+function chooseContext(text, previousPlace){
+  const settings=settingRules.filter(([,re])=>re.test(text));
+  const topics=topicRules.filter(([,re])=>re.test(text));
+  // A named physical setting is primary; its props can still contain devices.
+  if(settings.length) return {place:settings[0][0],setting:true};
+  // Explicit warnings are the main subject only without a more concrete device.
+  const subject=topics.find(([name])=>name!=='alert')||topics[0];
+  if(subject) return {place:subject[0],setting:false};
+  if(/^(?:er|sie|es|they|he|she|it|dann|danach|anschließend|then|afterwards|plötzlich|suddenly|dort|there)\\b/i.test(text))
+    return {place:previousPlace,setting:false};
+  return {place:'generic',setting:false};
+}
 export function splitScript(script){
   if(typeof script!=='string') throw new TypeError('script must be a string');
   const sentences=(script.match(/(?:[^.!?\n]|\.(?=\d))+[.!?]?/g)||[]).map(s=>s.trim()).filter(Boolean);
@@ -43,32 +81,20 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
   let cursor=0;
   let previousPlace='generic';
   // Explicit locations override generic verbs such as 'works' or 'goes'.
-  const explicitPlaces=[
-    ['hospital',/krankenhaus|hospital|klinik|clinic/i],
-    ['school',/schule|school|klassenzimmer|classroom/i],
-    ['supermarket',/supermarkt|supermarket|grocery store|lebensmittelgeschäft/i],
-    ['restaurant',/restaurant|café|cafe|küche|kitchen/i],
-    ['office',/büro|office/i],
-    ['bathroom',/badezimmer|bathroom/i],
-    ['bedroom',/schlafzimmer|bedroom/i],
-    ['transport',/\bbus\b|\bzug\b|train|station|bahnhof/i]
-  ];
   const scenes=sentences.map((text,index)=>{
     const match=rules.find(([,regex])=>regex.test(text));
     const [action,rulePlace,props]=match?[match[0],match[2],match[3]]:['talk','generic',[]];
-    const explicit=explicitPlaces.find(([,regex])=>regex.test(text));
-    const matchedPlace=explicit?explicit[0]:rulePlace;
-    // Pronouns and follow-up sentences often continue in the same location.
-    // Preserve that location only when no explicit new setting was detected.
-    const place=matchedPlace==='generic' && /^(?:er|sie|es|they|he|she|it|dann|danach|anschließend|then|afterwards|plötzlich|suddenly)\b/i.test(text)
-      ? previousPlace : matchedPlace;
-    if(matchedPlace!=='generic') previousPlace=matchedPlace;
+    const context=chooseContext(text,previousPlace);
+    const place=context.place==='generic'?rulePlace:context.place;
+    if(place!=='generic') previousPlace=place;
+    const resolvedAction=place==='metro'?'travel':action;
+    const resolvedProps=[...new Set([...props,...(place==='metro'?['train','platform']:[]),...(place==='phone'?['phone-screen']:[])])].slice(0,8);
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
-    const visualMode=['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(action)?'motion-graphic':'character';
+    const visualMode=['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(place)||['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(action)?'motion-graphic':'character';
     const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
-    return {id:`scene-${index+1}`,text,action,place,props,visualMode,keywords,characterId:'main',startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
+    return {id:`scene-${index+1}`,text,action:resolvedAction,place,props:resolvedProps,visualMode,keywords,characterId:'main',startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
   const landscape=aspectRatio==="16:9";
   return {version:1,width:landscape?1920:1080,height:landscape?1080:1920,fps,totalFrames:scenes.at(-1).endFrame,scenes};
