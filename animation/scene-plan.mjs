@@ -37,6 +37,8 @@ const settingRules=[
   ['hospital', /krankenhaus|hospital|klinik|clinic|notaufnahme|emergency room/i],
   ['school', /schule|school|klassenzimmer|classroom|universit[aä]t|university/i],
   ['supermarket', /supermarkt|supermarket|grocery store|lebensmittelgesch[aä]ft/i],
+  ['window', /\\b(?:window|windowsill)\\b|fenster(?:bank)?/i],
+  ['house', /\\b(?:house|home|front door)\\b|\\b(?:haus|haustür|wohnung)\\b/i],
   ['kitchen', /\b(?:kitchen|kueche)\b|küche/i],
   ['restaurant', /restaurant|caf[eé]/i],
   ['office', /b[uü]ro|office/i],
