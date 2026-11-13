@@ -128,7 +128,10 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     if(narrative.objects.length) previousObjects=narrative.objects;
     // Persist the item between shots, and clear it only after an explicit release.
     // A new pickup must be the object mentioned in this sentence, not stale pronoun memory.
-    const pickupItem=resolvedAction==='pick'?narrative.objects.find(o=>['apple','banana','bottle','cup','book'].includes(o)):null;
+    // Resolve a pickup from the current sentence only; pronoun context may
+    // describe a different previously seen item and must not create a new grab.
+    const currentObjects=objectPatterns.filter(([,re])=>re.test(text)).map(([name])=>name);
+    const pickupItem=resolvedAction==='pick'?currentObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o)):null;
     if(pickupItem)heldObject=pickupItem;
     const carriedObject=heldObject;
     if(resolvedAction==='put')heldObject=null;
