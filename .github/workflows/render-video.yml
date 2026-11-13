@@ -100,8 +100,23 @@ jobs:
             python animation/render-production.py
           fi
       - name: Validate real MP4 file
+        env:
+          ASPECT_RATIO: ${{ inputs.aspect_ratio }}
         run: |
           test -s output/final.mp4
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of json output/final.mp4 > /tmp/video-stream.json
+          ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of json output/final.mp4 > /tmp/audio-stream.json
+          python - <<'PY'
+          import json, os, subprocess
+          v=json.load(open('/tmp/video-stream.json'))['streams']
+          a=json.load(open('/tmp/audio-stream.json'))['streams']
+          assert v and v[0]['codec_name']=='h264', 'H.264 video missing'
+          assert a and a[0]['codec_name']=='aac', 'AAC narration missing'
+          ratio=os.environ.get('ASPECT_RATIO','9:16')
+          w,h=v[0]['width'],v[0]['height']
+          assert (w<h if ratio=='9:16' else w>h), f'Wrong orientation: {w}x{h}'
+          print('Verified narrated video:',w,h,v[0]['codec_name'],a[0]['codec_name'])
+          PY
           node --input-type=module -e "
             import {readFileSync,statSync} from 'node:fs';
             const f='output/final.mp4', b=readFileSync(f);
