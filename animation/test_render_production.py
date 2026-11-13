@@ -42,6 +42,20 @@ class ProductionModeTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "resolution"):
             check([dict(video, width=960, height=540), audio])
 
+    def test_renderer_timeout_removes_partial_mp4(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / "output").mkdir()
+            output = root / "output" / "final.mp4"
+            def timed_out(*args, **kwargs):
+                self.assertEqual(kwargs.get("timeout"), 75 * 60)
+                output.write_bytes(b"partial-mp4")
+                raise subprocess.TimeoutExpired(args[0], kwargs["timeout"])
+            with patch.object(production, "ROOT", root), patch.dict(os.environ, {"SCRIPT": "Eine lange Geschichte.", "ASPECT_RATIO": "9:16"}), patch.object(production.subprocess, "run", side_effect=timed_out):
+                with self.assertRaises(subprocess.TimeoutExpired):
+                    production.main()
+            self.assertFalse(output.exists())
+
     def test_invalid_encoded_video_is_removed_before_download(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
