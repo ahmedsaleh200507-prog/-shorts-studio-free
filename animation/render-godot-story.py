@@ -54,6 +54,25 @@ def caption_word_timings(scene, cursor, alignment=None):
     words = scene["text"].replace("\n", " ").split()
     if not words:
         return []
+    # Edge TTS can emit punctuation as separate boundaries. Attach those to the
+    # preceding word instead of discarding otherwise accurate speech timing.
+    if isinstance(alignment, list):
+        normalized = []
+        for item in alignment:
+            if not isinstance(item, dict):
+                normalized = []
+                break
+            token = str(item.get("word", "")).strip()
+            if token and not re.sub(r"\\W", "", token) and normalized:
+                try:
+                    normalized[-1] = dict(normalized[-1], end=max(
+                        float(normalized[-1]["end"]), float(item["end"])))
+                except (ValueError, TypeError, KeyError, OverflowError):
+                    normalized = []
+                    break
+            elif token:
+                normalized.append(item)
+        alignment = normalized
     if isinstance(alignment, list) and len(alignment) == len(words):
         try:
             values = [(float(item["start"]), float(item["end"])) for item in alignment]
