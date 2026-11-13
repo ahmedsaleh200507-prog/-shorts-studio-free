@@ -24,3 +24,13 @@ test('character mouth follows speech and closes between words',()=>{
  assert.equal(speechActiveAtFrame(30,[]),true);
  assert.equal(speechActiveAtFrame(30,[{word:'invalid'}]),true);
 });
+
+test('mouth motion rejects negative frames and invalid fps without throwing',()=>{
+ const timing=[{word:'Hallo',start:0,end:1}];
+ assert.equal(speechActiveAtFrame(-1,timing),false);
+ assert.equal(speechActiveAtFrame(NaN,timing),false);
+ assert.equal(speechActiveAtFrame(1,timing,0),false);
+ assert.equal(speechActiveAtFrame(1,timing,Infinity),false);
+ assert.equal(speechActiveAtFrame(-1,[]),false);
+ assert.equal(speechActiveAtFrame(0,[{word:'Hallo',start:true,end:1}]),true);
+});
