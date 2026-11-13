@@ -25,7 +25,7 @@ const rules=[
 ];
 export function splitScript(script){
   if(typeof script!=='string') throw new TypeError('script must be a string');
-  const sentences=(script.match(/[^.!?\n]+[.!?]?/g)||[]).map(s=>s.trim()).filter(Boolean);
+  const sentences=(script.match(/(?:[^.!?\n]|\.(?=\d))+[.!?]?/g)||[]).map(s=>s.trim()).filter(Boolean);
   if(sentences.length>180) throw new RangeError('Script exceeds 180 scenes');
   return sentences;
 }
