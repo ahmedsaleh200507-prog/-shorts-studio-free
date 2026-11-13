@@ -111,14 +111,14 @@ function Background({place,frame}){
   floor);
  return el(React.Fragment,null,Shape({x:0,y:0,w:100,h:72,color:'#bcd7e8'}),floor);
 }
-function Prop({action,frame,objects=[]}){
+function Prop({action,frame,objects=[],heldObject=null}){
  const bob=Math.sin(frame/4)*2;
  if(action==='brush')return null; // Toothbrush is attached to the character's animated hand in Person.
- if(action==='pick'||action==='put'){
+ if(action==='pick'||action==='put'||heldObject){
   // The same deterministic pickup trajectory is reversed for put-down.
   // Keep the apple attached to the same grasp timeline as the hand rig.
   // The object stays on the shelf until contact, then follows the hand.
-  const {x,y,grasp}=pickupPropPose(action==='put'?Math.max(0,48-frame):frame);
+  const {x,y,grasp}=heldObject&&action!=='pick'&&action!=='put'?{x:53+Math.sin(frame*.24)*.5,y:48+Math.abs(Math.sin(frame*.24))*.5,grasp:1}:pickupPropPose(action==='put'?Math.max(0,48-frame):frame);
   const item=objects.includes('banana')?'banana':objects.includes('bottle')?'bottle':objects.includes('cup')?'cup':objects.includes('book')?'book':'apple';
   if(item==='banana')return el(React.Fragment,null,
    Shape({x,y:y+1,w:12,h:4,color:'#f4c54e',r:'0 0 80% 65%',rotate:-24,style:{borderBottom:'4px solid #c08b32'}}),
@@ -301,7 +301,7 @@ function VectorScene({scene,frame,mouthLevel=0}){
       Shape({x:39,y:70,w:3,h:18,color:'#69442f',r:3}),
       Shape({x:58,y:70,w:3,h:18,color:'#69442f',r:3})):null,
     el(Person,{frame,action:scene.action,mouthLevel}),
-    el(Prop,{action:scene.action,frame,objects:scene.narrative?.heldObject?[scene.narrative.heldObject]:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame});
+    el(Prop,{action:scene.action,frame,heldObject:scene.action==='pick'?null:scene.narrative?.heldObject,objects:scene.narrative?.heldObject?[scene.narrative.heldObject]:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame});
 }
 function MotionGraphic({scene,frame}){
  const t=frame/24, pulse=1+0.035*Math.sin(t*5), slide=Math.min(0, -90+frame*12);
