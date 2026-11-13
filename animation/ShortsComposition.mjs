@@ -14,12 +14,12 @@ const pct=(n)=>n+'%';
 function Shape({x,y,w,h,color,r=0,rotate=0,children,style={}}){
  return el('div',{style:{position:'absolute',left:pct(x),top:pct(y),width:pct(w),height:pct(h),background:color,borderRadius:r,transform:`rotate(${rotate}deg)`,...style}},children);
 }
-function Person({frame,action,mouthLevel=0}){
+function Person({frame,action,mouthLevel=0,holding=false}){
  // Vector character with independently articulated limbs and a gentle breathing cycle.
  const pose=characterPose(action,frame);
  const wake=action==='wake';
  const bounce=pose.bodyY;
- const armLeft=pose.leftArm,armRight=pose.rightArm;
+ const armLeft=pose.leftArm,armRight=holding&&action!=='pick'&&action!=='put'?-11+Math.sin(frame/14)*3:pose.rightArm;
  const legLeft=pose.leftLeg,legRight=pose.rightLeg;
  const headTurn=pose.headRotation;
  // Deterministic blink: short eyelid closure every ~3.7 seconds.
@@ -304,7 +304,7 @@ function VectorScene({scene,frame,mouthLevel=0}){
       Shape({x:37,y:67,w:26,h:5,color:'#9a6648',r:8}),
       Shape({x:39,y:70,w:3,h:18,color:'#69442f',r:3}),
       Shape({x:58,y:70,w:3,h:18,color:'#69442f',r:3})):null,
-    el(Person,{frame,action:scene.action,mouthLevel}),
+    el(Person,{frame,action:scene.action,mouthLevel,holding:Boolean(scene.narrative?.heldObject)}),
     el(Prop,{action:scene.action,frame,hasPhysicalInteraction:scene.narrative?.hasPhysicalInteraction===true,heldObject:scene.action==='pick'?null:scene.narrative?.heldObject,objects:scene.narrative?.interactionObject?[scene.narrative.interactionObject]:scene.narrative?.heldObject?[scene.narrative.heldObject]:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame});
 }
 function MotionGraphic({scene,frame}){
