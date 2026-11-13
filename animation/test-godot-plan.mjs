@@ -52,3 +52,24 @@ test('Hospital and school environments survive the native Godot exporter',()=>{
   assert.deepEqual(plan.scenes.map(s=>s.place),['hospital','school']);
   assert.ok(plan.scenes.every(s=>s.frames>0));
 });
+
+
+test('Documentary topics remain distinct in native 2D exports',()=>{
+  const examples=[
+    ['Die Erde dreht sich um die Sonne.','space'],
+    ['Das Experiment erklärt die Physik.','science'],
+    ['Im Wald steht ein Baum.','nature'],
+    ['Ein Computer verarbeitet die Daten.','technology'],
+    ['Die Karte zeigt Europa.','map'],
+    ['Die Geschichte beginnt im Jahr 1900.','history'],
+    ['Eine Nachricht erscheint auf dem Smartphone.','phone'],
+    ['Die Uhr zeigt Mitternacht.','clock'],
+    ['Eine Warnmeldung erscheint auf dem Bildschirm.','alert'],
+    ['Die Kosten steigen um 25%.','infographic']
+  ];
+  for(const [script,place] of examples){
+    const plan=exportPlan(script);
+    assert.equal(plan.scenes[0].place,place,script);
+    assert.ok(plan.scenes[0].frames>0);
+  }
+});
