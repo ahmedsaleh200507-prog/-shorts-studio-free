@@ -184,3 +184,20 @@ test('pickup of a different item still triggers a new interaction',()=>{
  assert.equal(scenes[1].narrative.interactionObject,'bottle');
  assert.equal(scenes[1].narrative.hasPhysicalInteraction,true);
 });
+
+test('unrelated object after a different action does not cause a fake pickup',()=>{
+ for(const script of [
+  'He takes a train and reads a book.',
+  'She takes a bus and looks at a cup.',
+  'He takes a seat and notices a bottle.'
+ ]){
+  const scene=makeScenePlan(script).scenes[0];
+  assert.notEqual(scene.action,'pick',script);
+  assert.equal(scene.narrative.hasPhysicalInteraction,false,script);
+ }
+});
+test('generic object pickup remains a valid action without an invented prop',()=>{
+ const scene=makeScenePlan('She picks up an object.').scenes[0];
+ assert.equal(scene.action,'pick');
+ assert.equal(scene.narrative.heldObject,null);
+});
