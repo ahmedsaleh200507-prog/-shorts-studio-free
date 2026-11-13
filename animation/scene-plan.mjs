@@ -85,7 +85,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const match=rules.find(([,regex])=>regex.test(text));
     const [action,rulePlace,props]=match?[match[0],match[2],match[3]]:['talk','generic',[]];
     const context=chooseContext(text,previousPlace);
-    const place=context.place==='generic'?rulePlace:context.place;
+    const place=(context.place==='generic'||(context.place===previousPlace && rulePlace!=='generic' && rulePlace!==previousPlace && !context.setting))?rulePlace:context.place;
     if(place!=='generic') previousPlace=place;
     const resolvedAction=place==='metro'?'travel':action;
     const resolvedProps=[...new Set([...props,...(place==='metro'?['train','platform']:[]),...(place==='phone'?['phone-screen']:[])])].slice(0,8);
