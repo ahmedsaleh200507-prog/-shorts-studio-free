@@ -1,6 +1,9 @@
 // Shared, deterministic scene-plan contract for browser preview and MP4 rendering.
 // No API calls, secrets or GPU required.
 const rules=[
+  ['run', /\b(?:runs?|running|jogs?|jogging|sprints?)\b|\brenn(?:t|en|e|st)?\b|\bläuft\b|\blaufen\b|\brennt\b/i, 'generic', ['motion-trail']],
+  ['sit', /\b(?:sits?|sitting|sat down|takes? a seat)\b|\b(?:sitzt|sitzen|setzt sich|hinsetzen)\b/i, 'generic', ['chair']],
+  ['walk', /\b(?:walks?|walking|strolls?)\b|\b(?:geht|gehen|spaziert|spazieren)\b/i, 'generic', ['path']],
   ['brush', /zähne|zahn|putzt|brush(?:es|ing)?|teeth|tooth/i, 'bathroom', ['toothbrush','sink']],
   ['checkout', /kasse|bezahl|checkout|cashier|\bpays?\b/i, 'supermarket', ['register','payment-card']],
   ['pick', /apfel|apple|picks? (?:up )?(?:an? )?apple|nimmt (?:einen |eine |das |den )?(?:apfel|gegenstand)|takes? (?:an? |the )?(?:apple|object)/i, 'supermarket', ['apple','shelf']],
