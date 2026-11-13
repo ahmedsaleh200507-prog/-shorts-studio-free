@@ -125,9 +125,9 @@ def make_animated_subtitles(scenes, path, aspect="9:16", alignments=None):
                 for j, (word, _, _) in enumerate(group):
                     active = j == index
                     color = "&H0060C6F1&" if active else "&H00FFFFFF&"
-                    fragments.append("{\\\\c" + color + "}" + ass_escape(word))
+                    fragments.append("{\\c" + color + "}" + ass_escape(word))
                 text = " ".join(fragments)
-                animation = "{\\\\fad(65,45)\\\\fscx115\\\\fscy115\\\\t(0,150,\\\\fscx100\\\\fscy100)}"
+                animation = "{\\fad(65,45)\\fscx115\\fscy115\\t(0,150,\\fscx100\\fscy100)}"
                 events.append(
                     f"Dialogue: 0,{ass_stamp(start)},{ass_stamp(max(end, start + 0.02))},"
                     f"Words,,0,0,0,,{animation}{text}"
@@ -248,5 +248,6 @@ if __name__ == "__main__":
     parser.add_argument("--aspect", choices=["9:16", "16:9"], default="9:16")
     parser.add_argument("--audio-dir", type=Path)
     parser.add_argument("--out", type=Path, default=ROOT / "output" / "godot-story.mp4")
-    parser.add_argument("--word-timings", type=Path, help="Optional JSON: one list per scene of {word,start,end} relative to scene")\n    args = parser.parse_args()
+    parser.add_argument("--word-timings", type=Path, help="Optional JSON: one list per scene of {word,start,end} relative to scene")
+    args = parser.parse_args()
     print(json.dumps(render_story(args.script, args.aspect, args.audio_dir, args.out, args.word_timings), indent=2))
