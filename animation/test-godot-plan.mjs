@@ -45,3 +45,10 @@ test('Long scripts are rejected rather than silently truncated',()=>{
   const script=Array.from({length:181},(_,i)=>'Scene '+i+'.').join(' ');
   assert.throws(()=>exportPlan(script),/Command failed/);
 });
+
+
+test('Hospital and school environments survive the native Godot exporter',()=>{
+  const plan=exportPlan('Der Patient ist im Krankenhaus. Danach geht er in die Schule.');
+  assert.deepEqual(plan.scenes.map(s=>s.place),['hospital','school']);
+  assert.ok(plan.scenes.every(s=>s.frames>0));
+});
