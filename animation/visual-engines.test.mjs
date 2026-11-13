@@ -64,10 +64,9 @@ test('held prop is prioritized over incidental scene objects',()=>{
  assert.match(source,/supportedItems\.find\(name=>objects\.includes\(name\)\)/);
 });
 
-test('reference-style HUD overlays vector or AI scenes without hiding narration captions',()=>{
- assert.match(source,/function EditorialHud\(/);
- assert.match(source,/el\(EditorialHud,\{scene,sceneIndex,landscape\}\)/);
- assert.match(source,/backgroundImage:'linear-gradient/);
+test('exported MP4 omits debug HUD while retaining styled narration captions',()=>{
+ assert.doesNotMatch(source,/el\(EditorialHud,\{scene,sceneIndex,landscape\}\)/);
+ assert.match(source,/el\(CaptionWords,\{caption,landscape\}\)/);
  assert.match(source,/el\(CaptionWords,\{caption,landscape\}\)/);
  assert.doesNotMatch(source,/'SHORTS STUDIO'\)/);
 });
