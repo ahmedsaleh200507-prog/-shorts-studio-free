@@ -138,3 +138,10 @@ test('Decimal values do not create phantom narration scenes',()=>{
   ]);
   assert.equal(makeScenePlan('The distance is 3.5 km. It grows to 4.25 km.').scenes.length,2);
 });
+
+test('Decimal quantities do not create false narration scenes',()=>{
+ const text='Die Temperatur steigt um 2.5 Grad. Danach sinkt sie auf 1.2 Grad.';
+ const sentences=splitScript(text);
+ assert.equal(sentences.length,2);
+ assert.equal(makeScenePlan(text).scenes.length,2);
+});
