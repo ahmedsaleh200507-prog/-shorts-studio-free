@@ -112,7 +112,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
   let heldObject=null;
   // Explicit locations override generic verbs such as 'works' or 'goes'.
   const scenes=sentences.map((text,index)=>{
-    const explicitPut=/\b(?:puts?\s+(?:(?:it|them|the|a|an)\s+)?down|sets?\s+(?:(?:it|them|the|a|an)\s+)?down|drops?\s+(?:it|them|the|a|an)\b|places?\s+(?:it|them|the|a|an)\b)\b|\b(?:legt|stellt|setzt)\b[^.!?]{0,45}\b(?:ab|hin|auf)\b|\b(?:ablegen|abstellen)\b/i.test(text);
+    const explicitPut=/\b(?:puts?|sets?)\b[^.!?]{0,45}\bdown\b|\bdrops?\s+(?:it|them|the|a|an)\b|\bplaces?\s+(?:it|them|the|a|an)\b|\b(?:legt|stellt|setzt)\b[^.!?]{0,45}\b(?:ab|hin|auf)\b|\b(?:ablegen|abstellen)\b/i.test(text);
     // Object nouns alone must not trigger pickup (e.g. "She reads a book").
     const explicitPickup=/\b(?:picks?\s+up|grabs?|takes?|lifts?)\b|\b(?:nimmt|greift|hebt)\b/i.test(text);
     const match=explicitPut?rules.find(([name])=>name==='put'):
