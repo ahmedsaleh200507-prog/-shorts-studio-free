@@ -16,7 +16,7 @@ const durationsFile=process.argv[4];
 const durationsFrames=durationsFile?JSON.parse(readFileSync(durationsFile,'utf8')):null;
 const plan=makeScenePlan(script,{aspectRatio,durationsFrames});
 const supportedActions=new Set(['wake','brush','pick','travel','carry','talk']);
-const supportedPlaces=new Set(['bedroom','bathroom','supermarket','transport','generic']);
+const supportedPlaces=new Set(['bedroom','bathroom','supermarket','transport','hospital','school','generic']);
 const scenes=plan.scenes.map((scene)=>{
   const action=supportedActions.has(scene.action)?scene.action:'talk';
   const place=supportedPlaces.has(scene.place)?scene.place:'generic';
