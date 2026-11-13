@@ -145,3 +145,11 @@ test('Decimal quantities do not create false narration scenes',()=>{
  assert.equal(sentences.length,2);
  assert.equal(makeScenePlan(text).scenes.length,2);
 });
+
+test('ten-minute video boundary rejects oversized render jobs early',()=>{
+ const script=Array.from({length:20},(_,i)=>'Scene '+i+'.').join(' ');
+ const exact=makeScenePlan(script,{secondsPerScene:30});
+ assert.equal(exact.totalFrames,600*24);
+ assert.throws(()=>makeScenePlan(script+' Extra scene.',{secondsPerScene:30}),/10-minute/);
+ assert.throws(()=>makeScenePlan('One scene.',{durationsFrames:[600*24+1]}),/10-minute/);
+});
