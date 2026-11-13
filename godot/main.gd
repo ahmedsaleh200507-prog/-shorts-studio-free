@@ -24,22 +24,23 @@ func _ready() -> void:
 		frame_index = i
 		queue_redraw()
 		await RenderingServer.frame_post_draw
-		_save_frame()
+		if not _save_frame():
+			get_tree().quit(1)
+			return
 	get_tree().quit()
 
-func _save_frame() -> void:
-	if frame_index >= total_frames: return
+func _save_frame() -> bool:
+	if frame_index >= total_frames: return false
 	var image := get_viewport().get_texture().get_image()
 	if image.is_empty():
 		push_error("Empty rendered frame")
-		get_tree().quit(1)
-		return
+		return false
 	var filename := "%s/frame_%05d.png" % [output_dir, frame_index]
 	if image.save_png(filename) != OK:
 		push_error("Could not save frame")
-		get_tree().quit(1)
-		return
-	frame_index += 1
+		return false
+	# Frame index is controlled exclusively by the sequential capture loop.
+	return true
 
 func _draw() -> void:
 	# Authoring coordinates use a 540x960 portrait canvas.
