@@ -152,7 +152,7 @@ func _draw() -> void:
 	# Contact shadow keeps the character visually grounded.
 	var shadow_x := 270.0 + (lerpf(-78.0, 78.0, smoothstep(0.0, 1.0, scene_progress)) if action == "travel" or action == "carry" else 0.0)
 	draw_circle(Vector2(shadow_x, 755), 48, Color(0.12, 0.14, 0.20, 0.16))
-	if place in ["space", "science", "nature", "technology", "phone", "clock", "alert", "map", "history", "infographic", "door"]:
+	if place in ["space", "science", "nature", "technology", "phone", "clock", "alert", "map", "history", "infographic", "door", "metro", "radio"]:
 		_draw_topic_graphic(t)
 	else:
 		_draw_character(float(frame_index) / FPS)
@@ -217,13 +217,64 @@ func _draw_topic_graphic(t: float) -> void:
 				var angle := t + float(i) * TAU / 6.0
 				draw_circle(center + Vector2(cos(angle), sin(angle)) * 155.0, 12, cyan)
 		"phone", "technology":
-			draw_rect(Rect2(108, 195, 324, 515), Color("#607da5"))
-			draw_rect(Rect2(120, 209, 300, 486), navy)
-			draw_rect(Rect2(150, 260, 240, 45), cyan)
+			draw_rect(Rect2(100, 186, 340, 534), Color("#10172b"))
+			draw_rect(Rect2(106, 192, 328, 522), Color("#7e95ac"))
+			draw_rect(Rect2(119, 207, 302, 488), navy)
+			draw_rect(Rect2(230, 215, 80, 12), Color("#10172b"))
+			draw_circle(Vector2(270, 704), 6, Color("#d6b26e"))
+			draw_rect(Rect2(150, 250, 240, 65), cyan)
+			draw_circle(Vector2(180, 283), 19, Color("#f3d8a8"))
+			draw_rect(Rect2(210, 272, 154, 9), navy)
+			draw_rect(Rect2(210, 288, 95, 7), Color("#34577b"))
 			for i in range(4):
 				var y := 350.0 + float(i) * 75.0
 				draw_rect(Rect2(150, y, 240, 45), Color("#344d79"))
 				draw_rect(Rect2(165, y + 12, 155 + 20 * sin(t + float(i)), 8), gold)
+				draw_rect(Rect2(165, y + 28, 110, 5), Color("#9bb2c5"))
+			var notification_y := 580.0 - 30.0 * smoothstep(0.2, 0.75, scene_progress)
+			draw_rect(Rect2(135, notification_y, 270, 54), Color("#e4b75f"))
+			draw_circle(Vector2(166, notification_y + 27), 12, Color("#b34c52"))
+			draw_rect(Rect2(190, notification_y + 17, 176, 7), navy)
+			draw_rect(Rect2(190, notification_y + 31, 120, 5), Color("#6a593c"))
+		"metro":
+			# Perspective-free metro carriage: animated sliding doors, signage and rails.
+			draw_rect(Rect2(35, 180, 470, 565), Color("#283b56"))
+			draw_rect(Rect2(49, 195, 442, 510), Color("#c6d1dc"))
+			draw_rect(Rect2(65, 220, 410, 68), Color("#172a43"))
+			draw_string(ThemeDB.fallback_font, Vector2(98, 266), "METRO", HORIZONTAL_ALIGNMENT_CENTER, 340, 31, gold)
+			for i in range(4):
+				var wx := 81.0 + float(i) * 101.0
+				draw_rect(Rect2(wx, 313, 85, 120), Color("#294c72"))
+				draw_rect(Rect2(wx + 8, 321, 69, 104), Color("#74afc6"))
+				for j in range(3):
+					draw_line(Vector2(wx + 12, 350 + j * 25), Vector2(wx + 72, 350 + j * 25), Color("#9ed0d7"), 2, true)
+			var opening := 72.0 * smoothstep(0.15, 0.8, scene_progress)
+			draw_rect(Rect2(167 - opening, 445, 104, 235), Color("#546d88"))
+			draw_rect(Rect2(272 + opening, 445, 104, 235), Color("#546d88"))
+			draw_line(Vector2(271 - opening, 450), Vector2(271 - opening, 680), gold, 4, true)
+			draw_line(Vector2(272 + opening, 450), Vector2(272 + opening, 680), gold, 4, true)
+			draw_rect(Rect2(0, 720, 540, 28), Color("#d9ad5c"))
+			for i in range(12):
+				draw_rect(Rect2(i * 48, 746, 27, 8), Color("#a2b5c8"))
+		"radio":
+			# Detailed vintage broadcast receiver and concentric signal waves.
+			var center := Vector2(270, 468)
+			for i in range(4):
+				var radius := 155.0 + float(i) * 39.0 + fmod(t * 20.0, 39.0)
+				draw_arc(center, radius, PI * 1.18, PI * 1.82, 48, Color("#527ba1", 0.58), 3, true)
+			draw_line(Vector2(190, 355), Vector2(345, 220), Color("#d6ad62"), 7, true)
+			draw_rect(Rect2(75, 360, 390, 245), Color("#0b152b"))
+			draw_rect(Rect2(87, 372, 366, 221), Color("#b97855"))
+			draw_rect(Rect2(110, 401, 240, 155), Color("#24364f"))
+			for i in range(12):
+				var xx := 122.0 + float(i) * 18.0
+				draw_line(Vector2(xx, 412), Vector2(xx, 545), Color("#a7b9c4"), 3, true)
+			for i in range(2):
+				draw_circle(Vector2(398, 440 + i * 76), 29, Color("#25364c"))
+				draw_arc(Vector2(398, 440 + i * 76), 24, 0, TAU, 32, gold, 3, true)
+			draw_rect(Rect2(110, 566, 240, 10), Color("#e5c37a"))
+			var needle_x := 140.0 + 170.0 * (0.5 + 0.5 * sin(t * 1.8))
+			draw_line(Vector2(needle_x, 561), Vector2(needle_x, 582), Color("#f0e2c7"), 4, true)
 		"clock", "infographic":
 			var center := Vector2(270, 445)
 			draw_circle(center, 175, Color("#253f64"))
