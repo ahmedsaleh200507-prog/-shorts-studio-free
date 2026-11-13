@@ -12,7 +12,7 @@ export function characterPose(action,frame,fps=24){
  const cycle=walk?Math.sin(t*2*Math.PI*gaitHz):0;
  // Reach, grasp, and settle: no instantaneous arm snapping at scene start.
  const reach=action==='pick'?smooth((f-fps*.12)/(fps*.82)):action==='put'?1-smooth((f-fps*.12)/(fps*.82)):0;
- const grasp=action==='pick'?smooth((f-fps*.48)/(fps*.44)):0;
+ const grasp=action==='pick'?smooth((f-fps*.48)/(fps*.44)):action==='put'?1-smooth((f-fps*.48)/(fps*.44)):0;
  const hold=action==='carry';
  const brush=action==='brush';
  const sitting=action==='sit';
@@ -44,4 +44,12 @@ export function pickupPropPose(frame,fps=24){
  const lift=smooth(pose.grasp);
  const bob=pose.grasp>0?Math.sin(Math.max(0,frame)/4)*.24:0;
  return {x:72-19*lift,y:57-9*lift+bob,grasp:pose.grasp,held:pose.grasp>=1};
+}
+
+/** Release reverses the pickup path over the same duration, independent of fps. */
+export function putdownPropPose(frame,fps=24){
+ const duration=Math.max(1,Math.round(fps*2));
+ const reverseFrame=Math.max(0,duration-Math.max(0,frame));
+ const pose=pickupPropPose(reverseFrame,fps);
+ return {...pose,held:pose.grasp>0};
 }
