@@ -58,3 +58,8 @@ test('2D eyes follow scene actions while retaining blink animation',()=>{
  assert.match(source,/cx:121\+gazeX,cy:146\+gazeY,rx:5,ry:7\*eyeOpen/);
  assert.match(source,/cx:181\+gazeX,cy:146\+gazeY,rx:5,ry:7\*eyeOpen/);
 });
+
+test('held prop is prioritized over incidental scene objects',()=>{
+ assert.match(source,/supportedItems\.includes\(heldObject\)\?heldObject:null/);
+ assert.match(source,/supportedItems\.find\(name=>objects\.includes\(name\)\)/);
+});
