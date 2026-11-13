@@ -83,6 +83,7 @@ async def main():
     if total_seconds>660: raise ValueError('Narration exceeds 11 minutes; shorten the script')
     (out/'word-timings.json').write_text(json.dumps(word_alignments,ensure_ascii=False),encoding='utf-8')
     (ROOT/'narration-audio.mjs').write_text('export const narrationAudio = '+json.dumps(uris)+';\n',encoding='utf-8')
+    (ROOT/'narration-word-timings.mjs').write_text('export const narrationWordTimings = '+json.dumps(word_alignments,ensure_ascii=False)+';\n',encoding='utf-8')
     (ROOT/'narration-plan.mjs').write_text('export const narrationFrames = '+json.dumps(durations)+';\n',encoding='utf-8')
     entry="""import React from 'react';
 import {Composition,registerRoot} from 'remotion';
