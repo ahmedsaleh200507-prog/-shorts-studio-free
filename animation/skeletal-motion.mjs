@@ -33,3 +33,15 @@ export function lipShapeAt(time,cues=[]){
  const cue=cues.find(c=>c&&Number.isFinite(c.start)&&Number.isFinite(c.end)&&c.start<=time&&time<c.end);
  return typeof cue?.value==='string'&&/^[A-HX]$/.test(cue.value)?cue.value:'X';
 }
+
+/**
+ * Deterministic prop placement in normalized scene percentages.
+ * Pickup has three phases: shelf hold, transfer, and held pose.
+ * Keeping this alongside characterPose prevents independent timelines drifting.
+ */
+export function pickupPropPose(frame,fps=24){
+ const pose=characterPose('pick',frame,fps);
+ const lift=smooth(pose.grasp);
+ const bob=pose.grasp>0?Math.sin(Math.max(0,frame)/4)*.24:0;
+ return {x:72-19*lift,y:57-9*lift+bob,grasp:pose.grasp,held:pose.grasp>=1};
+}
