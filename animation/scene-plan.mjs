@@ -133,6 +133,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     if(resolvedAction==='put')heldObject=null;
     narrative.heldObject=carriedObject;
     narrative.releaseObject=resolvedAction==='put'?carriedObject:null;
+    narrative.hasPhysicalInteraction=Boolean(pickupItem||(resolvedAction==='put'&&carriedObject));
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
