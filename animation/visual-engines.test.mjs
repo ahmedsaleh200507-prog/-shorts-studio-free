@@ -84,3 +84,11 @@ test('short adaptive scene transitions wrap both AI and vector visuals',()=>{
  assert.match(source,/opacity:shotTransitionOpacity\(local,duration,plan\.fps\)/);
  assert.match(source,/aiImage\?el\(AiIllustration/);
 });
+
+test('long-form rendering memoizes the scene plan and uses binary timeline lookup',()=>{
+ assert.match(source,/import React, \{useMemo\} from 'react'/);
+ assert.match(source,/const plan=useMemo\(\(\)=>makeScenePlan/);
+ assert.match(source,/while\(low<high\)/);
+ assert.match(source,/frame>=plan\.scenes\[mid\]\.endFrame/);
+ assert.doesNotMatch(source,/plan\.scenes\.find\(s=>frame/);
+});
