@@ -16,10 +16,12 @@ const durationsFile=process.argv[4];
 const durationsFrames=durationsFile?JSON.parse(readFileSync(durationsFile,'utf8')):null;
 const plan=makeScenePlan(script,{aspectRatio,durationsFrames});
 const supportedActions=new Set(['wake','brush','pick','travel','carry','talk']);
-const supportedPlaces=new Set(['bedroom','bathroom','supermarket','transport','hospital','school','generic']);
+const supportedPlaces=new Set(['bedroom','bathroom','supermarket','transport','hospital','school','generic','space','science','nature','technology','phone','clock','alert','map','history','infographic','door','restaurant','office']);
+const graphicTopics=new Set(['space','science','nature','technology','phone','clock','alert','map','history','infographic','door']);
 const scenes=plan.scenes.map((scene)=>{
   const action=supportedActions.has(scene.action)?scene.action:'talk';
-  const place=supportedPlaces.has(scene.place)?scene.place:'generic';
+  const topic=graphicTopics.has(scene.place)?scene.place:(graphicTopics.has(scene.action)?(scene.action==='number'?'infographic':scene.action):null);
+  const place=topic||(supportedPlaces.has(scene.place)?scene.place:'generic');
   const frames=scene.endFrame-scene.startFrame;
   if(!Number.isInteger(frames)||frames<1) throw new Error('Invalid frame count');
   return {id:scene.id,text:scene.text,action,place,frames,startFrame:scene.startFrame,endFrame:scene.endFrame};
