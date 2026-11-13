@@ -48,6 +48,14 @@ class AnimatedCaptionsTests(unittest.TestCase):
         self.assertIn("gut", output)
         self.assertIn("lesbare", output)
 
+    def test_character_and_object_continuity(self):
+        doctor = {"narrative": {"actor": "doctor", "objects": ["phone"]}, "props": ["irrelevant"]}
+        follow_up = {"narrative": {"actor": "doctor", "objects": ["phone"]}, "props": []}
+        self.assertEqual(story.stable_character(doctor, 0), 2)
+        self.assertEqual(story.stable_character(follow_up, 2), 2)
+        self.assertEqual(story.visual_props(follow_up), ["phone"])
+        self.assertEqual(story.stable_character({"narrative": {"actor": "main"}}, 2), 2)
+
     def test_landscape_and_empty_scenes(self):
         scenes = [{"frames": 24, "text": ""}, {"frames": 48, "text": "Hello world"}]
         with tempfile.TemporaryDirectory() as folder:
