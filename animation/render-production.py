@@ -30,6 +30,8 @@ def main():
         raise ValueError("Empty script")
     output = ROOT / "output" / "final.mp4"
     output.parent.mkdir(exist_ok=True)
+    # Never leave an older successful render available for a failed new request.
+    output.unlink(missing_ok=True)
     if vector:
         command = [
             "python", str(ROOT / "animation" / "render-godot-story.py"),
@@ -52,7 +54,8 @@ def main():
     probe = subprocess.run(
         ["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(output)],
         check=True, capture_output=True, text=True, timeout=60)
-    streams = json.loads(probe.stdout).get("streams", [])
+    metadata = json.loads(probe.stdout)
+    streams = metadata.get("streams", [])
     video = next((s for s in streams if s.get("codec_type") == "video"), None)
     expected = (960, 540) if aspect == "16:9" else (540, 960)
     if not video or video.get("codec_name") != "h264":
@@ -61,8 +64,13 @@ def main():
     valid_sizes = {expected, (expected[0] // 2, expected[1] // 2)}
     if (video.get("width"), video.get("height")) not in valid_sizes:
         raise RuntimeError("Final MP4 has an unexpected aspect or resolution")
-    if not any(s.get("codec_type") == "audio" and s.get("codec_name") == "aac" for s in streams):
+    audio = next((s for s in streams if s.get("codec_type") == "audio" and s.get("codec_name") == "aac"), None)
+    if not audio:
         raise RuntimeError("Final MP4 is missing AAC narration")
+    if video.get("duration") is not None and float(video["duration"]) <= 0:
+        raise RuntimeError("Final MP4 has invalid video duration")
+    if audio.get("duration") is not None and float(audio["duration"]) <= 0:
+        raise RuntimeError("Final MP4 has invalid narration duration")
     print("Rendered", "Godot native 2D" if vector else "Remotion AI illustration", output)
 
 if __name__ == "__main__":
