@@ -46,6 +46,21 @@ class AnimatedCaptionsTests(unittest.TestCase):
         timed = story.caption_word_timings(scene, 0, aligned)
         self.assertEqual(timed, [("Hallo,", 0.2, 0.85), ("Welt!", 1.0, 1.75)])
 
+    def test_mouth_envelope_smooths_speech_and_rejects_invalid_input(self):
+        from importlib.util import spec_from_file_location, module_from_spec
+        spec = spec_from_file_location("godot_video", Path(__file__).resolve().parent / "render-godot-video.py")
+        module = module_from_spec(spec)
+        spec.loader.exec_module(module)
+        values = module.smooth_mouth_levels([0.0, 1.0, 0.0, 0.0, 0.0])
+        self.assertEqual(values[0], 0.0)
+        self.assertGreater(values[1], values[2])
+        self.assertGreater(values[2], values[3])
+        self.assertLess(values[1], 1.0)
+        with self.assertRaises(ValueError):
+            module.smooth_mouth_levels([float("nan")])
+        with self.assertRaises(ValueError):
+            module.smooth_mouth_levels([0.5], attack=0)
+
     def test_long_captions_split_into_readable_groups(self):
         scene = [{"frames": 120, "text": "Eine sehr lange Überschrift braucht eine klare gut lesbare Aufteilung"}]
         with tempfile.TemporaryDirectory() as folder:
