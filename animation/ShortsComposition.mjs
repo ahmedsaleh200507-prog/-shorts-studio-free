@@ -94,6 +94,9 @@ function Background({place,frame}){
  if(place==='window')return el(React.Fragment,null,
   Shape({x:0,y:0,w:100,h:72,color:'#e7dccc'}),
   Shape({x:9,y:9,w:82,h:54,color:'#8ac6e4',r:4,style:{border:'14px solid #f5f0e7'}}),
+  // Slow cloud drift adds movement to the scene even while the actor is still.
+  Shape({x:17+Math.sin(frame/52)*3,y:19,w:18,h:5,color:'#f4fbff',r:'50%'}),
+  Shape({x:58+Math.sin(frame/68)*4,y:24,w:22,h:6,color:'#f4fbff',r:'50%'}),
   Shape({x:47,y:9,w:5,h:54,color:'#f5f0e7'}),
   Shape({x:9,y:34,w:82,h:4,color:'#f5f0e7'}),
   Shape({x:16,y:48,w:17,h:15,color:'#6b9c70',r:'50% 50% 0 0'}),
