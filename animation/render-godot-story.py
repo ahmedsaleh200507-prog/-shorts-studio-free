@@ -5,6 +5,7 @@ Optional --audio-dir holds job-0.mp3, job-1.mp3, etc. If absent, video is silent
 """
 import argparse
 import json
+import math
 import subprocess
 import sys
 import tempfile
@@ -34,7 +35,29 @@ def make_subtitles(scenes, path):
     path.write_text("\n".join(lines), encoding="utf-8")
 
 def render_story(script, aspect, audio_dir, output):
-    plan = json.loads(engine.run(["node", str(ROOT / "animation" / "export-godot-plan.mjs"), script, aspect]).stdout)
+    with tempfile.TemporaryDirectory(prefix="shorts-plan-") as planning:
+        args = ["node", str(ROOT / "animation" / "export-godot-plan.mjs"), script, aspect]
+        if audio_dir:
+            audio_dir = audio_dir.resolve()
+            audio_files = sorted(audio_dir.glob("job-*.mp3"), key=lambda p: int(p.stem.split("-")[-1]))
+            if not audio_files:
+                raise ValueError("No narration MP3 files found")
+            frames = []
+            for index, audio in enumerate(audio_files):
+                if audio.name != f"job-{index}.mp3":
+                    raise ValueError("Narration files must be numbered consecutively from job-0.mp3")
+                probe = json.loads(engine.run(["ffprobe", "-v", "error", "-show_entries",
+                    "format=duration", "-of", "json", str(audio)]).stdout)
+                seconds = float(probe["format"]["duration"])
+                if not math.isfinite(seconds) or seconds <= 0:
+                    raise ValueError("Invalid narration duration")
+                frames.append(max(1, math.ceil((seconds + 0.2) * 24)))
+            timing = Path(planning) / "durations.json"
+            timing.write_text(json.dumps(frames), encoding="utf-8")
+            args.append(str(timing))
+        plan = json.loads(engine.run(args).stdout)
+    if audio_dir and len(plan["scenes"]) != len(frames):
+        raise ValueError("Narration count must match scene count")
     scenes = plan["scenes"]
     if not 1 <= len(scenes) <= 180:
         raise ValueError("Expected 1 to 180 scenes")
