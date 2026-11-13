@@ -165,7 +165,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
       const clause=text.slice(match.index+match[0].length).split(/\b(?:and|und|then|dann)\b|[.!?;,]/i)[0];
       return pickupTargets.map(([name,re])=>({name,index:clause.search(re)})).filter(hit=>hit.index>=0).sort((a,b)=>a.index-b.index)[0]?.name||null;
     }).find(Boolean)||null;
-    const pickupItem=resolvedAction==='pick'?(targetedItem||(pronounPickup?(heldObject||antecedentObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o))):null)):null;
+    const pickupItem=resolvedAction==='pick'?((pronounPickup?(heldObject||antecedentObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o))):null)||targetedItem):null;
     // Do not replace an already-held prop with an unrelated inferred object.
     // Repeated references to the same item remain a single continuous hold.
     const alreadyHeld=Boolean(pickupItem&&heldObject===pickupItem);
