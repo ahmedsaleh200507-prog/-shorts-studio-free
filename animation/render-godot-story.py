@@ -65,8 +65,9 @@ def caption_word_timings(scene, cursor, alignment=None):
             token = str(item.get("word", "")).strip()
             if token and not re.sub(r"\\W", "", token) and normalized:
                 try:
-                    normalized[-1] = dict(normalized[-1], end=max(
-                        float(normalized[-1]["end"]), float(item["end"])))
+                    normalized[-1] = dict(normalized[-1],
+                        word=str(normalized[-1]["word"]) + token,
+                        end=max(float(normalized[-1]["end"]), float(item["end"])))
                 except (ValueError, TypeError, KeyError, OverflowError):
                     normalized = []
                     break
