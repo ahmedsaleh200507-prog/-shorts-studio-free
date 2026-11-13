@@ -24,10 +24,11 @@ jobs:
           unzip -q /tmp/godot.zip -d /tmp/godot
           sudo install -m 755 /tmp/godot/Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
           godot --version
-      - name: Check Blender Grease Pencil authoring
+      - name: Check Blender version and 2D asset authoring requirements
         run: |
           blender --version | head -n 1
           blender --background --factory-startup --python-expr "import bpy; print('Grease Pencil v3 available:', hasattr(bpy.data,'grease_pencils_v3'))"
+          echo "Blender Grease Pencil v3 asset export requires Blender 4.3+; this runner may have an older version."
       - name: Render Godot 2D animation frames
         run: |
           mkdir -p output/godot-frames
