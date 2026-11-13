@@ -1,0 +1,37 @@
+name: Godot and Blender 2D engine smoke test
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'godot/**'
+      - 'blender/**'
+      - '.github/workflows/test-godot-blender.yml'
+permissions:
+  contents: read
+jobs:
+  native-2d:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install free Godot, Blender and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y godot3-server blender ffmpeg
+          blender --version | head -n 2
+          ffmpeg -version | head -n 1
+      - name: Create Blender Grease Pencil source
+        run: |
+          blender --background --factory-startup --python blender/export_2d_assets.py -- --out blender/export
+          test -s blender/export/shorts-2d-assets.blend
+      - name: Check Godot 4 project requirements
+        run: |
+          grep -q 'config_version=5' godot/project.godot
+          grep -q 'extends Node2D' godot/main.gd
+          echo 'Godot 4.x required; Ubuntu apt godot3-server is incompatible.'
+      - name: Upload authored Blender asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: blender-grease-pencil-source
+          path: blender/export/shorts-2d-assets.blend
+          retention-days: 3
