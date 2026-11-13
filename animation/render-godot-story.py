@@ -169,6 +169,43 @@ def scene_direction(scene, index):
         camera = "slow-push"
     return character, emotion, camera
 
+def validate_scene_plan(scenes):
+    """Fail early instead of exporting a mismatched or blank final video."""
+    if not 1 <= len(scenes) <= 180:
+        raise ValueError("Expected 1 to 180 scenes")
+    total = 0
+    for index, scene in enumerate(scenes):
+        if not isinstance(scene.get("text"), str) or not scene["text"].strip():
+            raise ValueError(f"Scene {index} has no narration text")
+        frames = scene.get("frames")
+        if not isinstance(frames, int) or not 1 <= frames <= 2400:
+            raise ValueError(f"Scene {index} has invalid frame count")
+        if scene.get("startFrame") != total:
+            raise ValueError(f"Scene {index} starts at the wrong frame")
+        total += frames
+        if scene.get("endFrame") != total:
+            raise ValueError(f"Scene {index} ends at the wrong frame")
+    if total > 24 * 660:
+        raise ValueError("Story exceeds 11 minute safety limit")
+    return total
+
+
+def validate_final_video(streams, aspect, expected_seconds):
+    video = next((s for s in streams if s.get("codec_type") == "video"), None)
+    audio = next((s for s in streams if s.get("codec_type") == "audio"), None)
+    expected_size = (540, 960) if aspect == "9:16" else (960, 540)
+    if not video or video.get("codec_name") != "h264":
+        raise RuntimeError("Final MP4 missing H.264 video")
+    if (video.get("width"), video.get("height")) != expected_size:
+        raise RuntimeError("Final MP4 dimensions do not match requested aspect ratio")
+    if not audio or audio.get("codec_name") != "aac":
+        raise RuntimeError("Final MP4 missing AAC narration track")
+    duration = float(video.get("duration") or 0)
+    if not math.isfinite(duration) or abs(duration - expected_seconds) > 0.25:
+        raise RuntimeError("Final MP4 duration differs from scene plan")
+    return True
+
+
 def stable_character(scene, previous=0):
     """Preserve an actor's appearance across pronoun-only follow-up scenes."""
     actor = scene.get("narrative", {}).get("actor", "main")
@@ -212,10 +249,7 @@ def render_story(script, aspect, audio_dir, output, alignment_file=None):
     if audio_dir and len(plan["scenes"]) != len(frames):
         raise ValueError("Narration count must match scene count")
     scenes = plan["scenes"]
-    if sum(s["frames"] for s in scenes) > 24 * 660:
-        raise ValueError("Story exceeds 11 minute safety limit")
-    if not 1 <= len(scenes) <= 180:
-        raise ValueError("Expected 1 to 180 scenes")
+    total_frames = validate_scene_plan(scenes)
     output = output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="shorts-story-") as work:
@@ -256,10 +290,7 @@ def render_story(script, aspect, audio_dir, output, alignment_file=None):
                     "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", str(output)], timeout=1200)
     probe = json.loads(engine.run(["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(output)]).stdout)
     streams = probe["streams"]
-    if not any(s.get("codec_type") == "video" and s.get("codec_name") == "h264" for s in streams):
-        raise RuntimeError("Final MP4 missing H.264 video")
-    if not any(s.get("codec_type") == "audio" and s.get("codec_name") == "aac" for s in streams):
-        raise RuntimeError("Final MP4 missing narration")
+    validate_final_video(streams, aspect, total_frames / 24)
     return {"output": str(output), "scenes": len(scenes), "has_audio": bool(audio_dir)}
 
 if __name__ == "__main__":
