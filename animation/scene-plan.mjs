@@ -68,11 +68,11 @@ function chooseContext(text, previousPlace){
 }
 // Lightweight narrative memory. Metadata is shared by preview and render exports.
 const objectPatterns=[
- ['phone',/handy|smartphone|telefon|phone/i],['radio',/\\bradio\\b|radioger[aä]t/i],
+ ['phone',/handy|smartphone|telefon|phone/i],['radio',/\bradio\b|radioger[aä]t/i],
  ['apple',/apfel|apple/i],['bag',/tasche|rucksack|backpack|bag/i],
- ['door',/t[uü]r|door/i],['train',/u-bahn|metro|subway|\\bzug\\b|train/i],
- ['bed',/bett|\\bbed\\b/i],['toothbrush',/zahnb[uü]rste|toothbrush/i],
- ['computer',/computer|laptop/i],['book',/buch|\\bbook\\b/i],
+ ['door',/t[uü]r|door/i],['train',/u-bahn|metro|subway|\bzug\b|train/i],
+ ['bed',/bett|\bbed\b/i],['toothbrush',/zahnb[uü]rste|toothbrush/i],
+ ['computer',/computer|laptop/i],['book',/buch|\bbook\b/i],
  ['food',/essen|food|meal/i]
 ];
 const actorPatterns=[
@@ -86,7 +86,7 @@ function extractNarrative(text,action,previousActor,previousObjects){
  const named=actorPatterns.find(([,re])=>re.test(text));
  const actor=named?named[0]:previousActor;
  const mentioned=objectPatterns.filter(([,re])=>re.test(text)).map(([name])=>name);
- const pronounObject=/\\b(?:it|this|that|ihn|ihm|es|sie|damit|darauf)\\b/i.test(text);
+ const pronounObject=/\b(?:it|this|that|ihn|ihm|es|sie|damit|darauf)\b/i.test(text);
  const objects=mentioned.length?mentioned:(pronounObject?previousObjects.slice(0,2):[]);
  return {actor,objects,interaction:action==='talk'?'narrate':action};
 }
