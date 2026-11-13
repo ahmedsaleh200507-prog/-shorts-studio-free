@@ -156,13 +156,31 @@ func _draw() -> void:
 		_draw_topic_graphic(t)
 	else:
 		_draw_character(float(frame_index) / FPS)
-	_draw_procedural_objects(t)
+	if place not in ["space", "science", "nature", "technology", "phone", "clock", "alert", "map", "history", "infographic", "door"]:
+		_draw_procedural_objects(t)
+	_draw_reference_header()
 	# Subtle scene fade at clip boundaries; character animation remains continuous within the scene.
 	var fade_in := 1.0 - smoothstep(0.0, 0.10, scene_progress)
 	var fade_out := smoothstep(0.90, 1.0, scene_progress)
 	# Overlay uses the original viewport transform to avoid moving with the camera.
 	draw_set_transform(offset, 0.0, Vector2.ONE * scale_factor)
 	draw_rect(Rect2(0, 0, 540, 960), Color(0.04, 0.07, 0.12, maxf(fade_in, fade_out) * 0.65))
+
+# Reference-inspired 2D motion graphics: restrained grid, small outlined chapter
+# label and a consistent visual hierarchy. No image-generation model is used.
+func _draw_reference_header() -> void:
+	var font := ThemeDB.fallback_font
+	if font == null: return
+	var heading := place.to_upper().substr(0, 16)
+	var navy := Color("#0d132b")
+	var gold := Color("#d9ad5c")
+	# Header remains inside the safe region for 9:16 and 16:9.
+	draw_rect(Rect2(150, 42, 240, 35), navy)
+	draw_line(Vector2(150, 42), Vector2(390, 42), gold, 1.5, true)
+	draw_line(Vector2(150, 77), Vector2(390, 77), gold, 1.5, true)
+	draw_line(Vector2(150, 42), Vector2(150, 77), gold, 1.5, true)
+	draw_line(Vector2(390, 42), Vector2(390, 77), gold, 1.5, true)
+	draw_string(font, Vector2(169, 65), heading, HORIZONTAL_ALIGNMENT_CENTER, 204, 15, gold)
 
 # Extendable documentary illustrations: all primitives are native 2D, with
 # animated positions and no hardcoded stock image or 3D asset.
