@@ -117,9 +117,13 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const explicitPickup=/\b(?:picks?\s+(?:(?:it|them)\s+)?up|grabs?|takes?|lifts?)\b|\b(?:nimmt|greift|hebt)\b/i.test(text);
     // Explicit manipulation takes precedence over incidental walking/running
     // verbs in the same sentence, without treating object mentions as pickups.
-    const explicitPickRule=explicitPickup?(rules.find(([name,regex])=>name==='pick'&&regex.test(text))||(/\b(?:picks?\s+(?:it|them)\s+up|grabs?\s+(?:it|them)|takes?\s+(?:it|them)|lifts?\s+(?:it|them))\b/i.test(text)?rules.find(([name])=>name==='pick'):null)):null;
+    // Match the manipulated object near its verb, not any unrelated noun
+    // elsewhere in the sentence (e.g. "takes a train and reads a book").
+    const targetPickup=/\b(?:picks?\s+(?:(?:it|them)\s+)?up|grabs?|takes?|lifts?|nimmt|greift|hebt)\b[^.!?;,]{0,45}\b(?:apples?|bananas?|bottles?|cups?|books?|apfel|banane|flasche|tasse|buch|bücher)\b/i.test(text);
+    const pronounVerb=/\b(?:picks?\s+(?:it|them)\s+up|grabs?\s+(?:it|them)|takes?\s+(?:it|them)|lifts?\s+(?:it|them)|nimmt\s+(?:es|sie|ihn))\b/i.test(text);
+    const explicitPickRule=explicitPickup&&(targetPickup||pronounVerb)?(rules.find(([name,regex])=>name==='pick'&&regex.test(text))||rules.find(([name])=>name==='pick')):null;
     const match=explicitPut?rules.find(([name])=>name==='put'):
-      explicitPickRule||rules.find(([name,regex])=>regex.test(text)&&(name!=='pick'||explicitPickup));
+      explicitPickRule||rules.find(([name,regex])=>regex.test(text)&&name!=='pick');
     const [action,rulePlace,props]=match?[match[0],match[2],match[3]]:['talk','generic',[]];
     const context=chooseContext(text,previousPlace);
     const place=(context.place==='generic'||(context.place===previousPlace && rulePlace!=='generic' && rulePlace!==previousPlace && !context.setting))?rulePlace:context.place;
