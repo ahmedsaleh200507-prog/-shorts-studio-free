@@ -23,7 +23,7 @@ PLACES = {"bedroom", "bathroom", "supermarket", "transport", "generic", "hospita
 def run(args, timeout=600):
     return subprocess.run(args, check=True, timeout=timeout, capture_output=True, text=True)
 
-def render(action, place, seconds, aspect, audio, output, character=0, emotion="neutral", camera="slow-push"):
+def render(action, place, seconds, aspect, audio, output, character=0, emotion="neutral", camera="slow-push", visual_objects=None):
     if not isinstance(character, int) or character not in range(4):
         raise ValueError("Invalid character variant")
     if emotion not in {"neutral", "happy", "sad", "angry", "surprised"}:
@@ -65,9 +65,11 @@ def render(action, place, seconds, aspect, audio, output, character=0, emotion="
             mouth_file = Path(temp) / "mouth.json"
             mouth_file.write_text(json.dumps(levels))
             mouth_args = [f"--mouth-file={mouth_file}"]
+        objects_file = Path(temp) / "objects.json"
+        objects_file.write_text(json.dumps((visual_objects or [])[:12], ensure_ascii=False), encoding="utf-8")
         run(["godot", "--path", str(ROOT / "godot"), "--rendering-driver", "opengl3", "--",
              f"--action={action}", f"--place={place}", f"--frames={frames}",
-             f"--aspect={aspect}", f"--character={character}", f"--emotion={emotion}", f"--camera={camera}", f"--out={frame_dir}", *mouth_args], timeout=max(120, frames * 2))
+             f"--aspect={aspect}", f"--objects-file={objects_file}", f"--character={character}", f"--emotion={emotion}", f"--camera={camera}", f"--out={frame_dir}", *mouth_args], timeout=max(120, frames * 2))
         images = sorted(frame_dir.glob("frame_*.png"))
         if len(images) != frames:
             raise RuntimeError(f"Expected {frames} rendered frames, got {len(images)}")
