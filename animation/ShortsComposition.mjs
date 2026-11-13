@@ -439,7 +439,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
   el('div',{style:{position:'absolute',inset:0,opacity:shotTransitionOpacity(local,duration,plan.fps)}},aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,mouthLevel:narration?speechMouthLevel(local,narrationWordTimings[sceneIndex],plan.fps):0}))),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
-  el(EditorialHud,{scene,sceneIndex,landscape}),
+  scene.visualMode==='character'?null:el(EditorialHud,{scene,sceneIndex,landscape}),
   el('div',{style:{position:'absolute',bottom:landscape?58:140,left:landscape?'15%':45,right:landscape?'15%':45,opacity,background:'linear-gradient(180deg,#07102000,#071020d9 35%,#071020ed)',borderRadius:landscape?8:12,padding:landscape?'14px 20px':'24px 18px',color:'white',fontSize:landscape?35:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},el(CaptionWords,{caption,landscape}))
  );
 }
