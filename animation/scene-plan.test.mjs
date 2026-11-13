@@ -153,3 +153,19 @@ test('ten-minute video boundary rejects oversized render jobs early',()=>{
  assert.throws(()=>makeScenePlan(script+' Extra scene.',{secondsPerScene:30}),/10-minute/);
  assert.throws(()=>makeScenePlan('One scene.',{durationsFrames:[600*24+1]}),/10-minute/);
 });
+
+test('German daily-life script preserves locations and cup instead of apple',()=>{
+ const plan=makeScenePlan('Am Morgen wacht Lukas auf und steht aus dem Bett. Er geht in die Küche und nimmt eine Tasse. Dann schaut er aus dem Fenster. Draußen ziehen weiße Wolken über den Himmel.');
+ const scenes=plan.scenes;
+ assert.equal(scenes[0].action,'wake');
+ assert.equal(scenes[0].place,'bedroom');
+ assert.equal(scenes[1].place,'kitchen');
+ assert.equal(scenes[1].action,'pick');
+ assert.equal(scenes[1].narrative.interactionObject,'cup');
+ assert.equal(scenes[2].place,'window');
+ assert.equal(scenes[2].narrative.heldObject,'cup');
+});
+test('English window and home settings are recognized',()=>{
+ assert.equal(makeScenePlan('She looks through the window.').scenes[0].place,'window');
+ assert.equal(makeScenePlan('He returns home.').scenes[0].place,'house');
+});
