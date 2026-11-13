@@ -114,6 +114,25 @@ func _draw() -> void:
 	elif place == "bedroom":
 		draw_rect(Rect2(20, 625, 305, 85), Color("#f3e8e0"))
 		draw_rect(Rect2(30, 611, 95, 36), Color.WHITE)
+	elif place == "hospital":
+		# Hospital ward: examination bed, wall monitor and clinical panels.
+		draw_rect(Rect2(25, 180, 490, 410), Color("#e8f5f5"))
+		draw_rect(Rect2(35, 220, 170, 125), Color("#496c83"))
+		draw_rect(Rect2(48, 235, 145, 94), Color("#a9d6dd"))
+		draw_line(Vector2(55, 285), Vector2(180, 285), Color("#52a77d"), 5, true)
+		draw_rect(Rect2(305, 590, 205, 40), Color("#f7fbfc"))
+		draw_rect(Rect2(330, 625, 13, 75), Color("#77909d"))
+		draw_rect(Rect2(475, 625, 13, 75), Color("#77909d"))
+	elif place == "school":
+		# Classroom: chalkboard, desk and window.
+		draw_rect(Rect2(25, 190, 320, 250), Color("#76563b"))
+		draw_rect(Rect2(37, 203, 295, 222), Color("#386f63"))
+		draw_line(Vector2(70, 265), Vector2(230, 265), Color("#f3f3dd"), 4, true)
+		draw_rect(Rect2(395, 220, 110, 200), Color("#f9f5e7"))
+		draw_rect(Rect2(405, 230, 90, 180), Color("#a7d9e9"))
+		draw_rect(Rect2(35, 615, 185, 25), Color("#9c7654"))
+		draw_rect(Rect2(55, 640, 12, 90), Color("#654b39"))
+		draw_rect(Rect2(192, 640, 12, 90), Color("#654b39"))
 	elif place == "supermarket":
 		for x in [25, 400]:
 			draw_rect(Rect2(x, 230, 115, 470), Color("#8b5e43"))
