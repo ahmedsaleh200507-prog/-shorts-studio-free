@@ -53,6 +53,11 @@ func _draw() -> void:
 	var offset := (Vector2(render_size) - Vector2(540, 960) * scale_factor) / 2.0
 	draw_set_transform(offset, 0.0, Vector2.ONE * scale_factor)
 	var t := float(frame_index) / FPS
+	# Camera rig: eased dolly, pan and a restrained handheld drift in 2D.
+	var zoom := 1.0 + 0.055 * smoothstep(0.0, 1.0, scene_progress)
+	var camera_pan := Vector2(14.0 * sin(scene_progress * PI), -10.0 * smoothstep(0.0, 1.0, scene_progress))
+	var camera_offset := Vector2(270, 480) * (1.0 - zoom) + camera_pan
+	draw_set_transform(offset + camera_offset * scale_factor, 0.0, Vector2.ONE * scale_factor * zoom)
 	draw_rect(Rect2(0, 0, 540, 960), Color("#c6dfeb"))
 	draw_rect(Rect2(0, 690, 540, 270), Color("#b88e70"))
 	if place == "bathroom":
@@ -73,10 +78,15 @@ func _draw() -> void:
 			draw_rect(Rect2(x, 230, 115, 470), Color("#8b5e43"))
 			for y in [270, 390, 510]:
 				draw_rect(Rect2(x + 12, y, 90, 14), Color("#f1cc69"))
+	# Contact shadow keeps the character visually grounded.
+	var shadow_x := 270.0 + (lerpf(-78.0, 78.0, smoothstep(0.0, 1.0, scene_progress)) if action == "travel" or action == "carry" else 0.0)
+	draw_circle(Vector2(shadow_x, 755), 48, Color(0.12, 0.14, 0.20, 0.16))
 	_draw_character(float(frame_index) / FPS)
 	# Subtle scene fade at clip boundaries; character animation remains continuous within the scene.
 	var fade_in := 1.0 - smoothstep(0.0, 0.10, scene_progress)
 	var fade_out := smoothstep(0.90, 1.0, scene_progress)
+	# Overlay uses the original viewport transform to avoid moving with the camera.
+	draw_set_transform(offset, 0.0, Vector2.ONE * scale_factor)
 	draw_rect(Rect2(0, 0, 540, 960), Color(0.04, 0.07, 0.12, maxf(fade_in, fade_out) * 0.65))
 
 func _draw_character(t: float) -> void:
@@ -168,6 +178,11 @@ func _draw_character(t: float) -> void:
 	draw_circle(head + Vector2(53, 4), 14, shadow)
 	draw_circle(head, 57, outline)
 	draw_circle(head, 53, skin)
+	# Cel-shaded cheeks and subtle ear details improve facial readability.
+	draw_circle(head + Vector2(-35, 19), 11, Color(0.88, 0.39, 0.39, 0.20))
+	draw_circle(head + Vector2(35, 19), 11, Color(0.88, 0.39, 0.39, 0.20))
+	draw_arc(head + Vector2(-53, 4), 7, -PI * 0.5, PI * 0.5, 10, shadow, 2, true)
+	draw_arc(head + Vector2(53, 4), 7, PI * 0.5, PI * 1.5, 10, shadow, 2, true)
 	draw_arc(head + Vector2(-6, 1), 47, 1.8, 2.6, 12, shadow, 3, true)
 	# Asymmetric hair cap and fringe.
 	draw_arc(head + Vector2(0, -14), 47, PI * 1.03, TAU * 1.02, 30, hair, 19, true)
