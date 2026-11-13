@@ -10,10 +10,16 @@ var place := "bedroom"
 var output_dir := "/tmp/shorts-godot-frames"
 var render_size := Vector2i(540, 960)
 var scene_progress := 0.0
+var character_variant := 0
+var emotion := "neutral"
+var camera_mode := "slow-push"
 
 func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--action="): action = arg.trim_prefix("--action=")
+		if arg.begins_with("--character="): character_variant = clampi(int(arg.trim_prefix("--character=")), 0, 3)
+		if arg.begins_with("--emotion="): emotion = arg.trim_prefix("--emotion=")
+		if arg.begins_with("--camera="): camera_mode = arg.trim_prefix("--camera=")
 		if arg.begins_with("--place="): place = arg.trim_prefix("--place=")
 		if arg.begins_with("--frames="): total_frames = clampi(int(arg.trim_prefix("--frames=")), 1, 2400)
 		if arg.begins_with("--out="): output_dir = arg.trim_prefix("--out=")
@@ -54,8 +60,24 @@ func _draw() -> void:
 	draw_set_transform(offset, 0.0, Vector2.ONE * scale_factor)
 	var t := float(frame_index) / FPS
 	# Camera rig: eased dolly, pan and a restrained handheld drift in 2D.
-	var zoom := 1.0 + 0.055 * smoothstep(0.0, 1.0, scene_progress)
-	var camera_pan := Vector2(14.0 * sin(scene_progress * PI), -10.0 * smoothstep(0.0, 1.0, scene_progress))
+	var ease := smoothstep(0.0, 1.0, scene_progress)
+	var zoom := 1.0
+	var camera_pan := Vector2.ZERO
+	match camera_mode:
+		"follow":
+			zoom = 1.06
+			camera_pan = Vector2(-65.0 * (ease - 0.5), -8.0)
+		"close-up":
+			zoom = lerpf(1.08, 1.22, ease)
+			camera_pan = Vector2(0, 45)
+		"reveal":
+			zoom = lerpf(1.17, 1.0, ease)
+			camera_pan = Vector2(-22.0 * (1.0 - ease), 0)
+		"static":
+			zoom = 1.0
+		_:
+			zoom = lerpf(1.0, 1.055, ease)
+			camera_pan = Vector2(14.0 * sin(scene_progress * PI), -10.0 * ease)
 	var camera_offset := Vector2(270, 480) * (1.0 - zoom) + camera_pan
 	draw_set_transform(offset + camera_offset * scale_factor, 0.0, Vector2.ONE * scale_factor * zoom)
 	draw_rect(Rect2(0, 0, 540, 960), Color("#c6dfeb"))
@@ -91,13 +113,20 @@ func _draw() -> void:
 
 func _draw_character(t: float) -> void:
 	# Layered vector character with articulated joints, clothing, hair, face and props.
-	var skin := Color("#e8ac8a")
-	var shadow := Color("#c78267")
-	var shirt := Color("#397fb2")
-	var shirt_dark := Color("#235c8c")
-	var trousers := Color("#273d61")
+	var palettes := [
+		["#e8ac8a", "#c78267", "#397fb2", "#235c8c", "#273d61", "#263044"],
+		["#b97958", "#8f543e", "#c45b70", "#9b3d57", "#303c53", "#1c2535"],
+		["#f0c6a4", "#d5a182", "#54a18d", "#367d6d", "#394765", "#6b4430"],
+		["#91664f", "#6c4938", "#d49a3c", "#a8792b", "#334b58", "#25222e"]
+	]
+	var palette: Array = palettes[character_variant]
+	var skin := Color(palette[0])
+	var shadow := Color(palette[1])
+	var shirt := Color(palette[2])
+	var shirt_dark := Color(palette[3])
+	var trousers := Color(palette[4])
 	var outline := Color("#24354a")
-	var hair := Color("#263044")
+	var hair := Color(palette[5])
 	var phase := sin(t * 7.0)
 	var walking := action == "travel" or action == "carry"
 	var gait := phase * 28.0 if walking else 0.0
@@ -190,7 +219,7 @@ func _draw_character(t: float) -> void:
 		head + Vector2(-44, -38), head + Vector2(-20, -62),
 		head + Vector2(23, -58), head + Vector2(45, -39),
 		head + Vector2(11, -37), head + Vector2(-13, -27)]), hair)
-	var blink := fmod(t + 0.1, 3.6) > 3.48
+	var blink := fmod(t + 0.1, 3.6) > 3.48 or emotion == "sad" and fmod(t, 2.7) > 2.55
 	for x in [-20.0, 20.0]:
 		var eye := head + Vector2(x, -5)
 		if blink:
@@ -199,11 +228,13 @@ func _draw_character(t: float) -> void:
 			draw_circle(eye, 9, Color("#fffaf3"))
 			draw_circle(eye + Vector2(1, 1), 4, outline)
 			draw_circle(eye + Vector2(2, -1), 1.5, Color.WHITE)
-		draw_line(eye + Vector2(-9, -15), eye + Vector2(8, -17), hair, 4, true)
+		var eyebrow_shift := -8.0 if emotion == "surprised" else (5.0 if emotion == "angry" else 0.0)
+		draw_line(eye + Vector2(-9, -15 + eyebrow_shift), eye + Vector2(8, -17 + eyebrow_shift), hair, 4, true)
 	draw_line(head + Vector2(0, 1), head + Vector2(-3, 17), shadow, 3, true)
-	var mouth_open := action == "talk" and sin(t * 10.0) > 0
+	var speech_envelope := pow(maxf(0.0, sin(t * 11.0)), 1.5)
+	var mouth_open := action == "talk" and speech_envelope > 0.3
 	if mouth_open:
-		draw_circle(head + Vector2(0, 29), 9, Color("#923f4a"))
+		draw_circle(head + Vector2(0, 29), 5.0 + 7.0 * speech_envelope, Color("#923f4a"))
 		draw_line(head + Vector2(-5, 32), head + Vector2(5, 32), Color("#f5b2aa"), 3, true)
 	else:
 		draw_arc(head + Vector2(0, 22), 15, 0.25, PI - 0.25, 12, Color("#9d5050"), 3, true)
