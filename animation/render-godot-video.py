@@ -23,6 +23,22 @@ PLACES = {"bedroom", "bathroom", "supermarket", "transport", "generic", "hospita
 def run(args, timeout=600):
     return subprocess.run(args, check=True, timeout=timeout, capture_output=True, text=True)
 
+def smooth_mouth_levels(levels, attack=0.7, release=0.28):
+    """Reduce frame-to-frame lip jitter without inventing speech during silence."""
+    if not 0 < attack <= 1 or not 0 < release <= 1:
+        raise ValueError("Invalid mouth smoothing coefficients")
+    result = []
+    previous = 0.0
+    for value in levels:
+        value = float(value)
+        if not math.isfinite(value):
+            raise ValueError("Non-finite speech level")
+        target = min(1.0, max(0.0, value))
+        rate = attack if target > previous else release
+        previous += (target - previous) * rate
+        result.append(round(previous, 4))
+    return result
+
 def render(action, place, seconds, aspect, audio, output, character=0, emotion="neutral", camera="slow-push", visual_objects=None):
     if not isinstance(character, int) or character not in range(4):
         raise ValueError("Invalid character variant")
@@ -63,7 +79,7 @@ def render(action, place, seconds, aspect, audio, output, character=0, emotion="
                 else:
                     levels.append(0.0)
             mouth_file = Path(temp) / "mouth.json"
-            mouth_file.write_text(json.dumps(levels))
+            mouth_file.write_text(json.dumps(smooth_mouth_levels(levels)))
             mouth_args = [f"--mouth-file={mouth_file}"]
         objects_file = Path(temp) / "objects.json"
         objects_file.write_text(json.dumps((visual_objects or [])[:12], ensure_ascii=False), encoding="utf-8")
