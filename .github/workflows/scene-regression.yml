@@ -2,7 +2,7 @@ name: Scene regression tests
 on:
   push:
     paths:
-      - 'animation/scene-plan.mjs'
+      - 'animation/**'
       - 'animation/skeletal-motion.mjs'
       - 'animation/caption-style.mjs'
       - 'tests/**'
@@ -25,5 +25,5 @@ jobs:
           node --check animation/scene-plan.mjs
           node --check animation/skeletal-motion.mjs
           node --check animation/caption-style.mjs
-      - name: Run deterministic scene and motion tests
-        run: node --test tests/pick-interaction.test.mjs tests/pickup-objects.test.mjs tests/caption-style.test.mjs
+      - name: Run all dependency-free Node regression tests
+        run: node --test tests/*.test.mjs
