@@ -23,12 +23,12 @@ export function captionRevealCount(text,localFrame,durationFrames,alignment=null
 
 /** Use real speech boundaries to close the character mouth during pauses. */
 export function speechActiveAtFrame(localFrame,alignment=null,fps=24){
+ if(!Number.isFinite(localFrame)||localFrame<0||!Number.isFinite(fps)||fps<=0)return false;
  if(!Array.isArray(alignment)||alignment.length===0)return true; // legacy narration without boundaries
- if(!Number.isFinite(localFrame)||!Number.isFinite(fps)||fps<=0)return false;
  const seconds=Math.max(0,localFrame/fps);
  let valid=0;
  for(const entry of alignment){
-  if(!entry||entry.start==null||entry.end==null)continue;
+  if(!entry||entry.start==null||entry.end==null||typeof entry.start==='boolean'||typeof entry.end==='boolean')continue;
   const start=Number(entry.start),end=Number(entry.end);
   if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end<=start)continue;
   valid++;
