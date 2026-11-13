@@ -11,7 +11,7 @@ export function characterPose(action,frame,fps=24){
  const gaitHz=running?2.8:5.76/(2*Math.PI);
  const cycle=walk?Math.sin(t*2*Math.PI*gaitHz):0;
  // Reach, grasp, and settle: no instantaneous arm snapping at scene start.
- const reach=action==='pick'?smooth((f-fps*.12)/(fps*.82)):0;
+ const reach=action==='pick'?smooth((f-fps*.12)/(fps*.82)):action==='put'?1-smooth((f-fps*.12)/(fps*.82)):0;
  const grasp=action==='pick'?smooth((f-fps*.48)/(fps*.44)):0;
  const hold=action==='carry';
  const brush=action==='brush';
@@ -21,7 +21,7 @@ export function characterPose(action,frame,fps=24){
   bodyY:sitting?24*sitProgress:walk?Math.abs(cycle)*(running?13:8):Math.sin(t*2.16)*2,
   headRotation:Math.sin(t*1.08)*2,
   leftArm:sitting?-10*sitProgress:walk?cycle*(running?33:19):brush?-34+Math.sin(t*8.16)*7:action==='checkout'?-18:Math.sin(t*1.92)*3,
-  rightArm:sitting?-10*sitProgress:hold?-11+cycle*4:walk?-cycle*(running?33:19):action==='pick'?-55*reach+12*grasp:action==='checkout'?-26:Math.sin(t*2.16+1)*4,
+  rightArm:sitting?-10*sitProgress:hold?-11+cycle*4:walk?-cycle*(running?33:19):(action==='pick'||action==='put')?-55*reach+12*grasp:action==='checkout'?-26:Math.sin(t*2.16+1)*4,
   leftLeg:sitting?58*sitProgress:walk?cycle*(running?37:22):0,
   rightLeg:sitting?-58*sitProgress:walk?-cycle*(running?37:22):0,
   propSwing:hold?cycle*2.5:0,
