@@ -71,10 +71,10 @@ function chooseContext(text, previousPlace){
 // Lightweight narrative memory. Metadata is shared by preview and render exports.
 const objectPatterns=[
  ['phone',/handy|smartphone|telefon|phone/i],['radio',/\bradio\b|radioger[aä]t/i],
- ['apple',/apfel|apples?/i],['banana',/banane|bananas?/i],['bottle',/flasche|bottles?/i],['cup',/tasse|cups?/i],['bag',/tasche|rucksack|backpack|bag/i],
+ ['apple',/\b(?:apples?|äpfel)\b|apfel/i],['banana',/\bbananas?\b|banane/i],['bottle',/\bbottles?\b|flasche/i],['cup',/\bcups?\b|tasse/i],['bag',/\b(?:bags?|backpacks?)\b|tasche|rucksack/i],
  ['door',/t[uü]r|door/i],['train',/u-bahn|metro|subway|\bzug\b|train/i],
  ['bed',/bett|\bbed\b/i],['toothbrush',/zahnb[uü]rste|toothbrush/i],
- ['computer',/computer|laptop/i],['book',/buch|bücher|books?/i],
+ ['computer',/computer|laptop/i],['book',/buch|bücher|\bbooks?\b/i],
  ['food',/essen|food|meal/i]
 ];
 const actorPatterns=[
