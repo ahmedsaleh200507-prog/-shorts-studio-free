@@ -270,3 +270,10 @@ test('pickup pronoun resolves to held object rather than newly mentioned prop',(
  assert.equal(scenes[1].narrative.heldObject,'cup');
  assert.equal(scenes[1].action,'carry');
 });
+
+test('pronoun pickup keeps the previously held cup when an apple is mentioned',()=>{
+ const scenes=makeScenePlan('She picks up a cup. She takes it beside an apple.').scenes;
+ assert.equal(scenes[0].narrative.interactionObject,'cup');
+ assert.equal(scenes[1].narrative.heldObject,'cup');
+ assert.equal(scenes[1].action,'carry');
+});
