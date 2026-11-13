@@ -470,6 +470,9 @@ func _draw_character(t: float) -> void:
 		["#f0c6a4", "#d5a182", "#54a18d", "#367d6d", "#394765", "#6b4430"],
 		["#91664f", "#6c4938", "#d49a3c", "#a8792b", "#334b58", "#25222e"]
 	]
+	var held_phone := "phone" in visual_objects or "smartphone" in visual_objects
+	var held_book := "book" in visual_objects
+	var held_apple := "apple" in visual_objects
 	var palette: Array = palettes[character_variant]
 	var skin := Color(palette[0])
 	var shadow := Color(palette[1])
@@ -527,7 +530,9 @@ func _draw_character(t: float) -> void:
 	elif action == "talk":
 		right_hand += Vector2(24, -35 + sin(t * 5.0) * 17)
 	# Scene-aware gestures: the same actor now interacts with a meaningful prop.
-	if place == "hospital" and action not in ["walk", "run", "travel", "brush"]:
+	if held_phone or held_book:
+		right_hand = root + Vector2(95, 26 + sin(t * 2.5) * 5)
+	elif place == "hospital" and action not in ["walk", "run", "travel", "brush"]:
 		right_hand = root + Vector2(112, 24 + sin(t * 2.5) * 7)
 	elif place == "school" and action not in ["walk", "run", "travel", "brush"]:
 		right_hand = root + Vector2(115, -23 + sin(t * 3.0) * 12)
@@ -615,13 +620,23 @@ func _draw_character(t: float) -> void:
 	if action == "brush":
 		draw_line(right_hand, head + Vector2(0, 27), Color("#f6ffff"), 7, true)
 		draw_line(head + Vector2(-8, 27), head + Vector2(10, 27), Color("#44c8d7"), 7, true)
-	if action == "pick":
+	if action == "pick" or held_apple and action not in ["walk", "run", "travel", "brush"]:
 		var apple := right_hand + Vector2(5, -10)
 		draw_circle(apple, 18, Color("#d83f47"))
 		draw_line(apple + Vector2(0, -16), apple + Vector2(5, -27), Color("#554333"), 4, true)
 		draw_circle(apple + Vector2(-6, -6), 4, Color("#f47a7b"))
 	# Props are attached to tracked hand joints, not floating in the scene.
-	if place == "hospital" and action not in ["walk", "run", "travel", "brush"]:
+	if held_phone:
+		var phone_center := right_hand + Vector2(0, -23)
+		draw_rect(Rect2(phone_center + Vector2(-20, -39), Vector2(40, 75)), outline)
+		draw_rect(Rect2(phone_center + Vector2(-16, -33), Vector2(32, 61)), Color("#63b7d8"))
+		draw_circle(phone_center + Vector2(0, 31), 3, Color.WHITE)
+	elif held_book:
+		var book_center := right_hand + Vector2(2, -22)
+		draw_rect(Rect2(book_center + Vector2(-33, -30), Vector2(66, 59)), Color("#f4f1e8"))
+		draw_line(book_center + Vector2(0, -29), book_center + Vector2(0, 28), Color("#567d9b"), 3, true)
+		draw_rect(Rect2(book_center + Vector2(-33, -30), Vector2(30, 59)), Color("#4e86ac"))
+	elif place == "hospital" and action not in ["walk", "run", "travel", "brush"]:
 		var clipboard := right_hand + Vector2(-4, -10)
 		draw_rect(Rect2(clipboard + Vector2(-31, -48), Vector2(62, 83)), Color("#e9f3f4"))
 		draw_rect(Rect2(clipboard + Vector2(-11, -55), Vector2(22, 12)), Color("#648fa2"))
