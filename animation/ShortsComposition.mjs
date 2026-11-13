@@ -308,6 +308,17 @@ function MotionGraphic({scene,frame}){
  el('div',{style:{position:'absolute',left:'12%',right:'12%',top:'72%',height:7,borderRadius:10,background:'#ffffff24'}},
   el('div',{style:{width:Math.min(100,frame/Math.max(1,scene.endFrame-scene.startFrame)*100)+'%',height:'100%',background:accent,borderRadius:10}})));
 }
+// Reference-inspired editorial caption treatment: emphasize meaning, not every word.
+const captionEmphasis=/^(?:nicht|nie|niemals|not|never|warnung|warning|gefahr|danger|alarm|geheim|secret|millionen|milliarden|million|billion|nacht|night)$/i;
+function CaptionWords({caption,landscape}){
+ const tokens=caption.split(/(\\s+)/);
+ return el(React.Fragment,null,...tokens.map((token,i)=>{
+  if(/^\\s+$/.test(token))return token;
+  const normalized=token.replace(/^[^\\p{L}]+|[^\\p{L}]+$/gu,'');
+  const important=captionEmphasis.test(normalized);
+  return el('span',{key:i,style:{color:important?'#ff5e75':'#fff',textShadow:'0 3px 8px #000b'}},token);
+ }));
+}
 export function ShortsComposition({script='Ein Mann wacht morgens auf.',narration=false,durationsFrames=null,aspectRatio='9:16'}){
  const plan=makeScenePlan(script,{durationsFrames,aspectRatio}),frame=useCurrentFrame();
  const landscape=aspectRatio==='16:9';
@@ -334,6 +345,6 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
   aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,mouthLevel:narration?speechMouthLevel(local,narrationWordTimings[sceneIndex],plan.fps):0})),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
   el('div',{style:{position:'absolute',top:landscape?42:85,left:landscape?70:65,color:'#fff',fontSize:landscape?26:34,fontWeight:800,letterSpacing:3,textShadow:'0 3px 8px #0009'}},'SHORTS STUDIO'),
-  el('div',{style:{position:'absolute',bottom:landscape?58:140,left:landscape?'15%':45,right:landscape?'15%':45,opacity,background:'#14253bd9',borderRadius:landscape?18:30,padding:landscape?'18px 24px':'32px 26px',color:'white',fontSize:landscape?35:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},caption)
+  el('div',{style:{position:'absolute',bottom:landscape?58:140,left:landscape?'15%':45,right:landscape?'15%':45,opacity,background:'#14253bd9',borderRadius:landscape?18:30,padding:landscape?'18px 24px':'32px 26px',color:'white',fontSize:landscape?35:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},el(CaptionWords,{caption,landscape}))
  );
 }
