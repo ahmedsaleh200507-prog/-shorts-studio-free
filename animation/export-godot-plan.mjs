@@ -24,6 +24,6 @@ const scenes=plan.scenes.map((scene)=>{
   const place=topic||(supportedPlaces.has(scene.place)?scene.place:'generic');
   const frames=scene.endFrame-scene.startFrame;
   if(!Number.isInteger(frames)||frames<1) throw new Error('Invalid frame count');
-  return {id:scene.id,text:scene.text,action,place,frames,startFrame:scene.startFrame,endFrame:scene.endFrame};
+  return {id:scene.id,text:scene.text,action,place,props:scene.props,keywords:scene.keywords,frames,startFrame:scene.startFrame,endFrame:scene.endFrame};
 });
 process.stdout.write(JSON.stringify({version:1,aspectRatio,fps:plan.fps,totalFrames:plan.totalFrames,scenes},null,2)+'\n');
