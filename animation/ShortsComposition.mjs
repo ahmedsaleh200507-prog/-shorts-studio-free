@@ -106,6 +106,8 @@ function Background({place,frame}){
  if(place==='house')return el(React.Fragment,null,
   Shape({x:0,y:0,w:100,h:72,color:'#a9d7ec'}),
   Shape({x:0,y:72,w:100,h:28,color:'#8eae7a'}),
+  // Layered foreground vegetation sways independently from the building.
+  ...[4,18,82,94].map((x,i)=>Shape({x:x+Math.sin(frame/17+i)*.6,y:75+i%2*3,w:2.5,h:10,color:'#5d9666',r:'60% 60% 0 0',rotate:Math.sin(frame/19+i)*5})),
   Shape({x:9,y:24,w:82,h:53,color:'#ead4b7',r:5}),
   Shape({x:5,y:20,w:90,h:10,color:'#a85e54',rotate:-3}),
   Shape({x:39,y:44,w:22,h:33,color:'#755646',r:'7px 7px 0 0'}),
