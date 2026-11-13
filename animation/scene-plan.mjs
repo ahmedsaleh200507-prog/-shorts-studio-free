@@ -86,7 +86,7 @@ function extractNarrative(text,action,previousActor,previousObjects){
  const named=actorPatterns.find(([,re])=>re.test(text));
  const actor=named?named[0]:previousActor;
  const mentioned=objectPatterns.filter(([,re])=>re.test(text)).map(([name])=>name);
- const pronounObject=/\b(?:it|this|that|ihn|ihm|es|sie|damit|darauf)\b/i.test(text);
+ const pronounObject=/\b(?:it|this|that|ihn|ihm|es|damit|darauf|dieses|diesen)\b/i.test(text);
  const objects=mentioned.length?mentioned:(pronounObject?previousObjects.slice(0,2):[]);
  return {actor,objects,interaction:action==='talk'?'narrate':action};
 }
@@ -102,6 +102,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
   const sentences=splitScript(script);
   if(!sentences.length) throw new Error('empty script');
   if(durationsFrames!==null && (!Array.isArray(durationsFrames)||durationsFrames.length!==sentences.length||durationsFrames.some(n=>!Number.isInteger(n)||n<1))) throw new RangeError('invalid scene durations');
+  if(!["9:16","16:9"].includes(aspectRatio)) throw new RangeError("invalid aspect ratio");
   let cursor=0;
   let previousPlace='generic';
   let previousActor='main';
