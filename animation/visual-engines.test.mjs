@@ -38,3 +38,9 @@ test('Wake-up and toothbrush are character-attached 2D actions',()=>{
  assert.match(source,/Hand holding toothbrush/);
  assert.match(source,/if\(action==='brush'\)return null/);
 });
+
+test('Sitting scenes draw an actual 2D chair behind the character',()=>{
+ assert.match(source,/scene\.action==='sit'\?el\(React\.Fragment/);
+ assert.match(source,/Shape\(\{x:37,y:67,w:26,h:5,color:'#9a6648'/);
+ assert.match(source,/el\(Person,\{frame,action:scene\.action,mouthLevel\}\)/);
+});
