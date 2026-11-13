@@ -41,3 +41,12 @@ test('held object persists through another shot and is released when placed',()=
  assert.equal(scenes[2].narrative.releaseObject,'cup');
  assert.equal(scenes[3].narrative.heldObject,null);
 });
+
+test('held objects keep character rendering until explicit release',()=>{
+ const scenes=makeScenePlan('She picks up a bottle. Then she walks. She puts down the bottle.').scenes;
+ assert.equal(scenes[0].narrative.heldObject,'bottle');
+ assert.equal(scenes[1].visualMode,'character');
+ assert.equal(scenes[1].narrative.heldObject,'bottle');
+ assert.equal(scenes[2].visualMode,'character');
+ assert.equal(scenes[2].narrative.releaseObject,'bottle');
+});
