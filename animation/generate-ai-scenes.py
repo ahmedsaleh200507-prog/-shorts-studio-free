@@ -21,6 +21,9 @@ landscape = os.environ.get("ASPECT_RATIO", "9:16") == "16:9"
 if script.startswith("[[ASPECT_16_9]]"):
     script = script[len("[[ASPECT_16_9]]"):].strip()
     landscape = True
+if script.startswith("[[VECTOR_2D]]"):
+    script = script[len("[[VECTOR_2D]]"):].strip()
+    vector_mode = True
 
 key = os.environ.get("POLLINATIONS_KEY", "").strip()
 # No paid image service is required: render the built-in 2D vector scenes
