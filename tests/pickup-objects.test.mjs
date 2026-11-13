@@ -251,3 +251,15 @@ test('held props remain visible through metro travel and topic changes',()=>{
  assert.equal(scenes[4].narrative.heldObject,null);
  assert.equal(scenes[4].visualMode,'motion-graphic');
 });
+
+test('pickup selects first named object in the verb clause, not dictionary priority',()=>{
+ const cases=[
+  ['She picks up a bottle beside a cup.','bottle'],
+  ['She picks up a book near an apple.','book'],
+  ['She picks up a cup beside a banana.','cup']
+ ];
+ for(const [script,expected] of cases){
+  const scene=makeScenePlan(script).scenes[0];
+  assert.equal(scene.narrative.interactionObject,expected,script);
+ }
+});
