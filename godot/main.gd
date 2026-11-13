@@ -89,7 +89,7 @@ func _draw_character(t: float) -> void:
 	if action == "wake":
 		var rise := smoothstep(0.0, 1.5, t)
 		root += Vector2(-75.0 * (1.0 - rise), 130.0 * (1.0 - rise))
-		root = root.rotated(-0.22 * (1.0 - rise))
+		root += Vector2(0, -12.0 * (1.0 - rise))
 	var hip := root + Vector2(0, 150)
 	var shoulder := root + Vector2(sway, -30)
 	var left_ankle := hip + Vector2(-29 + gait, 185 - abs(gait) * 0.32)
