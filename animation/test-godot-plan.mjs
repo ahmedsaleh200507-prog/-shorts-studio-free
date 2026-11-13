@@ -96,3 +96,28 @@ test('Radio and metro have distinct native documentary scenes',()=>{
   assert.deepEqual(plan.scenes.map(s=>s.place),['radio','metro','phone']);
   assert.ok(plan.scenes.every(s=>s.frames>0));
 });
+
+test('Named settings take priority over incidental devices and actions',()=>{
+  const examples=[
+    ['Im Krankenhaus liest die Ärztin eine Nachricht auf dem Smartphone.','hospital'],
+    ['At school the teacher opens a laptop.','school'],
+    ['In the supermarket she pays with her phone.','supermarket'],
+    ['The radio broadcasts an emergency warning.','radio'],
+    ['Die U-Bahn fährt in den Bahnhof.','metro']
+  ];
+  for(const [script,place] of examples) assert.equal(exportPlan(script).scenes[0].place,place,script);
+});
+
+test('Follow-up narration inherits the preceding scene setting',()=>{
+  const plan=exportPlan('Sie geht ins Krankenhaus. Danach wartet sie. Dort spricht sie mit ihm.');
+  assert.deepEqual(plan.scenes.map(s=>s.place),['hospital','hospital','hospital']);
+});
+
+test('Documentary subjects survive ordinary narration verbs',()=>{
+  const examples=[
+    ['A scientist talks about the planet Earth.','space'],
+    ['Die Karte zeigt Europa.','map'],
+    ['A radio plays a message.','radio']
+  ];
+  for(const [script,place] of examples) assert.equal(exportPlan(script).scenes[0].place,place,script);
+});
