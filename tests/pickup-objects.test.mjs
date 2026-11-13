@@ -170,3 +170,15 @@ test('a newly mentioned item supersedes old pronoun memory',()=>{
  const scenes=makeScenePlan('A cup is on the table. She looks at it. A bottle is nearby. She picks it up.').scenes;
  assert.equal(scenes[3].narrative.interactionObject,'bottle');
 });
+
+test('repeated pickup of already-held item does not animate a second grasp',()=>{
+ const scenes=makeScenePlan('She picks up a cup. Then she picks up the cup again.').scenes;
+ assert.equal(scenes[0].narrative.hasPhysicalInteraction,true);
+ assert.equal(scenes[1].narrative.heldObject,'cup');
+ assert.equal(scenes[1].narrative.hasPhysicalInteraction,false);
+});
+test('pickup of a different item still triggers a new interaction',()=>{
+ const scenes=makeScenePlan('She picks up a cup. Then she picks up a bottle.').scenes;
+ assert.equal(scenes[1].narrative.interactionObject,'bottle');
+ assert.equal(scenes[1].narrative.hasPhysicalInteraction,true);
+});
