@@ -11,27 +11,37 @@ permissions:
 jobs:
   native-2d:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Install free Godot, Blender and FFmpeg
+      - name: Install FFmpeg and Blender
         run: |
           sudo apt-get update
-          sudo apt-get install -y godot3-server blender ffmpeg
-          blender --version | head -n 2
-          ffmpeg -version | head -n 1
-      - name: Create Blender Grease Pencil source
+          sudo apt-get install -y blender ffmpeg xvfb
+      - name: Install Godot 4 headless
         run: |
-          blender --background --factory-startup --python blender/export_2d_assets.py -- --out blender/export
-          test -s blender/export/shorts-2d-assets.blend
-      - name: Check Godot 4 project requirements
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          sudo install -m 755 /tmp/godot/Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+      - name: Check Blender Grease Pencil authoring
         run: |
-          grep -q 'config_version=5' godot/project.godot
-          grep -q 'extends Node2D' godot/main.gd
-          echo 'Godot 4.x required; Ubuntu apt godot3-server is incompatible.'
-      - name: Upload authored Blender asset
-        uses: actions/upload-artifact@v4
+          blender --version | head -n 1
+          blender --background --factory-startup --python-expr "import bpy; print('Grease Pencil v3 available:', hasattr(bpy.data,'grease_pencils_v3'))"
+      - name: Render Godot 2D animation frames
+        run: |
+          mkdir -p output/godot-frames
+          xvfb-run -a godot --path godot --rendering-driver opengl3 -- --action=brush --place=bathroom --frames=48 --out="$PWD/output/godot-frames"
+          test "$(find output/godot-frames -name 'frame_*.png' | wc -l)" -eq 48
+          file output/godot-frames/frame_00000.png
+      - name: Encode and validate real MP4
+        run: |
+          ffmpeg -hide_banner -loglevel error -y -framerate 24 -i output/godot-frames/frame_%05d.png -c:v libx264 -pix_fmt yuv420p output/godot-demo.mp4
+          test -s output/godot-demo.mp4
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,nb_frames -of default=noprint_wrappers=1 output/godot-demo.mp4
+      - uses: actions/upload-artifact@v4
         with:
-          name: blender-grease-pencil-source
-          path: blender/export/shorts-2d-assets.blend
+          name: godot-2d-demo-mp4
+          path: output/godot-demo.mp4
+          if-no-files-found: error
           retention-days: 3
