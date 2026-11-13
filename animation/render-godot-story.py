@@ -130,7 +130,7 @@ def render_story(script, aspect, audio_dir, output):
         # Burn captions after concatenation; escape filtergraph-sensitive paths.
         subtitle_path = subtitles.as_posix().replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
         engine.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(joined),
-                    "-vf", f"subtitles='{subtitle_path}'", "-c:v", "libx264", "-crf", "24",
+                    "-vf", f"subtitles='{subtitle_path}':force_style='FontName=DejaVu Sans,FontSize=20,Bold=1,PrimaryColour=&H00FFFFFF,OutlineColour=&H00111A2D,BorderStyle=1,Outline=2,Shadow=0,Alignment=2,MarginV=64'", "-c:v", "libx264", "-crf", "24",
                     "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", str(output)], timeout=1200)
     probe = json.loads(engine.run(["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(output)]).stdout)
     streams = probe["streams"]
