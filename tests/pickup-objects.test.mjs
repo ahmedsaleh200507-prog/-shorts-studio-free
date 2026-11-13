@@ -115,3 +115,16 @@ test('explicit placement and release verbs still work',()=>{
   assert.equal(scene.action,'put',script);
  }
 });
+
+test('interaction object is tracked separately from other props',()=>{
+ const scenes=makeScenePlan('She picks up a bottle. Then she walks. She puts down the bottle.').scenes;
+ assert.equal(scenes[0].narrative.interactionObject,'bottle');
+ assert.equal(scenes[1].narrative.interactionObject,null);
+ assert.equal(scenes[1].narrative.heldObject,'bottle');
+ assert.equal(scenes[2].narrative.interactionObject,'bottle');
+ assert.equal(scenes[2].narrative.releaseObject,'bottle');
+});
+test('no physical object is invented for a generic pickup',()=>{
+ const scene=makeScenePlan('She picks up an object.').scenes[0];
+ assert.equal(scene.narrative.interactionObject,null);
+});
