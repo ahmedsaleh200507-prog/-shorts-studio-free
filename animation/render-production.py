@@ -1,5 +1,7 @@
 """Render the requested production mode to the same downloadable final.mp4."""
 import os
+import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -44,6 +46,23 @@ def main():
     subprocess.run(command, check=True, cwd=ROOT / "animation")
     if not output.is_file() or output.stat().st_size < 10000:
         raise RuntimeError("Production MP4 is missing or empty")
+    # The file existing is not sufficient: verify codec, aspect and audible AAC.
+    if not shutil.which("ffprobe"):
+        raise RuntimeError("ffprobe is required to validate the final MP4")
+    probe = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(output)],
+        check=True, capture_output=True, text=True, timeout=60)
+    streams = json.loads(probe.stdout).get("streams", [])
+    video = next((s for s in streams if s.get("codec_type") == "video"), None)
+    expected = (960, 540) if aspect == "16:9" else (540, 960)
+    if not video or video.get("codec_name") != "h264":
+        raise RuntimeError("Final MP4 is missing H.264 video")
+    # Remotion production renders at half resolution to stay within free runner limits.
+    valid_sizes = {expected, (expected[0] // 2, expected[1] // 2)}
+    if (video.get("width"), video.get("height")) not in valid_sizes:
+        raise RuntimeError("Final MP4 has an unexpected aspect or resolution")
+    if not any(s.get("codec_type") == "audio" and s.get("codec_name") == "aac" for s in streams):
+        raise RuntimeError("Final MP4 is missing AAC narration")
     print("Rendered", "Godot native 2D" if vector else "Remotion AI illustration", output)
 
 if __name__ == "__main__":
