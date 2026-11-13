@@ -7,6 +7,7 @@ import {makeScenePlan} from './scene-plan.mjs';
 import {aiSceneImages} from './ai-scene-images.mjs';
 import {staticFile} from 'remotion';
 import {characterPose,pickupPropPose} from './skeletal-motion.mjs';
+import {captionTokenStyle,captionOpacity} from './caption-style.mjs';
 
 const el=React.createElement;
 const pct=(n)=>n+'%';
@@ -309,15 +310,11 @@ function MotionGraphic({scene,frame}){
   el('div',{style:{width:Math.min(100,frame/Math.max(1,scene.endFrame-scene.startFrame)*100)+'%',height:'100%',background:accent,borderRadius:10}})));
 }
 // Reference-inspired editorial caption treatment: emphasize meaning, not every word.
-const captionEmphasis=/^(?:nicht|nie|niemals|not|never|warnung|warning|gefahr|danger|alarm|geheim|secret|millionen|milliarden|million|billion|nacht|night)$/i;
-function CaptionWords({caption,landscape}){
+function CaptionWords({caption}){
  const tokens=caption.split(/(\s+)/);
  return el(React.Fragment,null,...tokens.map((token,i)=>{
-  if(/^\s+$/.test(token))return token;
-  const normalized=token.replace(/^[^\p{L}]+|[^\p{L}]+$/gu,'');
-  const important=captionEmphasis.test(normalized);
-  const numeric=/^(?:\d+(?:[.,]\d+)?%?|\d+(?:[.,]\d+)?€)$/.test(normalized)||/[0-9]/.test(token);
-  return el('span',{key:i,style:{color:important?'#ff5e75':numeric?'#ffd166':'#fff',textShadow:'0 3px 8px #000b'}},token);
+  const kind=captionTokenStyle(token);
+  return el('span',{key:i,style:{color:kind==='emphasis'?'#ff5e75':kind==='number'?'#ffd166':'#fff',textShadow:'0 3px 8px #000b'}},token);
  }));
 }
 export function ShortsComposition({script='Ein Mann wacht morgens auf.',narration=false,durationsFrames=null,aspectRatio='9:16'}){
@@ -342,8 +339,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const revealedWords=narration?captionRevealCount(scene.text,local,duration,narrationWordTimings[sceneIndex],plan.fps):Math.max(1,Math.min(words.length,Math.ceil(progress*words.length)));
  const caption=words.slice(0,revealedWords).join(' ');
  // Short scenes need non-overlapping fade windows to avoid invalid interpolation ranges.
- const fade=Math.max(1,Math.min(5,Math.floor(duration/3)));
- const opacity=duration<=2?1:Math.max(0,Math.min(1,local/fade,(duration-1-local)/fade));
+ const opacity=captionOpacity(local,duration);
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
   aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,mouthLevel:narration?speechMouthLevel(local,narrationWordTimings[sceneIndex],plan.fps):0})),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
