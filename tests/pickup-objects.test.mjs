@@ -201,3 +201,15 @@ test('generic object pickup remains a valid action without an invented prop',()=
  assert.equal(scene.action,'pick');
  assert.equal(scene.narrative.heldObject,null);
 });
+
+test('pickup targets the object following the verb, not a previously mentioned prop',()=>{
+ for(const [script,expected] of [
+  ['A cup is on the table and she picks up a bottle.','bottle'],
+  ['A book is on the shelf and he grabs an apple.','apple'],
+  ['She sees a banana and takes a cup.','cup']
+ ]){
+  const scene=makeScenePlan(script).scenes[0];
+  assert.equal(scene.action,'pick',script);
+  assert.equal(scene.narrative.interactionObject,expected,script);
+ }
+});
