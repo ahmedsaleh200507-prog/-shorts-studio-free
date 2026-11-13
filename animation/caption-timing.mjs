@@ -20,3 +20,19 @@ export function captionRevealCount(text,localFrame,durationFrames,alignment=null
  const seconds=Math.max(0,localFrame/fps);
  return Math.max(1,Math.min(words.length,tokens.filter(x=>x.start<=seconds+.001).length));
 }
+
+/** Use real speech boundaries to close the character mouth during pauses. */
+export function speechActiveAtFrame(localFrame,alignment=null,fps=24){
+ if(!Array.isArray(alignment)||alignment.length===0)return true; // legacy narration without boundaries
+ if(!Number.isFinite(localFrame)||!Number.isFinite(fps)||fps<=0)return false;
+ const seconds=Math.max(0,localFrame/fps);
+ let valid=0;
+ for(const entry of alignment){
+  if(!entry||entry.start==null||entry.end==null)continue;
+  const start=Number(entry.start),end=Number(entry.end);
+  if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end<=start)continue;
+  valid++;
+  if(seconds>=Math.max(0,start-.035)&&seconds<=end+.055)return true;
+ }
+ return valid===0; // malformed alignment falls back to the legacy speaking state
+}
