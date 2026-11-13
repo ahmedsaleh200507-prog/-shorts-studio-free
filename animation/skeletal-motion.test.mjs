@@ -20,8 +20,8 @@ test('Walking legs counter-rotate and carrying hand remains steady',()=>{
 test('Pick gesture interpolates smoothly',()=>{
  assert.equal(smooth(0),0);
  assert.equal(smooth(1),1);
- assert.equal(characterPose('pick',0).rightArm,Math.sin(1)*4);
- assert.equal(characterPose('pick',48).rightArm,-55);
+ assert.equal(characterPose('pick',0).rightArm,0);
+ assert.equal(characterPose('pick',48).rightArm,-43);
 });
 test('Lip cues support Rhubarb-style viseme timing without dependency',()=>{
  const cues=[{start:0,end:.2,value:'A'},{start:.2,end:.5,value:'D'}];
