@@ -159,3 +159,14 @@ test('a pronoun without an object never invents a pickup prop',()=>{
  assert.equal(scene.narrative.interactionObject,null);
  assert.equal(scene.narrative.hasPhysicalInteraction,false);
 });
+
+test('pronoun-only scene preserves explicit object memory across multiple shots',()=>{
+ const scenes=makeScenePlan('A cup is on the table. She looks at it. Then she picks it up.').scenes;
+ assert.equal(scenes[2].action,'pick');
+ assert.equal(scenes[2].narrative.interactionObject,'cup');
+ assert.equal(scenes[2].narrative.hasPhysicalInteraction,true);
+});
+test('a newly mentioned item supersedes old pronoun memory',()=>{
+ const scenes=makeScenePlan('A cup is on the table. She looks at it. A bottle is nearby. She picks it up.').scenes;
+ assert.equal(scenes[3].narrative.interactionObject,'bottle');
+});
