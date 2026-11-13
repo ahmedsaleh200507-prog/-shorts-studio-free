@@ -335,7 +335,18 @@ function AiIllustration({image,sceneIndex,progress}){
   el('div',{style:{position:'absolute',inset:0,pointerEvents:'none',background:'linear-gradient(180deg,#07102144 0%,transparent 35%,#08122288 100%)'}}));
 }
 function VectorScene({scene,frame,mouthLevel=0}){
- return scene.visualMode==='character'?el(React.Fragment,null,
+ // Apply one subtle 2D camera move to the entire illustrated world so the
+ // actor, held props and environment remain spatially locked together.
+ const sceneDuration=Math.max(1,(scene.endFrame||72)-(scene.startFrame||0));
+ const progress=Math.min(1,Math.max(0,frame/sceneDuration));
+ const eased=progress*progress*(3-2*progress);
+ const direction=(Number((scene.id||'').match(/\\d+/)?.[0]||1)%2===0)?-1:1;
+ const zoom=1.015+eased*.045;
+ const panX=direction*(1-eased)*1.3;
+ const panY=(eased-.5)*1.1;
+ return el('div',{style:{position:'absolute',inset:0,overflow:'hidden'}},
+  el('div',{style:{position:'absolute',inset:0,transform:`translate(${panX}%,${panY}%) scale(${zoom})`,transformOrigin:'50% 52%'}},
+ scene.visualMode==='character'?el(React.Fragment,null,
     el(Background,{place:scene.place,frame}),
     scene.action==='sit'?el(React.Fragment,null,
       Shape({x:42,y:49,w:7,h:24,color:'#79533d',r:5}),
@@ -343,7 +354,7 @@ function VectorScene({scene,frame,mouthLevel=0}){
       Shape({x:39,y:70,w:3,h:18,color:'#69442f',r:3}),
       Shape({x:58,y:70,w:3,h:18,color:'#69442f',r:3})):null,
     el(Person,{frame,action:scene.action,mouthLevel,holding:Boolean(scene.narrative?.heldObject)}),
-    el(Prop,{action:scene.action,frame,hasPhysicalInteraction:scene.narrative?.hasPhysicalInteraction===true,heldObject:scene.action==='pick'?null:scene.narrative?.heldObject,objects:scene.narrative?.interactionObject?[scene.narrative.interactionObject]:scene.narrative?.heldObject?[scene.narrative.heldObject]:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame});
+    el(Prop,{action:scene.action,frame,hasPhysicalInteraction:scene.narrative?.hasPhysicalInteraction===true,heldObject:scene.action==='pick'?null:scene.narrative?.heldObject,objects:scene.narrative?.interactionObject?[scene.narrative.interactionObject]:scene.narrative?.heldObject?[scene.narrative.heldObject]:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame})));
 }
 function MotionGraphic({scene,frame}){
  const t=frame/24, pulse=1+0.035*Math.sin(t*5), slide=Math.min(0, -90+frame*12);
