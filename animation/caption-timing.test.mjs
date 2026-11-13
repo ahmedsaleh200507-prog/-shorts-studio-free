@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {captionRevealCount,speechActiveAtFrame} from './caption-timing.mjs';
+import {captionRevealCount,speechActiveAtFrame,speechMouthLevel} from './caption-timing.mjs';
 test('Edge TTS word boundaries control captions',()=>{
  const words=[{word:'Hallo',start:.2,end:.6},{word:',',start:.6,end:.65},{word:'Welt',start:1,end:1.5},{word:'!',start:1.5,end:1.55}];
  assert.equal(captionRevealCount('Hallo, Welt!',5,72,words),1);
@@ -33,4 +33,19 @@ test('mouth motion rejects negative frames and invalid fps without throwing',()=
  assert.equal(speechActiveAtFrame(1,timing,Infinity),false);
  assert.equal(speechActiveAtFrame(-1,[]),false);
  assert.equal(speechActiveAtFrame(0,[{word:'Hallo',start:true,end:1}]),true);
+});
+
+test('smooth mouth level stays bounded and closes in silence',()=>{
+ const words=[{word:'Hallo',start:.3,end:.7},{word:'Welt',start:1.2,end:1.6}];
+ assert.equal(speechMouthLevel(0,words),0);
+ assert.ok(speechMouthLevel(12,words)>.2);
+ assert.equal(speechMouthLevel(23,words),0);
+ assert.ok(speechMouthLevel(34,words)>.2);
+ assert.equal(speechMouthLevel(50,words),0);
+ assert.equal(speechMouthLevel(-1,words),0);
+ assert.equal(speechMouthLevel(5,words,0),0);
+ for(let frame=0;frame<72;frame++){
+  const v=speechMouthLevel(frame,words);
+  assert.ok(v>=0&&v<=1&&Number.isFinite(v));
+ }
 });
