@@ -8,6 +8,7 @@ const rules=[
   ['walk', /\b(?:walks?|walking|strolls?)\b|\b(?:geht|gehen|spaziert|spazieren)\b/i, 'generic', ['path']],
   ['brush', /zähne|zahn|putzt|brush(?:es|ing)?|teeth|tooth/i, 'bathroom', ['toothbrush','sink']],
   ['checkout', /kasse|bezahl|checkout|cashier|\bpays?\b/i, 'supermarket', ['register','payment-card']],
+  ['pick', /\\b(?:bananas?|books?|bottles?|cups?)\\b|banane|buch|flasche|tasse|\\b(?:picks? up|grabs?|takes?)\\s+(?:a |an |the )?(?:object|item)\\b|\\b(?:nimmt|greift)\\s+(?:eine[nrsm]? |das |den )?(?:banane|buch|flasche|tasse|gegenstand)/i, 'generic', ['object','hand']],
   ['pick', /apfel|apple|picks? (?:up )?(?:an? )?apple|nimmt (?:einen |eine |das |den )?(?:apfel|gegenstand)|takes? (?:an? |the )?(?:apple|object)/i, 'supermarket', ['apple','shelf']],
   ['wake', /\bwach(?:e|st|t|en)?\b[^.!?]{0,90}\bauf\b|aufwach|\berwach(?:e|st|t|en)?\b|wake(?:s)? up|woke up|\b(?:steht|stand)\s+auf\b|aufgestanden|\b(?:gets?|got)\s+up\b|\bbed\b|bett/i, 'bedroom', ['bed']],
   ['travel', /\bbus\b|\bzug\b|train|station|bahnhof/i, 'transport', ['vehicle']],
@@ -69,7 +70,7 @@ function chooseContext(text, previousPlace){
 // Lightweight narrative memory. Metadata is shared by preview and render exports.
 const objectPatterns=[
  ['phone',/handy|smartphone|telefon|phone/i],['radio',/\bradio\b|radioger[aä]t/i],
- ['apple',/apfel|apple/i],['bag',/tasche|rucksack|backpack|bag/i],
+ ['apple',/apfel|apple/i],['banana',/banane|banana/i],['bottle',/flasche|bottle/i],['cup',/tasse|\\bcup\\b/i],['bag',/tasche|rucksack|backpack|bag/i],
  ['door',/t[uü]r|door/i],['train',/u-bahn|metro|subway|\bzug\b|train/i],
  ['bed',/bett|\bbed\b/i],['toothbrush',/zahnb[uü]rste|toothbrush/i],
  ['computer',/computer|laptop/i],['book',/buch|\bbook\b/i],
