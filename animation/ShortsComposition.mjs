@@ -114,8 +114,11 @@ function Prop({action,frame}){
  const bob=Math.sin(frame/4)*2;
  if(action==='brush')return null; // Toothbrush is attached to the character's animated hand in Person.
  if(action==='pick'){
-  const grasp=Math.min(1,Math.max(0,(frame-14)/28));
-  const x=72-19*grasp,y=57-9*grasp+bob*.3;
+  // Keep the apple attached to the same grasp timeline as the hand rig.
+  // The object stays on the shelf until contact, then follows the hand.
+  const grasp=characterPose('pick',frame).grasp;
+  const lift=grasp*grasp*(3-2*grasp);
+  const x=72-19*lift,y=57-9*lift+(grasp>0?bob*.12:0);
   return el(React.Fragment,null,
    Shape({x,y,w:9,h:7,color:'#d8443e',r:'48% 48% 52% 52%',style:{boxShadow:'inset -5px -4px 0 #a92b2b'}}),
    Shape({x:x+4,y:y-2,w:1.3,h:3,color:'#60422d',r:3,rotate:15}),
