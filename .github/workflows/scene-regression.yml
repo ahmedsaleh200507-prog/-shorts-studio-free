@@ -1,0 +1,29 @@
+name: Scene regression tests
+on:
+  push:
+    paths:
+      - 'animation/scene-plan.mjs'
+      - 'animation/skeletal-motion.mjs'
+      - 'animation/caption-style.mjs'
+      - 'tests/**'
+      - '.github/workflows/scene-regression.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scene-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate source syntax
+        run: |
+          node --check animation/scene-plan.mjs
+          node --check animation/skeletal-motion.mjs
+          node --check animation/caption-style.mjs
+      - name: Run deterministic scene and motion tests
+        run: node --test tests/pick-interaction.test.mjs tests/pickup-objects.test.mjs tests/caption-style.test.mjs
