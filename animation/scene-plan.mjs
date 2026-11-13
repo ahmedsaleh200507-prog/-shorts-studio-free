@@ -1,6 +1,8 @@
 // Shared, deterministic scene-plan contract for browser preview and MP4 rendering.
 // No API calls, secrets or GPU required.
 const rules=[
+  ['radio', /\\bradio\\b|rundfunk|broadcast|radiogerät|radioger[aä]t|transistor/i, 'radio', ['radio','signal']],
+  ['metro', /\\bmetro\\b|\\bsubway\\b|\\bu-bahn\\b|\\bubahn\\b|\\buntergrundbahn\\b|\\bmetrostation\\b/i, 'metro', ['train','platform']],
   ['run', /\b(?:runs?|running|jogs?|jogging|sprints?)\b|\brenn(?:t|en|e|st)?\b|\bläuft\b|\blaufen\b|\brennt\b/i, 'generic', ['motion-trail']],
   ['sit', /\b(?:sits?|sitting|sat down|takes? a seat)\b|\b(?:sitzt|sitzen|setzt sich|hinsetzen)\b/i, 'generic', ['chair']],
   ['walk', /\b(?:walks?|walking|strolls?)\b|\b(?:geht|gehen|spaziert|spazieren)\b/i, 'generic', ['path']],
@@ -64,7 +66,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
-    const visualMode=['alert','phone','door','clock','space','science','nature','technology','number','map','history'].includes(action)?'motion-graphic':'character';
+    const visualMode=['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(action)?'motion-graphic':'character';
     const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
     return {id:`scene-${index+1}`,text,action,place,props,visualMode,keywords,characterId:'main',startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
