@@ -311,10 +311,10 @@ function MotionGraphic({scene,frame}){
 // Reference-inspired editorial caption treatment: emphasize meaning, not every word.
 const captionEmphasis=/^(?:nicht|nie|niemals|not|never|warnung|warning|gefahr|danger|alarm|geheim|secret|millionen|milliarden|million|billion|nacht|night)$/i;
 function CaptionWords({caption,landscape}){
- const tokens=caption.split(/(\\s+)/);
+ const tokens=caption.split(/(\s+)/);
  return el(React.Fragment,null,...tokens.map((token,i)=>{
-  if(/^\\s+$/.test(token))return token;
-  const normalized=token.replace(/^[^\\p{L}]+|[^\\p{L}]+$/gu,'');
+  if(/^\s+$/.test(token))return token;
+  const normalized=token.replace(/^[^\p{L}]+|[^\p{L}]+$/gu,'');
   const important=captionEmphasis.test(normalized);
   return el('span',{key:i,style:{color:important?'#ff5e75':'#fff',textShadow:'0 3px 8px #000b'}},token);
  }));
