@@ -39,10 +39,10 @@ test('Wake-up and toothbrush are character-attached 2D actions',()=>{
  assert.match(source,/if\(action==='brush'\)return null/);
 });
 
-test('Sitting scenes draw an actual 2D chair behind the character',()=>{
- assert.match(source,/scene\.action==='sit'\?el\(React\.Fragment/);
- assert.match(source,/Shape\(\{x:37,y:67,w:26,h:5,color:'#9a6648'/);
- assert.match(source,/el\(Person,\{frame,action:scene\.action,mouthLevel,holding:/);
+test('cinematic reference mode does not render the legacy seated cartoon',()=>{
+ const section=source.slice(source.indexOf('function VectorScene('),source.indexOf('function ReferenceDiagram('));
+ assert.match(section,/el\(CinematicEnvironment,\{scene,frame\}\)/);
+ assert.doesNotMatch(section,/el\(Person,/);
 });
 
 test('2D characters blink both eyes using deterministic frame timing',()=>{
