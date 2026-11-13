@@ -85,6 +85,19 @@ func _draw() -> void:
 			zoom = lerpf(1.0, 1.055, ease)
 			camera_pan = Vector2(14.0 * sin(scene_progress * PI), -10.0 * ease)
 	var camera_offset := Vector2(270, 480) * (1.0 - zoom) + camera_pan
+	# Paint the full output canvas before the portrait-safe composition.
+	# Landscape previously left large empty side bars around the portrait scene.
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	draw_rect(Rect2(Vector2.ZERO, Vector2(render_size)), Color("#c6dfeb"))
+	var floor_y := offset.y + 690.0 * scale_factor
+	draw_rect(Rect2(0, floor_y, render_size.x, render_size.y - floor_y), Color("#b88e70"))
+	# Architectural side panels fill the widescreen margins while preserving the actor.
+	if render_size.x > render_size.y:
+		var left_edge := offset.x
+		var right_edge := offset.x + 540.0 * scale_factor
+		for panel in [Rect2(0, 0, left_edge, floor_y), Rect2(right_edge, 0, render_size.x - right_edge, floor_y)]:
+			draw_rect(panel, Color("#b1d2df"))
+			draw_line(panel.position + Vector2(0, floor_y * 0.45), panel.position + Vector2(panel.size.x, floor_y * 0.45), Color("#91b6c5"), 3.0)
 	draw_set_transform(offset + camera_offset * scale_factor, 0.0, Vector2.ONE * scale_factor * zoom)
 	draw_rect(Rect2(0, 0, 540, 960), Color("#c6dfeb"))
 	draw_rect(Rect2(0, 690, 540, 270), Color("#b88e70"))
