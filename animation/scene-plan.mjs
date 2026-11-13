@@ -128,7 +128,9 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const context=chooseContext(text,previousPlace);
     const place=(context.place==='generic'||(context.place===previousPlace && rulePlace!=='generic' && rulePlace!==previousPlace && !context.setting))?rulePlace:context.place;
     if(place!=='generic') previousPlace=place;
-    const resolvedAction=place==='metro'?'travel':action;
+    // Metro determines the setting, not the character action. Preserve explicit
+    // object manipulation (including a pickup on a train platform).
+    const resolvedAction=place==='metro'&&action!=='pick'&&action!=='put'?'travel':action;
     const resolvedProps=[...new Set([...props,...(place==='metro'?['train','platform']:[]),...(place==='phone'?['phone-screen']:[])])].slice(0,8);
     const narrative=extractNarrative(text,resolvedAction,previousActor,previousObjects);
     previousActor=narrative.actor;
