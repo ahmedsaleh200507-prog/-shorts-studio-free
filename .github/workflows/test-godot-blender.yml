@@ -82,6 +82,7 @@ jobs:
           xvfb-run -a python animation/render-godot-story.py --script "Er wacht auf. Er putzt die Zähne. Er nimmt einen Apfel." --out output/godot-story.mp4
           test -s output/godot-story.mp4
           ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 output/godot-story.mp4 | grep -q h264
+          ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 output/godot-story.mp4 | grep -q aac
       - uses: actions/upload-artifact@v4
         with:
           name: godot-2d-demo-mp4
