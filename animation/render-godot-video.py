@@ -22,7 +22,13 @@ PLACES = {"bedroom", "bathroom", "supermarket", "transport", "generic"}
 def run(args, timeout=600):
     return subprocess.run(args, check=True, timeout=timeout, capture_output=True, text=True)
 
-def render(action, place, seconds, aspect, audio, output):
+def render(action, place, seconds, aspect, audio, output, character=0, emotion="neutral", camera="slow-push"):
+    if not isinstance(character, int) or character not in range(4):
+        raise ValueError("Invalid character variant")
+    if emotion not in {"neutral", "happy", "sad", "angry", "surprised"}:
+        raise ValueError("Invalid emotion")
+    if camera not in {"slow-push", "follow", "close-up", "reveal", "static"}:
+        raise ValueError("Invalid camera")
     if action not in ACTIONS:
         raise ValueError(f"Unsupported action: {action}")
     if place not in PLACES:
@@ -43,7 +49,7 @@ def render(action, place, seconds, aspect, audio, output):
         frame_dir.mkdir()
         run(["godot", "--path", str(ROOT / "godot"), "--rendering-driver", "opengl3", "--",
              f"--action={action}", f"--place={place}", f"--frames={frames}",
-             f"--aspect={aspect}", f"--out={frame_dir}"], timeout=max(120, frames * 2))
+             f"--aspect={aspect}", f"--character={character}", f"--emotion={emotion}", f"--camera={camera}", f"--out={frame_dir}"], timeout=max(120, frames * 2))
         images = sorted(frame_dir.glob("frame_*.png"))
         if len(images) != frames:
             raise RuntimeError(f"Expected {frames} rendered frames, got {len(images)}")
