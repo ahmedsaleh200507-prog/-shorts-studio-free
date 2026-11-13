@@ -13,13 +13,15 @@ export function characterPose(action,frame,fps=24){
  const reach=action==='pick'?smooth(f/(fps*.95)):0;
  const hold=action==='carry';
  const brush=action==='brush';
+ const sitting=action==='sit';
+ const sitProgress=sitting?smooth(f/(fps*.65)):0;
  return {
-  bodyY:walk?Math.abs(cycle)*(running?13:8):Math.sin(t*2.16)*2,
+  bodyY:sitting?24*sitProgress:walk?Math.abs(cycle)*(running?13:8):Math.sin(t*2.16)*2,
   headRotation:Math.sin(t*1.08)*2,
-  leftArm:walk?cycle*(running?33:19):brush?-34+Math.sin(t*8.16)*7:action==='checkout'?-18:Math.sin(t*1.92)*3,
-  rightArm:hold?-11+cycle*4:walk?-cycle*(running?33:19):reach?-55*reach:action==='checkout'?-26:Math.sin(t*2.16+1)*4,
-  leftLeg:walk?cycle*(running?37:22):0,
-  rightLeg:walk?-cycle*(running?37:22):0,
+  leftArm:sitting?-10*sitProgress:walk?cycle*(running?33:19):brush?-34+Math.sin(t*8.16)*7:action==='checkout'?-18:Math.sin(t*1.92)*3,
+  rightArm:sitting?-10*sitProgress:hold?-11+cycle*4:walk?-cycle*(running?33:19):reach?-55*reach:action==='checkout'?-26:Math.sin(t*2.16+1)*4,
+  leftLeg:sitting?58*sitProgress:walk?cycle*(running?37:22):0,
+  rightLeg:sitting?-58*sitProgress:walk?-cycle*(running?37:22):0,
   propSwing:hold?cycle*2.5:0
  };
 }
