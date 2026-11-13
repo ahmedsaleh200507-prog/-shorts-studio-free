@@ -140,3 +140,15 @@ test('pickup of a newly named item is not confused with earlier context',()=>{
  assert.equal(scenes[1].narrative.interactionObject,'bottle');
  assert.equal(scenes[1].narrative.heldObject,'bottle');
 });
+
+test('explicit pickup wins over walking mentioned in the same sentence',()=>{
+ for(const [script,item] of [
+  ['She walks to the shelf and picks up a bottle.','bottle'],
+  ['He runs to the table and grabs a cup.','cup'],
+  ['She walks over and takes a book.','book']
+ ]){
+  const scene=makeScenePlan(script).scenes[0];
+  assert.equal(scene.action,'pick',script);
+  assert.equal(scene.narrative.interactionObject,item,script);
+ }
+});
