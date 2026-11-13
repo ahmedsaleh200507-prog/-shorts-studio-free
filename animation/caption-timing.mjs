@@ -36,3 +36,23 @@ export function speechActiveAtFrame(localFrame,alignment=null,fps=24){
  }
  return valid===0; // malformed alignment falls back to the legacy speaking state
 }
+
+/** Continuous 0..1 mouth opening with a short attack/release per spoken word. */
+export function speechMouthLevel(localFrame,alignment=null,fps=24){
+ if(!Number.isFinite(localFrame)||localFrame<0||!Number.isFinite(fps)||fps<=0)return 0;
+ if(!Array.isArray(alignment)||alignment.length===0)return .45+.4*Math.abs(Math.sin(localFrame*.37));
+ const t=localFrame/fps;
+ let level=0,valid=0;
+ for(const entry of alignment){
+  if(!entry||entry.start==null||entry.end==null||typeof entry.start==='boolean'||typeof entry.end==='boolean')continue;
+  const start=Number(entry.start),end=Number(entry.end);
+  if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end<=start)continue;
+  valid++;
+  if(t<start-.055||t>end+.09)continue;
+  const attack=Math.min(1,Math.max(0,(t-(start-.055))/.09));
+  const release=Math.min(1,Math.max(0,(end+.09-t)/.13));
+  const syllable=.58+.35*Math.abs(Math.sin((t-start)*18));
+  level=Math.max(level,Math.min(attack,release)*syllable);
+ }
+ return valid?Math.min(1,level):.45+.4*Math.abs(Math.sin(localFrame*.37));
+}
