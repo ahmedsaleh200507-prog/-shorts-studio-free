@@ -26,9 +26,9 @@ test('Door animation has sequential approach, grip, open and exit phases',()=>{
 });
 
 test('Narrated 2D characters have animated mouth without 3D transforms',()=>{
- assert.match(source,/function Person\(\{frame,action,speaking=false\}\)/);
- assert.match(source,/speaking\?svg\('ellipse'/);
- assert.match(source,/speaking:narration/);
+ assert.match(source,/function Person\(\{frame,action,mouthLevel=0\}\)/);
+ assert.match(source,/mouthLevel>\.035\?svg\('ellipse'/);
+ assert.match(source,/mouthLevel:narration\?speechMouthLevel/);
  assert.doesNotMatch(source,/rotateY\(/);
  assert.doesNotMatch(source,/perspective:900/);
 });
