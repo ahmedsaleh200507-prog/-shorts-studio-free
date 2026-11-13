@@ -14,6 +14,7 @@ var character_variant := 0
 var emotion := "neutral"
 var camera_mode := "slow-push"
 var mouth_levels: Array = []
+var visual_objects: Array = []
 
 func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
@@ -26,6 +27,11 @@ func _ready() -> void:
 			if FileAccess.file_exists(mouth_path):
 				var parsed = JSON.parse_string(FileAccess.get_file_as_string(mouth_path))
 				if parsed is Array: mouth_levels = parsed
+		if arg.begins_with("--objects-file="):
+			var objects_path := arg.trim_prefix("--objects-file=")
+			if FileAccess.file_exists(objects_path):
+				var objects_data = JSON.parse_string(FileAccess.get_file_as_string(objects_path))
+				if objects_data is Array: visual_objects = objects_data.slice(0, 12)
 		if arg.begins_with("--place="): place = arg.trim_prefix("--place=")
 		if arg.begins_with("--frames="): total_frames = clampi(int(arg.trim_prefix("--frames=")), 1, 2400)
 		if arg.begins_with("--out="): output_dir = arg.trim_prefix("--out=")
@@ -150,6 +156,7 @@ func _draw() -> void:
 		_draw_topic_graphic(t)
 	else:
 		_draw_character(float(frame_index) / FPS)
+	_draw_procedural_objects(t)
 	# Subtle scene fade at clip boundaries; character animation remains continuous within the scene.
 	var fade_in := 1.0 - smoothstep(0.0, 0.10, scene_progress)
 	var fade_out := smoothstep(0.90, 1.0, scene_progress)
@@ -230,6 +237,33 @@ func _draw_topic_graphic(t: float) -> void:
 			draw_rect(Rect2(130, 170, 280, 610), Color("#b58d68"))
 			draw_rect(Rect2(160, 200, 220, 245), Color("#9c7459"))
 			draw_circle(Vector2(365, 510), 13, gold)
+
+# Deterministic procedural visual vocabulary derived from each sentence.
+# This is a fallback illustration system, not a generative image model.
+func _draw_procedural_objects(t: float) -> void:
+	var count := mini(visual_objects.size(), 5)
+	if count == 0: return
+	var font := ThemeDB.fallback_font
+	for i in range(count):
+		var word := str(visual_objects[i]).substr(0, 20)
+		var seed_value := absi(word.hash())
+		var x := 45.0 + float(i % 2) * 260.0
+		var y := 85.0 + float(i / 2) * 130.0
+		var center := Vector2(x + 90.0, y + 45.0 + 5.0 * sin(t * 1.5 + float(i)))
+		var hue := fmod(float(seed_value % 997) / 997.0, 1.0)
+		var ink := Color.from_hsv(hue, 0.55, 0.9)
+		draw_rect(Rect2(center - Vector2(88, 40), Vector2(176, 86)), Color("#1d3150"))
+		match seed_value % 4:
+			0:
+				draw_circle(center + Vector2(-55, -4), 20, ink)
+			1:
+				draw_rect(Rect2(center + Vector2(-73, -23), Vector2(38, 38)), ink)
+			2:
+				draw_colored_polygon(PackedVector2Array([center + Vector2(-70, 18), center + Vector2(-50, -24), center + Vector2(-30, 18)]), ink)
+			_:
+				draw_line(center + Vector2(-74, -20), center + Vector2(-37, 19), ink, 8, true)
+		if font != null:
+			draw_string(font, center + Vector2(-23, 7), word, HORIZONTAL_ALIGNMENT_LEFT, 105, 16, Color.WHITE)
 
 func _draw_character(t: float) -> void:
 	# Layered vector character with articulated joints, clothing, hair, face and props.
