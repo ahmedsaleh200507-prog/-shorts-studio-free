@@ -160,8 +160,9 @@ func _draw() -> void:
 		_draw_procedural_objects(t)
 	_draw_reference_header()
 	# Subtle scene fade at clip boundaries; character animation remains continuous within the scene.
-	var fade_in := 1.0 - smoothstep(0.0, 0.10, scene_progress)
-	var fade_out := smoothstep(0.90, 1.0, scene_progress)
+	# Short fades preserve more readable screen time for brief narration clips.
+	var fade_in := 1.0 - smoothstep(0.0, 0.055, scene_progress)
+	var fade_out := smoothstep(0.945, 1.0, scene_progress)
 	# Overlay uses the original viewport transform to avoid moving with the camera.
 	draw_set_transform(offset, 0.0, Vector2.ONE * scale_factor)
 	draw_rect(Rect2(0, 0, 540, 960), Color(0.04, 0.07, 0.12, maxf(fade_in, fade_out) * 0.65))
@@ -171,7 +172,16 @@ func _draw() -> void:
 func _draw_reference_header() -> void:
 	var font := ThemeDB.fallback_font
 	if font == null: return
-	var heading := place.to_upper().substr(0, 16)
+	var labels := {
+		"phone": "PHONE", "technology": "TECHNOLOGY", "metro": "METRO",
+		"radio": "RADIO", "transport": "TRANSPORT", "bedroom": "BEDROOM",
+		"bathroom": "BATHROOM", "hospital": "HOSPITAL", "school": "SCHOOL",
+		"supermarket": "MARKET", "restaurant": "RESTAURANT", "office": "OFFICE",
+		"space": "SPACE", "science": "SCIENCE", "nature": "NATURE",
+		"clock": "TIME", "alert": "ALERT", "map": "MAP",
+		"history": "HISTORY", "infographic": "INFOGRAPHIC", "door": "DOOR"
+	}
+	var heading := str(labels.get(place, "STORY"))
 	var navy := Color("#0d132b")
 	var gold := Color("#d9ad5c")
 	# Header remains inside the safe region for 9:16 and 16:9.
