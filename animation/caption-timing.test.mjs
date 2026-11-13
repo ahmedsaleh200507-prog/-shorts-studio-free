@@ -49,3 +49,12 @@ test('smooth mouth level stays bounded and closes in silence',()=>{
   assert.ok(v>=0&&v<=1&&Number.isFinite(v));
  }
 });
+
+test('captions never return NaN or reveal words on invalid frames',()=>{
+ assert.equal(captionRevealCount(null,12,72),0);
+ assert.equal(captionRevealCount('Hallo Welt',NaN,72),0);
+ assert.equal(captionRevealCount('Hallo Welt',12,0),0);
+ assert.equal(captionRevealCount('Hallo Welt',12,72,null,0),0);
+ assert.equal(captionRevealCount('Hallo Welt',12,72,null,Infinity),0);
+ assert.equal(captionRevealCount('Hallo Welt',12,72,null,24),1);
+});
