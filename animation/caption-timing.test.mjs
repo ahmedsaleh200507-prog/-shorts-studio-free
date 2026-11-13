@@ -9,5 +9,7 @@ test('Edge TTS word boundaries control captions',()=>{
 test('Mismatched and invalid alignments fall back safely',()=>{
  assert.equal(captionRevealCount('Hallo Welt',24,72,[{word:'Falsch',start:0,end:1}]),1);
  assert.equal(captionRevealCount('Hallo Welt',48,72,[{word:'Hallo',start:0,end:1},{word:'Welt',start:NaN,end:2}]),2);
+ assert.equal(captionRevealCount('Hallo Welt',48,72,[{word:'Hallo',start:null,end:1},{word:'Welt',start:1,end:2}]),2);
+ assert.equal(captionRevealCount('Hallo Welt',24,72,[{word:'Hallo',start:0,end:1},{word:'Welt',start:undefined,end:2}]),1);
  assert.equal(captionRevealCount('',20,72,[]),0);
 });
