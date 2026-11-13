@@ -34,6 +34,25 @@ def make_subtitles(scenes, path):
         cursor += seconds
     path.write_text("\n".join(lines), encoding="utf-8")
 
+def scene_direction(scene, index):
+    text = scene["text"].lower()
+    action = scene["action"]
+    if any(word in text for word in ("happy", "glücklich", "freut", "smile", "lacht")):
+        emotion = "happy"
+    elif any(word in text for word in ("sad", "traurig", "weint", "cries")):
+        emotion = "sad"
+    elif any(word in text for word in ("angry", "wütend", "zornig")):
+        emotion = "angry"
+    elif any(word in text for word in ("surprise", "überrasch", "plötzlich", "suddenly")):
+        emotion = "surprised"
+    else:
+        emotion = "neutral"
+    camera = ("follow" if action in ("travel", "carry") else
+              "close-up" if action in ("talk", "brush") else
+              "reveal" if action in ("wake", "pick") else "slow-push")
+    # Keep the same actor across a story unless a separate character identity is supplied.
+    return 0, emotion, camera
+
 def render_story(script, aspect, audio_dir, output):
     with tempfile.TemporaryDirectory(prefix="shorts-plan-") as planning:
         args = ["node", str(ROOT / "animation" / "export-godot-plan.mjs"), script, aspect]
@@ -84,7 +103,8 @@ def render_story(script, aspect, audio_dir, output):
                             "-t", str(scene["frames"] / 24), "-c:a", "libmp3lame",
                             str(silent)])
                 audio = silent
-            engine.render(scene["action"], scene["place"], scene["frames"] / 24, aspect, audio, clip)
+            character, emotion, camera = scene_direction(scene, index)
+            engine.render(scene["action"], scene["place"], scene["frames"] / 24, aspect, audio, clip, character, emotion, camera)
             clips.append(clip)
         concat = temp / "clips.txt"
         concat.write_text("".join(f"file '{clip.as_posix()}'\n" for clip in clips), encoding="utf-8")
