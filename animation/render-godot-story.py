@@ -59,6 +59,8 @@ def render_story(script, aspect, audio_dir, output):
     if audio_dir and len(plan["scenes"]) != len(frames):
         raise ValueError("Narration count must match scene count")
     scenes = plan["scenes"]
+    if sum(s["frames"] for s in scenes) > 24 * 660:
+        raise ValueError("Story exceeds 11 minute safety limit")
     if not 1 <= len(scenes) <= 180:
         raise ValueError("Expected 1 to 180 scenes")
     output = output.resolve()
@@ -71,6 +73,15 @@ def render_story(script, aspect, audio_dir, output):
             if audio is not None and not audio.is_file():
                 raise FileNotFoundError(audio)
             clip = temp / f"scene-{index:04}.mp4"
+            # Every segment must carry an audio stream; otherwise concat may drop
+            # narration when the first segment has no audio.
+            if audio is None:
+                silent = temp / f"silence-{index:04}.mp3"
+                engine.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                            "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono",
+                            "-t", str(scene["frames"] / 24), "-c:a", "libmp3lame",
+                            str(silent)])
+                audio = silent
             engine.render(scene["action"], scene["place"], scene["frames"] / 24, aspect, audio, clip)
             clips.append(clip)
         concat = temp / "clips.txt"
@@ -89,7 +100,7 @@ def render_story(script, aspect, audio_dir, output):
     streams = probe["streams"]
     if not any(s.get("codec_type") == "video" and s.get("codec_name") == "h264" for s in streams):
         raise RuntimeError("Final MP4 missing H.264 video")
-    if audio_dir and not any(s.get("codec_type") == "audio" for s in streams):
+    if not any(s.get("codec_type") == "audio" and s.get("codec_name") == "aac" for s in streams):
         raise RuntimeError("Final MP4 missing narration")
     return {"output": str(output), "scenes": len(scenes), "has_audio": bool(audio_dir)}
 
