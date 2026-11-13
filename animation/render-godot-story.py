@@ -50,8 +50,16 @@ def scene_direction(scene, index):
     camera = ("follow" if action in ("travel", "carry") else
               "close-up" if action in ("talk", "brush") else
               "reveal" if action in ("wake", "pick") else "slow-push")
-    # Keep the same actor across a story unless a separate character identity is supplied.
-    return 0, emotion, camera
+    # Explicit actor descriptions select a palette; default remains stable across scenes.
+    if any(word in text for word in ("frau", "woman", "mother", "mutter")):
+        character = 1
+    elif any(word in text for word in ("mädchen", "girl", "daughter", "tochter")):
+        character = 2
+    elif any(word in text for word in ("mann", "man", "father", "vater")):
+        character = 3
+    else:
+        character = 0
+    return character, emotion, camera
 
 def render_story(script, aspect, audio_dir, output):
     with tempfile.TemporaryDirectory(prefix="shorts-plan-") as planning:
