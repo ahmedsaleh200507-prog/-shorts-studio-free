@@ -6,7 +6,7 @@ import {AbsoluteFill, Audio, Sequence, useCurrentFrame, interpolate} from 'remot
 import {makeScenePlan} from './scene-plan.mjs';
 import {aiSceneImages} from './ai-scene-images.mjs';
 import {staticFile} from 'remotion';
-import {characterPose,pickupPropPose} from './skeletal-motion.mjs';
+import {characterPose,pickupPropPose,putdownPropPose} from './skeletal-motion.mjs';
 import {captionTokenStyle,captionOpacity} from './caption-style.mjs';
 
 const el=React.createElement;
@@ -118,7 +118,7 @@ function Prop({action,frame,objects=[],heldObject=null}){
   // The same deterministic pickup trajectory is reversed for put-down.
   // Keep the apple attached to the same grasp timeline as the hand rig.
   // The object stays on the shelf until contact, then follows the hand.
-  const {x,y,grasp}=heldObject&&action!=='pick'&&action!=='put'?{x:53+Math.sin(frame*.24)*.5,y:48+Math.abs(Math.sin(frame*.24))*.5,grasp:1}:pickupPropPose(action==='put'?Math.max(0,48-frame):frame);
+  const {x,y,grasp}=heldObject&&action!=='pick'&&action!=='put'?{x:53+Math.sin(frame*.24)*.5,y:48+Math.abs(Math.sin(frame*.24))*.5,grasp:1}:(action==='put'?putdownPropPose(frame):pickupPropPose(frame));
   const item=objects.includes('banana')?'banana':objects.includes('bottle')?'bottle':objects.includes('cup')?'cup':objects.includes('book')?'book':'apple';
   if(item==='banana')return el(React.Fragment,null,
    Shape({x,y:y+1,w:12,h:4,color:'#f4c54e',r:'0 0 80% 65%',rotate:-24,style:{borderBottom:'4px solid #c08b32'}}),
