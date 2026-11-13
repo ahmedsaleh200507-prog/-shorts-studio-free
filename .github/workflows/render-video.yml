@@ -52,6 +52,14 @@ jobs:
           python -m unittest discover -s . -p 'test_long_video.py' -v
           python -m unittest discover -s . -p 'test_render_production.py' -v
           npx remotion browser ensure
+      - name: Ensure FFmpeg and ffprobe for every production mode
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
       - name: Prepare real user script and synchronized narration
         env:
           SCRIPT: ${{ inputs.script }}
