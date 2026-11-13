@@ -140,6 +140,8 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     // Keep the most recent explicitly named object for later pronouns.
     // Pronoun-only sentences must not replace memory with inferred objects.
     const namedObjects=objectPatterns.filter(([,re])=>re.test(text)).map(([name])=>name);
+    // Resolve pronouns against the preceding scene, not nouns introduced now.
+    const antecedentObjects=previousObjects.slice();
     if(namedObjects.length) previousObjects=namedObjects;
     // Persist the item between shots, and clear it only after an explicit release.
     // A new pickup must be the object mentioned in this sentence, not stale pronoun memory.
@@ -163,7 +165,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
       const clause=text.slice(match.index+match[0].length).split(/\b(?:and|und|then|dann)\b|[.!?;,]/i)[0];
       return pickupTargets.map(([name,re])=>({name,index:clause.search(re)})).filter(hit=>hit.index>=0).sort((a,b)=>a.index-b.index)[0]?.name||null;
     }).find(Boolean)||null;
-    const pickupItem=resolvedAction==='pick'?(targetedItem||(pronounPickup?previousObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o)):null)):null;
+    const pickupItem=resolvedAction==='pick'?(targetedItem||(pronounPickup?(heldObject||antecedentObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o))):null)):null;
     // Do not replace an already-held prop with an unrelated inferred object.
     // Repeated references to the same item remain a single continuous hold.
     const alreadyHeld=Boolean(pickupItem&&heldObject===pickupItem);
