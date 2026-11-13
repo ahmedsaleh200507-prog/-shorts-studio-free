@@ -316,7 +316,8 @@ function CaptionWords({caption,landscape}){
   if(/^\s+$/.test(token))return token;
   const normalized=token.replace(/^[^\p{L}]+|[^\p{L}]+$/gu,'');
   const important=captionEmphasis.test(normalized);
-  return el('span',{key:i,style:{color:important?'#ff5e75':'#fff',textShadow:'0 3px 8px #000b'}},token);
+  const numeric=/^(?:\d+(?:[.,]\d+)?%?|\d+(?:[.,]\d+)?€)$/.test(normalized)||/[0-9]/.test(token);
+  return el('span',{key:i,style:{color:important?'#ff5e75':numeric?'#ffd166':'#fff',textShadow:'0 3px 8px #000b'}},token);
  }));
 }
 export function ShortsComposition({script='Ein Mann wacht morgens auf.',narration=false,durationsFrames=null,aspectRatio='9:16'}){
@@ -340,7 +341,9 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const words=scene.text.trim().split(/\s+/).filter(Boolean);
  const revealedWords=narration?captionRevealCount(scene.text,local,duration,narrationWordTimings[sceneIndex],plan.fps):Math.max(1,Math.min(words.length,Math.ceil(progress*words.length)));
  const caption=words.slice(0,revealedWords).join(' ');
- const opacity=interpolate(local,[0,5,Math.max(6,scene.endFrame-scene.startFrame-6),scene.endFrame-scene.startFrame],[0,1,1,0],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
+ // Short scenes need non-overlapping fade windows to avoid invalid interpolation ranges.
+ const fade=Math.max(1,Math.min(5,Math.floor((duration-1)/3)));
+ const opacity=interpolate(local,[0,fade,Math.max(fade,duration-fade-1),duration-1],[0,1,1,0],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
   aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,mouthLevel:narration?speechMouthLevel(local,narrationWordTimings[sceneIndex],plan.fps):0})),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
