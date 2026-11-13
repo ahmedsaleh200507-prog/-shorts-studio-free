@@ -14,4 +14,4 @@ static func foot(t: float, side: int, stride: float = 76.0, period: float = 0.9,
 		var eased := swing * swing * (3.0 - 2.0 * swing)
 		x += eased * stride
 		y -= sin(PI * swing) * 32.0
-	return Vector2(x, y)
+	return Vector2(x - (t / period) * stride, y)
