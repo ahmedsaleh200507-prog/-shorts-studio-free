@@ -44,7 +44,7 @@ def ass_stamp(seconds):
 
 def ass_escape(value):
     # Prevent user-authored text from becoming ASS override tags.
-    return value.replace("\\", "＼").replace("{", "｛").replace("}", "｝").replace("\\n", " ")
+    return value.replace("\\", "＼").replace("{", "｛").replace("}", "｝").replace("\n", " ")
 
 
 def make_animated_subtitles(scenes, path, aspect="9:16"):
@@ -54,24 +54,24 @@ def make_animated_subtitles(scenes, path, aspect="9:16"):
     font_size = 35 if portrait else 31
     margin = 110 if portrait else 55
     header = (
-        "[Script Info]\\nScriptType: v4.00+\\n"
-        f"PlayResX: {width}\\nPlayResY: {height}\\n"
-        "WrapStyle: 2\\nScaledBorderAndShadow: yes\\n\\n"
-        "[V4+ Styles]\\n"
+        "[Script Info]\nScriptType: v4.00+\n"
+        f"PlayResX: {width}\nPlayResY: {height}\n"
+        "WrapStyle: 2\nScaledBorderAndShadow: yes\n\n"
+        "[V4+ Styles]\n"
         "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, "
         "OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, "
         "ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
-        "Alignment, MarginL, MarginR, MarginV, Encoding\\n"
+        "Alignment, MarginL, MarginR, MarginV, Encoding\n"
         f"Style: Words,DejaVu Sans,{font_size},&H00FFFFFF,&H00FFFFFF,"
-        f"&H00111A2D,&H70000000,-1,0,0,0,100,100,0,0,1,3,0,2,45,45,{margin},1\\n\\n"
-        "[Events]\\n"
-        "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\\n"
+        f"&H00111A2D,&H70000000,-1,0,0,0,100,100,0,0,1,3,0,2,45,45,{margin},1\n\n"
+        "[Events]\n"
+        "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
     )
     events = []
     cursor = 0.0
     for scene in scenes:
         duration = scene["frames"] / 24.0
-        words = scene["text"].replace("\\n", " ").split()
+        words = scene["text"].replace("\n", " ").split()
         if not words:
             cursor += duration
             continue
@@ -99,7 +99,7 @@ def make_animated_subtitles(scenes, path, aspect="9:16"):
                 f"Words,,0,0,0,,{animation}{text}"
             )
         cursor += duration
-    path.write_text(header + "\\n".join(events) + "\\n", encoding="utf-8")
+    path.write_text(header + "\n".join(events) + "\n", encoding="utf-8")
 
 
 def scene_direction(scene, index):
