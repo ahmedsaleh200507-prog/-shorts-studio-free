@@ -400,7 +400,7 @@ function VectorScene({scene,frame,mouthLevel=0}){
  const panY=(eased-.5)*1.1;
  return el('div',{style:{position:'absolute',inset:0,overflow:'hidden'}},
   el('div',{style:{position:'absolute',inset:0,transform:`translate(${panX}%,${panY}%) scale(${zoom})`,transformOrigin:'50% 52%'}},
- scene.visualMode==='character'?el(CinematicEnvironment,{scene,frame}):el(MotionGraphic,{scene,frame})),
+ scene.visualMode==='character'||!(/social|netzwerk|bevölkerung|population|millionen|millions|stadt|city|kilometer|jacke|jacket|mantel|coat|space|science|technology|history/i.test(scene.text))?el(CinematicEnvironment,{scene,frame}):el(MotionGraphic,{scene,frame})),
 
 }
 // Reference-style 2D editorial diagrams: semantic visuals, not generic title cards.
