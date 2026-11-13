@@ -18,18 +18,23 @@ jobs:
       - name: Install FFmpeg and Blender
         run: |
           sudo apt-get update
-          sudo apt-get install -y blender ffmpeg xvfb
+          sudo apt-get install -y ffmpeg xvfb unzip
       - name: Install Godot 4 headless
         run: |
           curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
           unzip -q /tmp/godot.zip -d /tmp/godot
           sudo install -m 755 /tmp/godot/Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
           godot --version
-      - name: Check Blender version and 2D asset authoring requirements
+      - name: Install Blender 4.3 for Grease Pencil v3
         run: |
+          curl -fL --retry 3 -o /tmp/blender.tar.xz https://download.blender.org/release/Blender4.3/blender-4.3.2-linux-x64.tar.xz
+          tar -xJf /tmp/blender.tar.xz -C /tmp
+          sudo ln -s /tmp/blender-4.3.2-linux-x64/blender /usr/local/bin/blender
           blender --version | head -n 1
-          blender --background --factory-startup --python-expr "import bpy; print('Grease Pencil v3 available:', hasattr(bpy.data,'grease_pencils_v3'))"
-          echo "Blender Grease Pencil v3 asset export requires Blender 4.3+; this runner may have an older version."
+      - name: Create actual editable Grease Pencil asset
+        run: |
+          blender --background --factory-startup --python blender/export_2d_assets.py -- --out blender/export
+          test -s blender/export/shorts-2d-assets.blend
       - name: Render Godot 2D animation frames
         run: |
           mkdir -p output/godot-frames
@@ -52,5 +57,11 @@ jobs:
           path: |
             output/godot-demo.mp4
             output/godot-narrated.mp4
+          if-no-files-found: error
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blender-2d-source
+          path: blender/export/shorts-2d-assets.blend
           if-no-files-found: error
           retention-days: 3
