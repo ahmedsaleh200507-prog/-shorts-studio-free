@@ -112,7 +112,7 @@ def render_story(script, aspect, audio_dir, output):
                             str(silent)])
                 audio = silent
             character, emotion, camera = scene_direction(scene, index)
-            engine.render(scene["action"], scene["place"], scene["frames"] / 24, aspect, audio, clip, character, emotion, camera)
+            engine.render(scene["action"], scene["place"], scene["frames"] / 24, aspect, audio, clip, character, emotion, camera, scene.get("props", []) + scene.get("keywords", []))
             clips.append(clip)
         concat = temp / "clips.txt"
         concat.write_text("".join(f"file '{clip.as_posix()}'\n" for clip in clips), encoding="utf-8")
