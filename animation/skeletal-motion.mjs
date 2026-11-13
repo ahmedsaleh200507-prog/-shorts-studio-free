@@ -8,7 +8,7 @@ export function characterPose(action,frame,fps=24){
  const t=f/Math.max(1,fps);
  const walk=['travel','carry','walk','run'].includes(action);
  const running=action==='run';
- const gaitHz=running?2.8:1.83;
+ const gaitHz=running?2.8:5.76/(2*Math.PI);
  const cycle=walk?Math.sin(t*2*Math.PI*gaitHz):0;
  const reach=action==='pick'?smooth(f/(fps*.95)):0;
  const hold=action==='carry';
