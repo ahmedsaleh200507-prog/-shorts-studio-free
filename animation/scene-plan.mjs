@@ -114,10 +114,10 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
   const scenes=sentences.map((text,index)=>{
     const explicitPut=/\b(?:puts?|sets?)\b[^.!?]{0,45}\bdown\b|\bdrops?\s+(?:it|them|the|a|an)\b|\bplaces?\s+(?:it|them|the|a|an)\b|\b(?:legt|stellt|setzt)\b[^.!?]{0,45}\b(?:ab|hin|auf)\b|\b(?:ablegen|abstellen)\b/i.test(text);
     // Object nouns alone must not trigger pickup (e.g. "She reads a book").
-    const explicitPickup=/\b(?:picks?\s+up|grabs?|takes?|lifts?)\b|\b(?:nimmt|greift|hebt)\b/i.test(text);
+    const explicitPickup=/\b(?:picks?\s+(?:(?:it|them)\s+)?up|grabs?|takes?|lifts?)\b|\b(?:nimmt|greift|hebt)\b/i.test(text);
     // Explicit manipulation takes precedence over incidental walking/running
     // verbs in the same sentence, without treating object mentions as pickups.
-    const explicitPickRule=explicitPickup?rules.find(([name,regex])=>name==='pick'&&regex.test(text)):null;
+    const explicitPickRule=explicitPickup?(rules.find(([name,regex])=>name==='pick'&&regex.test(text))||(/\b(?:picks?\s+(?:it|them)\s+up|grabs?\s+(?:it|them)|takes?\s+(?:it|them)|lifts?\s+(?:it|them))\b/i.test(text)?rules.find(([name])=>name==='pick'):null)):null;
     const match=explicitPut?rules.find(([name])=>name==='put'):
       explicitPickRule||rules.find(([name,regex])=>regex.test(text)&&(name!=='pick'||explicitPickup));
     const [action,rulePlace,props]=match?[match[0],match[2],match[3]]:['talk','generic',[]];
@@ -134,7 +134,10 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     // Resolve a pickup from the current sentence only; pronoun context may
     // describe a different previously seen item and must not create a new grab.
     const currentObjects=objectPatterns.filter(([,re])=>re.test(text)).map(([name])=>name);
-    const pickupItem=resolvedAction==='pick'?currentObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o)):null;
+    // A pronoun can refer to a previously named item, but only after an
+    // explicit pickup verb. Prefer a newly named object over earlier context.
+    const pronounPickup=/\b(?:picks?\s+(?:it|them)\s+up|grabs?\s+(?:it|them)|takes?\s+(?:it|them)|lifts?\s+(?:it|them))\b|\b(?:nimmt|greift|hebt)\s+(?:es|sie|ihn)\b/i.test(text);
+    const pickupItem=resolvedAction==='pick'?(currentObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o))||(pronounPickup?previousObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o)):null)):null;
     if(pickupItem)heldObject=pickupItem;
     const carriedObject=heldObject;
     if(resolvedAction==='put')heldObject=null;
