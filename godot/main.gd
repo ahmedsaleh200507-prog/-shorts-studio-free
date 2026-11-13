@@ -13,6 +13,7 @@ var scene_progress := 0.0
 var character_variant := 0
 var emotion := "neutral"
 var camera_mode := "slow-push"
+var mouth_levels: Array = []
 
 func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
@@ -20,6 +21,11 @@ func _ready() -> void:
 		if arg.begins_with("--character="): character_variant = clampi(int(arg.trim_prefix("--character=")), 0, 3)
 		if arg.begins_with("--emotion="): emotion = arg.trim_prefix("--emotion=")
 		if arg.begins_with("--camera="): camera_mode = arg.trim_prefix("--camera=")
+		if arg.begins_with("--mouth-file="):
+			var mouth_path := arg.trim_prefix("--mouth-file=")
+			if FileAccess.file_exists(mouth_path):
+				var parsed = JSON.parse_string(FileAccess.get_file_as_string(mouth_path))
+				if parsed is Array: mouth_levels = parsed
 		if arg.begins_with("--place="): place = arg.trim_prefix("--place=")
 		if arg.begins_with("--frames="): total_frames = clampi(int(arg.trim_prefix("--frames=")), 1, 2400)
 		if arg.begins_with("--out="): output_dir = arg.trim_prefix("--out=")
@@ -231,7 +237,11 @@ func _draw_character(t: float) -> void:
 		var eyebrow_shift := -8.0 if emotion == "surprised" else (5.0 if emotion == "angry" else 0.0)
 		draw_line(eye + Vector2(-9, -15 + eyebrow_shift), eye + Vector2(8, -17 + eyebrow_shift), hair, 4, true)
 	draw_line(head + Vector2(0, 1), head + Vector2(-3, 17), shadow, 3, true)
-	var speech_envelope := pow(maxf(0.0, sin(t * 11.0)), 1.5)
+	var speech_envelope := 0.0
+	if frame_index < mouth_levels.size():
+		speech_envelope = clampf(float(mouth_levels[frame_index]), 0.0, 1.0)
+	elif mouth_levels.is_empty() and action == "talk":
+		speech_envelope = pow(maxf(0.0, sin(t * 11.0)), 1.5)
 	var mouth_open := action == "talk" and speech_envelope > 0.3
 	if mouth_open:
 		draw_circle(head + Vector2(0, 29), 5.0 + 7.0 * speech_envelope, Color("#923f4a"))
