@@ -104,7 +104,7 @@ test('known pickup target still produces physical interaction',()=>{
 });
 
 test('places as a noun does not trigger object release',()=>{
- for(const script of ['She visits many places.','They discover new places.']){
+ for(const script of ['She visits many places.','They discover new places.','There are beautiful places.','He visits a place.']){
   const scene=makeScenePlan(script).scenes[0];
   assert.notEqual(scene.action,'put',script);
  }
