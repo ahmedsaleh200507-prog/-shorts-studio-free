@@ -1,0 +1,80 @@
+"""Render multiple text-matched Godot scenes into one narrated, subtitled MP4.
+
+Requires Node 22, Godot 4, FFmpeg and ffprobe. Uses existing scene-plan.mjs.
+Optional --audio-dir holds job-0.mp3, job-1.mp3, etc. If absent, video is silent.
+"""
+import argparse
+import json
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "animation"))
+import importlib.util
+spec = importlib.util.spec_from_file_location("godot_render", ROOT / "animation" / "render-godot-video.py")
+engine = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(engine)
+
+def stamp(seconds):
+    milliseconds = round(seconds * 1000)
+    hours, milliseconds = divmod(milliseconds, 3600000)
+    minutes, milliseconds = divmod(milliseconds, 60000)
+    secs, milliseconds = divmod(milliseconds, 1000)
+    return f"{hours:02}:{minutes:02}:{secs:02},{milliseconds:03}"
+
+def make_subtitles(scenes, path):
+    cursor = 0
+    lines = []
+    for index, scene in enumerate(scenes, 1):
+        seconds = scene["frames"] / 24
+        lines.extend([str(index), f"{stamp(cursor)} --> {stamp(cursor + seconds)}", scene["text"].replace("\n", " "), ""])
+        cursor += seconds
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+def render_story(script, aspect, audio_dir, output):
+    plan = json.loads(engine.run(["node", str(ROOT / "animation" / "export-godot-plan.mjs"), script, aspect]).stdout)
+    scenes = plan["scenes"]
+    if not 1 <= len(scenes) <= 180:
+        raise ValueError("Expected 1 to 180 scenes")
+    output = output.resolve()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="shorts-story-") as work:
+        temp = Path(work)
+        clips = []
+        for index, scene in enumerate(scenes):
+            audio = (audio_dir / f"job-{index}.mp3") if audio_dir else None
+            if audio is not None and not audio.is_file():
+                raise FileNotFoundError(audio)
+            clip = temp / f"scene-{index:04}.mp4"
+            engine.render(scene["action"], scene["place"], scene["frames"] / 24, aspect, audio, clip)
+            clips.append(clip)
+        concat = temp / "clips.txt"
+        concat.write_text("".join(f"file '{clip.as_posix()}'\n" for clip in clips), encoding="utf-8")
+        subtitles = temp / "captions.srt"
+        make_subtitles(scenes, subtitles)
+        joined = temp / "joined.mp4"
+        engine.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0",
+                    "-i", str(concat), "-c", "copy", "-movflags", "+faststart", str(joined)], timeout=1200)
+        # Burn captions after concatenation; escape filtergraph-sensitive paths.
+        subtitle_path = subtitles.as_posix().replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
+        engine.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(joined),
+                    "-vf", f"subtitles='{subtitle_path}'", "-c:v", "libx264", "-crf", "24",
+                    "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", str(output)], timeout=1200)
+    probe = json.loads(engine.run(["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(output)]).stdout)
+    streams = probe["streams"]
+    if not any(s.get("codec_type") == "video" and s.get("codec_name") == "h264" for s in streams):
+        raise RuntimeError("Final MP4 missing H.264 video")
+    if audio_dir and not any(s.get("codec_type") == "audio" for s in streams):
+        raise RuntimeError("Final MP4 missing narration")
+    return {"output": str(output), "scenes": len(scenes), "has_audio": bool(audio_dir)}
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--script", required=True)
+    parser.add_argument("--aspect", choices=["9:16", "16:9"], default="9:16")
+    parser.add_argument("--audio-dir", type=Path)
+    parser.add_argument("--out", type=Path, default=ROOT / "output" / "godot-story.mp4")
+    args = parser.parse_args()
+    print(json.dumps(render_story(args.script, args.aspect, args.audio_dir, args.out), indent=2))
