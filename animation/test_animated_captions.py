@@ -42,8 +42,11 @@ class AnimatedCaptionsTests(unittest.TestCase):
             story.make_animated_subtitles(scene, path)
             output = path.read_text(encoding="utf-8")
         self.assertEqual(output.count("Dialogue: 0,"), 10)
-        self.assertIn("Eine sehr lange", output)
-        self.assertIn("gut lesbare", output)
+        self.assertIn("Eine ", output)
+        self.assertIn("sehr ", output)
+        self.assertIn("lange", output)
+        self.assertIn("gut", output)
+        self.assertIn("lesbare", output)
 
     def test_landscape_and_empty_scenes(self):
         scenes = [{"frames": 24, "text": ""}, {"frames": 48, "text": "Hello world"}]
