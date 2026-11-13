@@ -4,7 +4,7 @@ import {characterPose} from '../animation/skeletal-motion.mjs';
 
 test('picking starts at rest, reaches, then settles into a grasp',()=>{
  const start=characterPose('pick',0);
- const reach=characterPose('pick',22);
+ const reach=characterPose('pick',20);
  const settle=characterPose('pick',45);
  assert.equal(start.grasp,0);
  assert.ok(reach.rightArm < start.rightArm-20,'arm should reach toward object');
