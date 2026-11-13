@@ -239,3 +239,15 @@ test('metro setting preserves explicit pickup instead of overriding it with trav
  assert.equal(scene.narrative.interactionObject,'cup');
  assert.equal(scene.narrative.hasPhysicalInteraction,true);
 });
+
+test('held props remain visible through metro travel and topic changes',()=>{
+ const scenes=makeScenePlan('She picks up a cup. Then she travels by metro. Afterwards she talks about space. She puts it down. Then she talks about space.').scenes;
+ assert.equal(scenes[1].action,'travel');
+ assert.equal(scenes[1].visualMode,'character');
+ assert.equal(scenes[1].narrative.heldObject,'cup');
+ assert.equal(scenes[2].visualMode,'character');
+ assert.equal(scenes[2].narrative.heldObject,'cup');
+ assert.equal(scenes[3].narrative.releaseObject,'cup');
+ assert.equal(scenes[4].narrative.heldObject,null);
+ assert.equal(scenes[4].visualMode,'motion-graphic');
+});
