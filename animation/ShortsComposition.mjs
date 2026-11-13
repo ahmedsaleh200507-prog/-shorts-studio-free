@@ -1,4 +1,6 @@
 import {narrationAudio} from './narration-audio.mjs';
+import {narrationWordTimings} from './narration-word-timings.mjs';
+import {captionRevealCount} from './caption-timing.mjs';
 import React from 'react';
 import {AbsoluteFill, Audio, Sequence, useCurrentFrame, interpolate} from 'remotion';
 import {makeScenePlan} from './scene-plan.mjs';
@@ -308,7 +310,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const driftX=(sceneIndex%3-1)*2.4*(2*progress-1);
  const driftY=(sceneIndex%2===0?1:-1)*1.8*(2*progress-1);
  const words=scene.text.trim().split(/\s+/).filter(Boolean);
- const revealedWords=Math.max(1,Math.min(words.length,Math.ceil(progress*words.length)));
+ const revealedWords=narration?captionRevealCount(scene.text,local,duration,narrationWordTimings[sceneIndex],plan.fps):Math.max(1,Math.min(words.length,Math.ceil(progress*words.length)));
  const caption=words.slice(0,revealedWords).join(' ');
  const opacity=interpolate(local,[0,5,Math.max(6,scene.endFrame-scene.startFrame-6),scene.endFrame-scene.startFrame],[0,1,1,0],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
