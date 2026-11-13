@@ -82,6 +82,22 @@ jobs:
         run: |
           ffmpeg -hide_banner -loglevel error -y -framerate 24 -i output/godot-frames/frame_%05d.png -vf "select='not(mod(n,8))',scale=270:480,tile=3x2" -frames:v 1 output/godot-contact-sheet.png
           test -s output/godot-contact-sheet.png
+      - name: Render and inspect four character variants
+        run: |
+          for variant in 0 1 2 3; do
+            mkdir -p "output/character-$variant"
+            xvfb-run -a godot --path godot --rendering-driver opengl3 -- --action=talk --place=generic --frames=3 --character="$variant" --emotion=surprised --camera=close-up --out="$PWD/output/character-$variant"
+            test -s "output/character-$variant/frame_00001.png"
+            cp "output/character-$variant/frame_00001.png" "output/character-$variant.png"
+          done
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          files = [Path(f"output/character-{i}.png") for i in range(4)]
+          digests = [hashlib.sha256(p.read_bytes()).hexdigest() for p in files]
+          assert len(set(digests)) == 4, "Character variants are visually identical"
+          print("Four distinct character variants rendered")
+          PY
       - name: Verify landscape Godot output
         run: |
           mkdir -p output/godot-landscape
@@ -137,6 +153,10 @@ jobs:
             output/godot-narrated.mp4
             output/godot-story.mp4
             output/godot-contact-sheet.png
+            output/character-0.png
+            output/character-1.png
+            output/character-2.png
+            output/character-3.png
             output/godot-landscape-preview.png
           if-no-files-found: error
           retention-days: 3
