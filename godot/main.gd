@@ -101,8 +101,10 @@ func _draw_character(t: float) -> void:
 		root += Vector2(0, -12.0 * (1.0 - rise))
 	var hip := root + Vector2(0, 150)
 	var shoulder := root + Vector2(sway, -30)
-	var left_ankle := FootPlant.foot(t, -1) + Vector2(travel_x, 0) if walking else hip + Vector2(-29, 185)
-	var right_ankle := FootPlant.foot(t, 1) + Vector2(travel_x, 0) if walking else hip + Vector2(29, 185)
+	var stride := 156.0 * 0.9 / maxf(float(total_frames) / FPS, 0.9)
+	var foot_origin := Vector2((t / 0.9) * stride - 78.0, 0)
+	var left_ankle := FootPlant.foot(t, -1, stride) + foot_origin if walking else hip + Vector2(-29, 185)
+	var right_ankle := FootPlant.foot(t, 1, stride) + foot_origin if walking else hip + Vector2(29, 185)
 	var left_hip := hip + Vector2(-19, 0)
 	var right_hip := hip + Vector2(19, 0)
 	var left_knee: Vector2 = TwoBoneIK.solve(left_hip, left_ankle, 96.0, 96.0, 1.0)[0]
