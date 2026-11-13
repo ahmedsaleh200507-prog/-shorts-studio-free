@@ -128,3 +128,15 @@ test('no physical object is invented for a generic pickup',()=>{
  const scene=makeScenePlan('She picks up an object.').scenes[0];
  assert.equal(scene.narrative.interactionObject,null);
 });
+
+test('generic pickup with pronoun context does not re-grab previous object',()=>{
+ const scenes=makeScenePlan('A cup is on the table. She picks it up.').scenes;
+ assert.equal(scenes[1].narrative.heldObject,null);
+ assert.equal(scenes[1].narrative.interactionObject,null);
+ assert.equal(scenes[1].narrative.hasPhysicalInteraction,false);
+});
+test('pickup of a newly named item is not confused with earlier context',()=>{
+ const scenes=makeScenePlan('A cup is on the table. She picks up a bottle.').scenes;
+ assert.equal(scenes[1].narrative.interactionObject,'bottle');
+ assert.equal(scenes[1].narrative.heldObject,'bottle');
+});
