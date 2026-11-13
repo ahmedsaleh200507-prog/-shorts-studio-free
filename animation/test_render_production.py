@@ -42,6 +42,19 @@ class ProductionModeTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "resolution"):
             check([dict(video, width=960, height=540), audio])
 
+    def test_invalid_encoded_video_is_removed_before_download(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / "output").mkdir()
+            output = root / "output" / "final.mp4"
+            def fake_render(*args, **kwargs):
+                output.write_bytes(b"broken-video" * 3000)
+                return subprocess.CompletedProcess(args, 0)
+            with patch.object(production, "ROOT", root), patch.dict(os.environ, {"SCRIPT": "Neue Geschichte.", "ASPECT_RATIO": "9:16"}), patch.object(production.subprocess, "run", side_effect=fake_render), patch.object(production, "validate_mp4", side_effect=RuntimeError("Missing AAC")):
+                with self.assertRaisesRegex(RuntimeError, "AAC"):
+                    production.main()
+            self.assertFalse(output.exists())
+
     def test_failed_render_does_not_leave_previous_download(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
