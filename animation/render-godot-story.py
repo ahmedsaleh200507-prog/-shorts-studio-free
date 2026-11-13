@@ -169,6 +169,22 @@ def scene_direction(scene, index):
         camera = "slow-push"
     return character, emotion, camera
 
+def stable_character(scene, previous=0):
+    """Preserve an actor's appearance across pronoun-only follow-up scenes."""
+    actor = scene.get("narrative", {}).get("actor", "main")
+    palette = {"doctor": 2, "teacher": 1, "child": 2, "woman": 1, "man": 3}
+    return palette.get(actor, previous)
+
+
+def visual_props(scene):
+    """Prefer meaningful named objects over generic keyword labels."""
+    allowed = {"phone", "radio", "apple", "bag", "door", "train",
+               "bed", "toothbrush", "computer", "book", "food"}
+    objects = scene.get("narrative", {}).get("objects", [])
+    result = [name for name in objects if name in allowed]
+    return result if result else scene.get("props", [])[:8]
+
+
 def render_story(script, aspect, audio_dir, output, alignment_file=None):
     with tempfile.TemporaryDirectory(prefix="shorts-plan-") as planning:
         args = ["node", str(ROOT / "animation" / "export-godot-plan.mjs"), script, aspect]
@@ -205,6 +221,7 @@ def render_story(script, aspect, audio_dir, output, alignment_file=None):
     with tempfile.TemporaryDirectory(prefix="shorts-story-") as work:
         temp = Path(work)
         clips = []
+        previous_character = 0
         for index, scene in enumerate(scenes):
             audio = (audio_dir / f"job-{index}.mp3") if audio_dir else None
             if audio is not None and not audio.is_file():
@@ -219,8 +236,10 @@ def render_story(script, aspect, audio_dir, output, alignment_file=None):
                             "-t", str(scene["frames"] / 24), "-c:a", "libmp3lame",
                             str(silent)])
                 audio = silent
-            character, emotion, camera = scene_direction(scene, index)
-            engine.render(scene["action"], scene["place"], scene["frames"] / 24, aspect, audio, clip, character, emotion, camera, scene.get("props", []))
+            _, emotion, camera = scene_direction(scene, index)
+            character = stable_character(scene, previous_character)
+            previous_character = character
+            engine.render(scene["action"], scene["place"], scene["frames"] / 24, aspect, audio, clip, character, emotion, camera, visual_props(scene))
             clips.append(clip)
         concat = temp / "clips.txt"
         concat.write_text("".join(f"file '{clip.as_posix()}'\n" for clip in clips), encoding="utf-8")
