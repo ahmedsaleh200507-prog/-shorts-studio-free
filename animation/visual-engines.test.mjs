@@ -97,3 +97,12 @@ test('reference diagram animates network connections and exports without debug s
  assert.match(source,/strokeDashoffset:-frame\*\.07/);
  assert.doesNotMatch(source,/el\(EditorialHud,\{scene,sceneIndex,landscape\}\)/);
 });
+
+test('cinematic reference mode uses environmental 2D scenes instead of stock standing character',()=>{
+ assert.match(source,/function CinematicEnvironment\(\{scene,frame\}\)/);
+ assert.match(source,/el\(CinematicEnvironment,\{scene,frame\}\)/);
+ const section=source.slice(source.indexOf('function VectorScene('),source.indexOf('function ReferenceDiagram('));
+ assert.doesNotMatch(section,/el\(Person,/);
+ assert.doesNotMatch(section,/el\(Background,/);
+ assert.match(source,/radial-gradient\(ellipse at center/);
+});
