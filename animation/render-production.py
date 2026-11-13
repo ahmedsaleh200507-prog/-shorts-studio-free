@@ -83,7 +83,8 @@ def main():
             "--concurrency", "1", "--scale", "0.5"
         ]
     try:
-        subprocess.run(command, check=True, cwd=ROOT / "animation")
+        # Leave time for validation and artifact upload before the 90-minute CI limit.
+        subprocess.run(command, check=True, cwd=ROOT / "animation", timeout=75 * 60)
         if not output.is_file() or output.stat().st_size < 10000:
             raise RuntimeError("Production MP4 is missing or empty")
         validate_mp4(output, aspect)
