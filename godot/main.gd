@@ -19,17 +19,13 @@ func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(output_dir)
 	get_window().size = render_size
 	get_viewport().size = render_size
-	queue_redraw()
-	await RenderingServer.frame_post_draw
-	_save_frame()
-
-func _process(_delta: float) -> void:
-	if frame_index >= total_frames:
-		get_tree().quit()
-		return
-	queue_redraw()
-	await RenderingServer.frame_post_draw
-	_save_frame()
+	# One sequential capture loop prevents overlapping asynchronous _process calls.
+	for i in range(total_frames):
+		frame_index = i
+		queue_redraw()
+		await RenderingServer.frame_post_draw
+		_save_frame()
+	get_tree().quit()
 
 func _save_frame() -> void:
 	if frame_index >= total_frames: return
@@ -46,6 +42,11 @@ func _save_frame() -> void:
 	frame_index += 1
 
 func _draw() -> void:
+	# Authoring coordinates use a 540x960 portrait canvas.
+	# Fit the entire scene to landscape without clipping.
+	var scale_factor := minf(float(render_size.x) / 540.0, float(render_size.y) / 960.0)
+	var offset := (Vector2(render_size) - Vector2(540, 960) * scale_factor) / 2.0
+	draw_set_transform(offset, 0.0, Vector2.ONE * scale_factor)
 	var t := float(frame_index) / FPS
 	draw_rect(Rect2(0, 0, 540, 960), Color("#c6dfeb"))
 	draw_rect(Rect2(0, 690, 540, 270), Color("#b88e70"))
