@@ -32,3 +32,12 @@ test('pickup context retains the previously named object across pronouns',()=>{
  assert.ok(scenes[0].narrative.objects.includes('cup'));
  assert.ok(scenes[1].narrative.objects.includes('cup'));
 });
+
+test('held object persists through another shot and is released when placed',()=>{
+ const scenes=makeScenePlan('She picks up a cup. Then she walks. She puts down the cup. Afterwards she walks.').scenes;
+ assert.equal(scenes[0].narrative.heldObject,'cup');
+ assert.equal(scenes[1].narrative.heldObject,'cup');
+ assert.equal(scenes[2].action,'put');
+ assert.equal(scenes[2].narrative.releaseObject,'cup');
+ assert.equal(scenes[3].narrative.heldObject,null);
+});
