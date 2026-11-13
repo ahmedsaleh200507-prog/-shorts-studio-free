@@ -43,3 +43,15 @@ test('running uses faster stronger 2D stride than walking',()=>{
   }
  }
 });
+
+test('sitting lowers the 2D character and bends legs smoothly',()=>{
+ const start=characterPose('sit',0),middle=characterPose('sit',8),end=characterPose('sit',24);
+ assert.equal(start.bodyY,0);
+ assert.ok(middle.bodyY>0&&middle.bodyY<end.bodyY);
+ assert.ok(end.leftLeg>50);
+ assert.ok(end.rightLeg< -50);
+ assert.equal(end.leftLeg,-end.rightLeg);
+ for(const frame of [0,8,16,24,14400]){
+  assert.ok(Object.values(characterPose('sit',frame)).every(Number.isFinite));
+ }
+});
