@@ -88,3 +88,17 @@ test('release without a held prop does not invent a physical interaction',()=>{
  assert.equal(scenes[2].narrative.releaseObject,'bottle');
  assert.equal(scenes[2].narrative.hasPhysicalInteraction,true);
 });
+
+test('unknown pickup target never creates a fabricated apple',()=>{
+ const scene=makeScenePlan('She picks up an object.').scenes[0];
+ assert.equal(scene.action,'pick');
+ assert.equal(scene.narrative.hasPhysicalInteraction,false);
+ assert.equal(scene.narrative.heldObject,null);
+});
+test('known pickup target still produces physical interaction',()=>{
+ for(const [text,object] of [['She picks up a cup.','cup'],['He takes a book.','book']]){
+  const scene=makeScenePlan(text).scenes[0];
+  assert.equal(scene.narrative.heldObject,object);
+  assert.equal(scene.narrative.hasPhysicalInteraction,true);
+ }
+});
