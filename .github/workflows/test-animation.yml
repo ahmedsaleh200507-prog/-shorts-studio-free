@@ -24,11 +24,13 @@ jobs:
           node-version: '22'
       - name: Syntax check both engines
         run: |
-          python -m py_compile animation/generate-ai-scenes.py animation/prepare-job.py
+          python -m py_compile animation/generate-ai-scenes.py animation/prepare-job.py animation/render-godot-story.py
           node --check animation/ShortsComposition.mjs
           node --check animation/scene-plan.mjs
       - name: Test free vector and AI fallback
         run: python -m unittest discover -s animation -p 'test_long_video.py' -v
+      - name: Test animated captions
+        run: python -m unittest discover -s animation -p 'test_animated_captions.py' -v
       - name: Test scene planning
         working-directory: animation
         run: npm test
