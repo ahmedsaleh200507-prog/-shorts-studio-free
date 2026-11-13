@@ -47,59 +47,93 @@ def ass_escape(value):
     return value.replace("\\", "＼").replace("{", "｛").replace("}", "｝").replace("\n", " ")
 
 
-def make_animated_subtitles(scenes, path, aspect="9:16"):
-    """Burn-in-ready ASS: one highlighted word at a time, with eased pop-in."""
+def caption_word_timings(scene, cursor, alignment=None):
+    """Use verified per-word timestamps when supplied, otherwise estimate."""
+    import re
+    duration = scene["frames"] / 24.0
+    words = scene["text"].replace("\\n", " ").split()
+    if not words:
+        return []
+    if isinstance(alignment, list) and len(alignment) == len(words):
+        try:
+            values = [(float(item["start"]), float(item["end"])) for item in alignment]
+            valid = all(math.isfinite(a) and math.isfinite(b) and
+                        0 <= a < b <= duration + 0.05 for a, b in values)
+            valid = valid and all(values[i][1] <= values[i + 1][0] + 0.04
+                                  for i in range(len(values) - 1))
+            # Reject alignments that belong to a different transcript.
+            valid = valid and all(
+                re.sub(r"\\W", "", str(item.get("word", "")).casefold()) ==
+                re.sub(r"\\W", "", word.casefold())
+                for item, word in zip(alignment, words))
+            if valid:
+                return [(word, cursor + a, cursor + b) for word, (a, b) in zip(words, values)]
+        except (KeyError, TypeError, ValueError, OverflowError):
+            pass
+    weights = [max(2, min(12, len(word.strip(".,!?;:")))) for word in words]
+    total = sum(weights)
+    elapsed = 0
+    result = []
+    for word, weight in zip(words, weights):
+        start = cursor + duration * elapsed / total
+        elapsed += weight
+        result.append((word, start, cursor + duration * elapsed / total))
+    return result
+
+
+def make_animated_subtitles(scenes, path, aspect="9:16", alignments=None):
+    """Adaptive, audio-alignment-ready ASS karaoke with safe text and pop animation."""
     portrait = aspect == "9:16"
     width, height = (540, 960) if portrait else (960, 540)
     font_size = 35 if portrait else 31
     margin = 110 if portrait else 55
     header = (
-        "[Script Info]\nScriptType: v4.00+\n"
-        f"PlayResX: {width}\nPlayResY: {height}\n"
-        "WrapStyle: 2\nScaledBorderAndShadow: yes\n\n"
-        "[V4+ Styles]\n"
+        "[Script Info]\\nScriptType: v4.00+\\n"
+        f"PlayResX: {width}\\nPlayResY: {height}\\n"
+        "WrapStyle: 2\\nScaledBorderAndShadow: yes\\n\\n"
+        "[V4+ Styles]\\n"
         "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, "
         "OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, "
         "ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
-        "Alignment, MarginL, MarginR, MarginV, Encoding\n"
+        "Alignment, MarginL, MarginR, MarginV, Encoding\\n"
         f"Style: Words,DejaVu Sans,{font_size},&H00FFFFFF,&H00FFFFFF,"
-        f"&H00111A2D,&H70000000,-1,0,0,0,100,100,0,0,1,3,0,2,45,45,{margin},1\n\n"
-        "[Events]\n"
-        "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
+        f"&H00111A2D,&H70000000,-1,0,0,0,100,100,0,0,1,3,0,2,45,45,{margin},1\\n\\n"
+        "[Events]\\n"
+        "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\\n"
     )
     events = []
     cursor = 0.0
-    for scene in scenes:
+    for scene_index, scene in enumerate(scenes):
         duration = scene["frames"] / 24.0
-        words = scene["text"].replace("\n", " ").split()
-        if not words:
-            cursor += duration
-            continue
-        # Estimate word boundaries by length; exact phoneme timing needs alignment.
-        weights = [max(2, min(12, len(word.strip(".,!?;:")))) for word in words]
-        total = sum(weights)
-        elapsed = 0.0
-        for index, word in enumerate(words):
-            start = cursor + duration * elapsed / total
-            elapsed += weights[index]
-            end = cursor + duration * elapsed / total
-            # Show at most four words at once; active word in warm gold.
-            chunk_start = (index // 4) * 4
-            chunk = words[chunk_start:chunk_start + 4]
-            fragments = []
-            for j, part in enumerate(chunk):
-                active = chunk_start + j == index
-                color = "&H0060C6F1&" if active else "&H00FFFFFF&"
-                fragments.append("{\\c" + color + "}" + ass_escape(part))
-            text = " ".join(fragments)
-            # 115% -> 100% pop-in, with short fade; text remains readable.
-            animation = "{\\fad(65,45)\\fscx115\\fscy115\\t(0,150,\\fscx100\\fscy100)}"
-            events.append(
-                f"Dialogue: 0,{ass_stamp(start)},{ass_stamp(max(end, start + 0.02))},"
-                f"Words,,0,0,0,,{animation}{text}"
-            )
+        alignment = alignments[scene_index] if alignments and scene_index < len(alignments) else None
+        timed = caption_word_timings(scene, cursor, alignment)
+        # Avoid oversized captions: 4 words max and ~22 characters on portrait.
+        chunks = []
+        chunk = []
+        for item in timed:
+            candidate = chunk + [item]
+            limit = 22 if portrait else 38
+            if chunk and (len(candidate) > 4 or sum(len(w) + 1 for w, _, _ in candidate) > limit):
+                chunks.append(chunk)
+                chunk = []
+            chunk.append(item)
+        if chunk:
+            chunks.append(chunk)
+        for group in chunks:
+            for index, (_, start, end) in enumerate(group):
+                fragments = []
+                for j, (word, _, _) in enumerate(group):
+                    active = j == index
+                    color = "&H0060C6F1&" if active else "&H00FFFFFF&"
+                    fragments.append("{\\\\c" + color + "}" + ass_escape(word))
+                text = " ".join(fragments)
+                animation = "{\\\\fad(65,45)\\\\fscx115\\\\fscy115\\\\t(0,150,\\\\fscx100\\\\fscy100)}"
+                events.append(
+                    f"Dialogue: 0,{ass_stamp(start)},{ass_stamp(max(end, start + 0.02))},"
+                    f"Words,,0,0,0,,{animation}{text}"
+                )
         cursor += duration
-    path.write_text(header + "\n".join(events) + "\n", encoding="utf-8")
+    path.write_text(header + "\\n".join(events) + "\\n", encoding="utf-8")
 
 
 def scene_direction(scene, index):
@@ -135,7 +169,7 @@ def scene_direction(scene, index):
         camera = "slow-push"
     return character, emotion, camera
 
-def render_story(script, aspect, audio_dir, output):
+def render_story(script, aspect, audio_dir, output, alignment_file=None):
     with tempfile.TemporaryDirectory(prefix="shorts-plan-") as planning:
         args = ["node", str(ROOT / "animation" / "export-godot-plan.mjs"), script, aspect]
         if audio_dir:
@@ -214,5 +248,5 @@ if __name__ == "__main__":
     parser.add_argument("--aspect", choices=["9:16", "16:9"], default="9:16")
     parser.add_argument("--audio-dir", type=Path)
     parser.add_argument("--out", type=Path, default=ROOT / "output" / "godot-story.mp4")
-    args = parser.parse_args()
-    print(json.dumps(render_story(args.script, args.aspect, args.audio_dir, args.out), indent=2))
+    parser.add_argument("--word-timings", type=Path, help="Optional JSON: one list per scene of {word,start,end} relative to scene")\n    args = parser.parse_args()
+    print(json.dumps(render_story(args.script, args.aspect, args.audio_dir, args.out, args.word_timings), indent=2))
