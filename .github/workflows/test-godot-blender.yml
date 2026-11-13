@@ -42,6 +42,8 @@ jobs:
           godot --version
       - name: Test articulated two-bone IK skeleton
         run: godot --headless --path godot --script res://test_ik.gd
+      - name: Test stance foot lock and swing lift
+        run: godot --headless --path godot --script res://test_foot_plant.gd
       - name: Install Blender 4.3 for Grease Pencil v3
         run: |
           curl -fL --retry 3 -o /tmp/blender.tar.xz https://download.blender.org/release/Blender4.3/blender-4.3.2-linux-x64.tar.xz
@@ -58,6 +60,24 @@ jobs:
           xvfb-run -a godot --path godot --rendering-driver opengl3 -- --action=brush --place=bathroom --frames=48 --out="$PWD/output/godot-frames"
           test "$(find output/godot-frames -name 'frame_*.png' | wc -l)" -eq 48
           file output/godot-frames/frame_00000.png
+      - name: Verify real rendered animation changes between frames
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, struct
+          frames = sorted(Path("output/godot-frames").glob("frame_*.png"))
+          assert len(frames) == 48, f"Expected 48 frames, got {len(frames)}"
+          sizes = set()
+          digests = set()
+          for frame in frames:
+              data = frame.read_bytes()
+              assert data[:8] == bytes([137,80,78,71,13,10,26,10]), frame
+              sizes.add(struct.unpack(">II", data[16:24]))
+              digests.add(hashlib.sha256(data).hexdigest())
+          assert sizes == {(540, 960)}, sizes
+          assert len(digests) >= 12, f"Animation appears frozen: {len(digests)} unique frames"
+          print(f"Verified {len(frames)} actual PNG frames, {len(digests)} distinct frames, size 540x960")
+          PY
       - name: Verify landscape Godot output
         run: |
           mkdir -p output/godot-landscape
