@@ -224,8 +224,9 @@ def render_story(script, aspect, audio_dir, output, alignment_file=None):
             clips.append(clip)
         concat = temp / "clips.txt"
         concat.write_text("".join(f"file '{clip.as_posix()}'\n" for clip in clips), encoding="utf-8")
-        subtitles = temp / "captions.srt"
-        make_subtitles(scenes, subtitles)
+        subtitles = temp / "captions.ass"
+        alignments = json.loads(alignment_file.read_text(encoding="utf-8")) if alignment_file else None
+        make_animated_subtitles(scenes, subtitles, aspect, alignments)
         joined = temp / "joined.mp4"
         engine.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0",
                     "-i", str(concat), "-c", "copy", "-movflags", "+faststart", str(joined)], timeout=1200)
