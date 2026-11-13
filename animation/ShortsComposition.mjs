@@ -353,7 +353,7 @@ function VectorScene({scene,frame,mouthLevel=0}){
       Shape({x:37,y:67,w:26,h:5,color:'#9a6648',r:8}),
       Shape({x:39,y:70,w:3,h:18,color:'#69442f',r:3}),
       Shape({x:58,y:70,w:3,h:18,color:'#69442f',r:3})):null,
-    el(Person,{frame,action:scene.action,mouthLevel,holding:Boolean(scene.narrative?.heldObject)}),
+    el(Person,{frame,action:scene.action,mouthLevel,holding:Boolean(scene.narrative?.heldObject)&&(scene.action!=='pick'||pickupPropPose(frame).grasp>.5)}),
     el(Prop,{action:scene.action,frame,hasPhysicalInteraction:scene.narrative?.hasPhysicalInteraction===true,heldObject:scene.action==='pick'?null:scene.narrative?.heldObject,objects:scene.narrative?.interactionObject?[scene.narrative.interactionObject]:scene.narrative?.heldObject?[scene.narrative.heldObject]:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame})));
 }
 function MotionGraphic({scene,frame}){
