@@ -1,7 +1,7 @@
 // Pure timing helper used by Remotion; invalid or absent TTS boundaries fall back to proportional text timing.
-const clean=(s)=>String(s).toLocaleLowerCase().replace(/[^\\p{L}\\p{N}]/gu,'');
+const clean=(s)=>String(s).toLocaleLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
 export function captionRevealCount(text,localFrame,durationFrames,alignment=null,fps=24){
- const words=String(text).trim().split(/\\s+/).filter(Boolean);
+ const words=String(text).trim().split(/\s+/).filter(Boolean);
  if(!words.length)return 0;
  const fallback=()=>Math.max(1,Math.min(words.length,Math.ceil((Math.max(0,localFrame)/Math.max(1,durationFrames))*words.length)));
  if(!Array.isArray(alignment)||!alignment.length)return fallback();
