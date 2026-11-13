@@ -12,6 +12,7 @@ const rules=[
   ['pick', /apfel|apple|picks? (?:up )?(?:an? )?apple|nimmt (?:einen |eine |das |den )?(?:apfel|gegenstand)|takes? (?:an? |the )?(?:apple|object)/i, 'supermarket', ['apple','shelf']],
   ['wake', /\bwach(?:e|st|t|en)?\b[^.!?]{0,90}\bauf\b|aufwach|\berwach(?:e|st|t|en)?\b|wake(?:s)? up|woke up|\b(?:steht|stand)\s+auf\b|aufgestanden|\b(?:gets?|got)\s+up\b|\bbed\b|bett/i, 'bedroom', ['bed']],
   ['travel', /\bbus\b|\bzug\b|train|station|bahnhof/i, 'transport', ['vehicle']],
+  ['put', /\b(?:puts? down|places?|sets? down|drops?)\b|\b(?:legt|stellt|setzt)\s+(?:es|sie|ihn|das|den|die|eine[nrsm]?|ein)\b|\bablegen\b|\babstellen\b/i, 'generic', ['surface']],
   ['carry', /trägt (?:den |die |das |einen |eine )?(?:koffer|tasche|rucksack)|carri(?:es|ed|y) (?:a |the )?(?:bag|suitcase|backpack)|mit (?:einem |dem )?koffer/i, 'generic', ['bag','hand']],
   ['alert', /warnung|warnmeldung|alarm|gefahr|notfall|emergency|warning|alert|achtung|sirene/i, 'alert', ['warning-panel','alert-icon']],
   ['phone', /handy|smartphone|telefon|phone|nachricht|message|notification|benachrichtigung|textnachricht|sms|bildschirm|screen/i, 'phone', ['phone-screen','notification']],
@@ -108,6 +109,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
   let previousPlace='generic';
   let previousActor='main';
   let previousObjects=[];
+  let heldObject=null;
   // Explicit locations override generic verbs such as 'works' or 'goes'.
   const scenes=sentences.map((text,index)=>{
     const match=rules.find(([,regex])=>regex.test(text));
@@ -120,6 +122,13 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const narrative=extractNarrative(text,resolvedAction,previousActor,previousObjects);
     previousActor=narrative.actor;
     if(narrative.objects.length) previousObjects=narrative.objects;
+    // Persist the item between shots, and clear it only after an explicit release.
+    const pickupItem=resolvedAction==='pick'?narrative.objects.find(o=>['apple','banana','bottle','cup','book'].includes(o)):null;
+    if(pickupItem)heldObject=pickupItem;
+    const carriedObject=heldObject;
+    if(resolvedAction==='put')heldObject=null;
+    narrative.heldObject=carriedObject;
+    narrative.releaseObject=resolvedAction==='put'?carriedObject:null;
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
