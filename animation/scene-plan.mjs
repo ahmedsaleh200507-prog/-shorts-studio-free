@@ -8,7 +8,7 @@ const rules=[
   ['walk', /\b(?:walks?|walking|strolls?)\b|\b(?:geht|gehen|spaziert|spazieren)\b/i, 'generic', ['path']],
   ['brush', /zähne|zahn|putzt|brush(?:es|ing)?|teeth|tooth/i, 'bathroom', ['toothbrush','sink']],
   ['checkout', /kasse|bezahl|checkout|cashier|\bpays?\b/i, 'supermarket', ['register','payment-card']],
-  ['put', /\b(?:puts? down|places?|sets? down|drops?)\b|\b(?:legt|stellt|setzt)\s+(?:es|sie|ihn|das|den|die|eine[nrsm]?|ein)\b|\bablegen\b|\babstellen\b/i, 'generic', ['surface']],
+  ['put', /\b(?:puts?\b[^.!?]{0,45}\bdown|sets?\b[^.!?]{0,45}\bdown|drops?\s+(?:it|them|the|a|an)\b|places?\s+(?:it|them|the|a|an)\b)|\b(?:legt|stellt|setzt)\s+(?:es|sie|ihn|das|den|die|eine[nrsm]?|ein)\b|\bablegen\b|\babstellen\b/i, 'generic', ['surface']],
   ['pick', /\b(?:bananas?|books?|bottles?|cups?)\b|banane|buch|flasche|tasse|\b(?:picks? up|grabs?|takes?)\s+(?:a |an |the )?(?:object|item)\b|\b(?:nimmt|greift)\s+(?:ein(?:e|en|em|er|es)? |das |den )?(?:banane|buch|flasche|tasse|gegenstand)/i, 'generic', ['object','hand']],
   ['pick', /apfel|apple|picks? (?:up )?(?:an? )?apple|nimmt (?:einen |eine |das |den )?(?:apfel|gegenstand)|takes? (?:an? |the )?(?:apple|object)/i, 'supermarket', ['apple','shelf']],
   ['wake', /\bwach(?:e|st|t|en)?\b[^.!?]{0,90}\bauf\b|aufwach|\berwach(?:e|st|t|en)?\b|wake(?:s)? up|woke up|\b(?:steht|stand)\s+auf\b|aufgestanden|\b(?:gets?|got)\s+up\b|\bbed\b|bett/i, 'bedroom', ['bed']],
