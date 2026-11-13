@@ -6,18 +6,20 @@ export const smooth=(v)=>{const t=clamp01(v);return t*t*(3-2*t);};
 export function characterPose(action,frame,fps=24){
  const f=Math.max(0,Number.isFinite(frame)?frame:0);
  const t=f/Math.max(1,fps);
- const walk=action==='travel'||action==='carry';
- const cycle=walk?Math.sin(t*5.76):0;
+ const walk=['travel','carry','walk','run'].includes(action);
+ const running=action==='run';
+ const gaitHz=running?2.8:1.83;
+ const cycle=walk?Math.sin(t*2*Math.PI*gaitHz):0;
  const reach=action==='pick'?smooth(f/(fps*.95)):0;
  const hold=action==='carry';
  const brush=action==='brush';
  return {
-  bodyY:walk?Math.abs(cycle)*8:Math.sin(t*2.16)*2,
+  bodyY:walk?Math.abs(cycle)*(running?13:8):Math.sin(t*2.16)*2,
   headRotation:Math.sin(t*1.08)*2,
-  leftArm:walk?cycle*19:brush?-34+Math.sin(t*8.16)*7:action==='checkout'?-18:Math.sin(t*1.92)*3,
-  rightArm:hold?-11+cycle*4:walk?-cycle*19:reach?-55*reach:action==='checkout'?-26:Math.sin(t*2.16+1)*4,
-  leftLeg:walk?cycle*22:0,
-  rightLeg:walk?-cycle*22:0,
+  leftArm:walk?cycle*(running?33:19):brush?-34+Math.sin(t*8.16)*7:action==='checkout'?-18:Math.sin(t*1.92)*3,
+  rightArm:hold?-11+cycle*4:walk?-cycle*(running?33:19):reach?-55*reach:action==='checkout'?-26:Math.sin(t*2.16+1)*4,
+  leftLeg:walk?cycle*(running?37:22):0,
+  rightLeg:walk?-cycle*(running?37:22):0,
   propSwing:hold?cycle*2.5:0
  };
 }
