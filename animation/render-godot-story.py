@@ -59,6 +59,12 @@ def scene_direction(scene, index):
         character = 3
     else:
         character = 0
+    # Documentary objects benefit from a stable establishing shot rather than
+    # an automatic talking-head close-up.
+    if scene.get("place") in {"phone", "metro", "radio", "map", "infographic"}:
+        camera = "reveal"
+    elif scene.get("place") in {"space", "science", "technology", "history"}:
+        camera = "slow-push"
     return character, emotion, camera
 
 def render_story(script, aspect, audio_dir, output):
