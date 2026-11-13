@@ -1,7 +1,7 @@
 import {narrationAudio} from './narration-audio.mjs';
 import {narrationWordTimings} from './narration-word-timings.mjs';
 import {captionRevealCount,speechMouthLevel} from './caption-timing.mjs';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {AbsoluteFill, Audio, Sequence, useCurrentFrame, interpolate} from 'remotion';
 import {makeScenePlan} from './scene-plan.mjs';
 import {aiSceneImages} from './ai-scene-images.mjs';
@@ -406,11 +406,19 @@ function CaptionWords({caption}){
  }));
 }
 export function ShortsComposition({script='Ein Mann wacht morgens auf.',narration=false,durationsFrames=null,aspectRatio='9:16'}){
- const plan=makeScenePlan(script,{durationsFrames,aspectRatio}),frame=useCurrentFrame();
+ const plan=useMemo(()=>makeScenePlan(script,{durationsFrames,aspectRatio}),[script,durationsFrames,aspectRatio]);
+ const frame=useCurrentFrame();
  const landscape=aspectRatio==='16:9';
- const scene=plan.scenes.find(s=>frame>=s.startFrame&&frame<s.endFrame)??plan.scenes.at(-1);
+ // Binary-search the timeline so long 10-minute scripts stay responsive.
+ let low=0,high=plan.scenes.length-1;
+ while(low<high){
+  const mid=Math.floor((low+high)/2);
+  if(frame>=plan.scenes[mid].endFrame)low=mid+1;
+  else high=mid;
+ }
+ const sceneIndex=low;
+ const scene=plan.scenes[sceneIndex];
  const local=Math.max(0,frame-scene.startFrame);
- const sceneIndex=plan.scenes.indexOf(scene);
  const aiImage=aiSceneImages[sceneIndex];
  const duration=Math.max(1,scene.endFrame-scene.startFrame);
  const progress=Math.min(1,local/duration);
