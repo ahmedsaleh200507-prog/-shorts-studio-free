@@ -119,7 +119,7 @@ jobs:
           ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 output/godot-story.mp4 | grep -q aac
       - name: Simulate iPhone vector-mode request through production router
         env:
-          SCRIPT: "[[VECTOR_2D]]\\nEr putzt die Zähne."
+          SCRIPT: "[[VECTOR_2D]] Er putzt die Zähne."
           ASPECT_RATIO: "9:16"
         run: |
           mkdir -p animation/public/audio
