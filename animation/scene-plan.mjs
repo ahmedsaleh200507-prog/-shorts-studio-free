@@ -66,6 +66,30 @@ function chooseContext(text, previousPlace){
     return {place:previousPlace,setting:false};
   return {place:'generic',setting:false};
 }
+// Lightweight narrative memory. Metadata is shared by preview and render exports.
+const objectPatterns=[
+ ['phone',/handy|smartphone|telefon|phone/i],['radio',/\\bradio\\b|radioger[aä]t/i],
+ ['apple',/apfel|apple/i],['bag',/tasche|rucksack|backpack|bag/i],
+ ['door',/t[uü]r|door/i],['train',/u-bahn|metro|subway|\\bzug\\b|train/i],
+ ['bed',/bett|\\bbed\\b/i],['toothbrush',/zahnb[uü]rste|toothbrush/i],
+ ['computer',/computer|laptop/i],['book',/buch|\\bbook\\b/i],
+ ['food',/essen|food|meal/i]
+];
+const actorPatterns=[
+ ['doctor',/arzt|[aä]rztin|doctor|physician/i],
+ ['teacher',/lehrer|lehrerin|teacher/i],
+ ['child',/kind|child|kid/i],
+ ['woman',/frau|woman|girl/i],
+ ['man',/mann|man|boy/i]
+];
+function extractNarrative(text,action,previousActor,previousObjects){
+ const named=actorPatterns.find(([,re])=>re.test(text));
+ const actor=named?named[0]:previousActor;
+ const mentioned=objectPatterns.filter(([,re])=>re.test(text)).map(([name])=>name);
+ const pronounObject=/\\b(?:it|this|that|ihn|ihm|es|sie|damit|darauf)\\b/i.test(text);
+ const objects=mentioned.length?mentioned:(pronounObject?previousObjects.slice(0,2):[]);
+ return {actor,objects,interaction:action==='talk'?'narrate':action};
+}
 export function splitScript(script){
   if(typeof script!=='string') throw new TypeError('script must be a string');
   const sentences=(script.match(/(?:[^.!?\n]|\.(?=\d))+[.!?]?/g)||[]).map(s=>s.trim()).filter(Boolean);
@@ -80,6 +104,8 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
   if(durationsFrames!==null && (!Array.isArray(durationsFrames)||durationsFrames.length!==sentences.length||durationsFrames.some(n=>!Number.isInteger(n)||n<1))) throw new RangeError('invalid scene durations');
   let cursor=0;
   let previousPlace='generic';
+  let previousActor='main';
+  let previousObjects=[];
   // Explicit locations override generic verbs such as 'works' or 'goes'.
   const scenes=sentences.map((text,index)=>{
     const match=rules.find(([,regex])=>regex.test(text));
@@ -89,12 +115,15 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     if(place!=='generic') previousPlace=place;
     const resolvedAction=place==='metro'?'travel':action;
     const resolvedProps=[...new Set([...props,...(place==='metro'?['train','platform']:[]),...(place==='phone'?['phone-screen']:[])])].slice(0,8);
+    const narrative=extractNarrative(text,resolvedAction,previousActor,previousObjects);
+    previousActor=narrative.actor;
+    if(narrative.objects.length) previousObjects=narrative.objects;
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
     const visualMode=['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(place)||['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(action)?'motion-graphic':'character';
     const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
-    return {id:`scene-${index+1}`,text,action:resolvedAction,place,props:resolvedProps,visualMode,keywords,characterId:'main',startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
+    return {id:`scene-${index+1}`,text,action:resolvedAction,place,props:resolvedProps,visualMode,keywords,characterId:'main',narrative,startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
   const landscape=aspectRatio==="16:9";
   return {version:1,width:landscape?1920:1080,height:landscape?1080:1920,fps,totalFrames:scenes.at(-1).endFrame,scenes};
