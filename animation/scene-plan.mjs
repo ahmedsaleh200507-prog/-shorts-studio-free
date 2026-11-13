@@ -119,7 +119,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     // verbs in the same sentence, without treating object mentions as pickups.
     // Match the manipulated object near its verb, not any unrelated noun
     // elsewhere in the sentence (e.g. "takes a train and reads a book").
-    const targetPickup=/\b(?:picks?\s+(?:(?:it|them)\s+)?up|grabs?|takes?|lifts?|nimmt|greift|hebt)\b[^.!?;,]{0,45}\b(?:apples?|bananas?|bottles?|cups?|books?|apfel|banane|flasche|tasse|buch|bücher)\b/i.test(text);
+    const targetPickup=/\b(?:picks?\s+(?:(?:it|them)\s+)?up|grabs?|takes?|lifts?|nimmt|greift|hebt)\b[^.!?;,]{0,45}\b(?:apples?|bananas?|bottles?|cups?|books?|objects?|items?|apfel|banane|flasche|tasse|buch|bücher|gegenstand)\b/i.test(text);
     const pronounVerb=/\b(?:picks?\s+(?:it|them)\s+up|grabs?\s+(?:it|them)|takes?\s+(?:it|them)|lifts?\s+(?:it|them)|nimmt\s+(?:es|sie|ihn))\b/i.test(text);
     const explicitPickRule=explicitPickup&&(targetPickup||pronounVerb)?(rules.find(([name,regex])=>name==='pick'&&regex.test(text))||rules.find(([name])=>name==='pick')):null;
     const match=explicitPut?rules.find(([name])=>name==='put'):
