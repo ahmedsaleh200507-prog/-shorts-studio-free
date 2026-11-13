@@ -383,6 +383,13 @@ function EditorialHud({scene,sceneIndex,landscape}){
   el('div',{style:{position:'absolute',top:landscape?24:42,left:'50%',transform:'translateX(-50%)',border:'1px solid #c5a56d',borderRadius:4,padding:landscape?'5px 15px':'8px 18px',background:'#091326e8',color:'#e8c67f',fontSize:landscape?13:17,letterSpacing:3,fontWeight:800,whiteSpace:'nowrap',boxShadow:'0 0 12px #0009'}},
    `SCENE ${String(sceneIndex+1).padStart(2,'0')} · ${tag.slice(0,20)}`));
 }
+// Fade the first and last few frames of each shot without inserting blank frames.
+export function shotTransitionOpacity(local,duration,fps=24){
+ const edge=Math.min(8,Math.max(1,Math.floor(duration/5)),Math.max(1,Math.floor(fps/3)));
+ const enter=Math.min(1,Math.max(0,local/edge));
+ const exit=Math.min(1,Math.max(0,(duration-1-local)/edge));
+ return Math.min(enter,exit);
+}
 // Keep subtitles readable in both portrait and landscape: reveal a short
 // rolling phrase instead of accumulating the entire narration on screen.
 export function rollingCaption(words,revealedWords,maxWords=8){
@@ -422,7 +429,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  // Short scenes need non-overlapping fade windows to avoid invalid interpolation ranges.
  const opacity=captionOpacity(local,duration);
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
-  aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,mouthLevel:narration?speechMouthLevel(local,narrationWordTimings[sceneIndex],plan.fps):0})),
+  el('div',{style:{position:'absolute',inset:0,opacity:shotTransitionOpacity(local,duration,plan.fps)}},aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,mouthLevel:narration?speechMouthLevel(local,narrationWordTimings[sceneIndex],plan.fps):0}))),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
   el(EditorialHud,{scene,sceneIndex,landscape}),
   el('div',{style:{position:'absolute',bottom:landscape?58:140,left:landscape?'15%':45,right:landscape?'15%':45,opacity,background:'linear-gradient(180deg,#07102000,#071020d9 35%,#071020ed)',borderRadius:landscape?8:12,padding:landscape?'14px 20px':'24px 18px',color:'white',fontSize:landscape?35:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},el(CaptionWords,{caption,landscape}))
