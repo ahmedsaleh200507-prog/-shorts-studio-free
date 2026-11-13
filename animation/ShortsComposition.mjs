@@ -1,6 +1,6 @@
 import {narrationAudio} from './narration-audio.mjs';
 import {narrationWordTimings} from './narration-word-timings.mjs';
-import {captionRevealCount} from './caption-timing.mjs';
+import {captionRevealCount,speechActiveAtFrame} from './caption-timing.mjs';
 import React from 'react';
 import {AbsoluteFill, Audio, Sequence, useCurrentFrame, interpolate} from 'remotion';
 import {makeScenePlan} from './scene-plan.mjs';
@@ -314,7 +314,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const caption=words.slice(0,revealedWords).join(' ');
  const opacity=interpolate(local,[0,5,Math.max(6,scene.endFrame-scene.startFrame-6),scene.endFrame-scene.startFrame],[0,1,1,0],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
-  aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,speaking:narration})),
+  aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,speaking:narration&&speechActiveAtFrame(local,narrationWordTimings[sceneIndex],plan.fps)})),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
   el('div',{style:{position:'absolute',top:landscape?42:85,left:landscape?70:65,color:'#fff',fontSize:landscape?26:34,fontWeight:800,letterSpacing:3,textShadow:'0 3px 8px #0009'}},'SHORTS STUDIO'),
   el('div',{style:{position:'absolute',bottom:landscape?58:140,left:landscape?'15%':45,right:landscape?'15%':45,opacity,background:'#14253bd9',borderRadius:landscape?18:30,padding:landscape?'18px 24px':'32px 26px',color:'white',fontSize:landscape?35:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},caption)
