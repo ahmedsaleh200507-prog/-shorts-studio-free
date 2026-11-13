@@ -82,3 +82,11 @@ test('Walking running and sitting are preserved as native character motions',()=
     assert.equal(plan.scenes[0].action,action,script);
   }
 });
+
+
+test('Godot exports preserve distinct text-derived visual objects',()=>{
+  const plan=exportPlan('A scientist examines an atom. A gardener waters a flower.');
+  assert.equal(plan.scenes.length,2);
+  assert.ok(plan.scenes.every(s=>Array.isArray(s.props)&&Array.isArray(s.keywords)));
+  assert.notDeepEqual(plan.scenes[0].keywords,plan.scenes[1].keywords);
+});
