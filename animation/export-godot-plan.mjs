@@ -1,8 +1,4 @@
-"""Convert the existing Remotion scene plan into validated Godot-compatible scenes.
-
-This is a compatibility bridge, not a replacement for AI scene planning.
-Usage: node animation/export-godot-plan.mjs "Er wacht auf. Er putzt die Zähne."
-"""
+// Convert the Remotion scene plan into Godot-compatible actions.
 import {makeScenePlan} from './scene-plan.mjs';
 
 const script=process.argv[2];
