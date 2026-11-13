@@ -171,3 +171,10 @@ test('English window and home settings are recognized',()=>{
  assert.equal(makeScenePlan('She looks through the window.').scenes[0].place,'window');
  assert.equal(makeScenePlan('He returns home.').scenes[0].place,'house');
 });
+
+test('reference-style subjects choose semantic animated infographics',()=>{
+ for(const text of ['Soziale Netzwerke verbinden Menschen.','Die Bevölkerung wächst um Millionen.','Die Stadt ist vierzig Kilometer entfernt.','Die Jacke ihres Vaters hängt an der Wand.']){
+  const scene=makeScenePlan(text).scenes[0];
+  assert.equal(scene.visualMode,'motion-graphic',text);
+ }
+});
