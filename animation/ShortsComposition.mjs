@@ -334,6 +334,60 @@ function AiIllustration({image,sceneIndex,progress}){
   el('img',{src:staticFile(image.startsWith('/')?image.slice(1):image),style:{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',transform:`translate(${dx}%,${dy}%) scale(${zoom})`,filter:'saturate(1.12) contrast(1.06)'}}),
   el('div',{style:{position:'absolute',inset:0,pointerEvents:'none',background:'linear-gradient(180deg,#07102144 0%,transparent 35%,#08122288 100%)'}}));
 }
+// Cinematic environment-first 2D fallback. No stock standing character or debug labels.
+function CinematicEnvironment({scene,frame}){
+ const t=frame/24, text=(scene.text||'').toLowerCase();
+ const forest=/wald|forest|baum|tree|natur|nature|berg|mountain|hütte|cabin/i.test(text);
+ const city=/stadt|city|straße|street|building|gebäude|haus|house|dorf|village/i.test(text);
+ const sky=/himmel|sky|wolke|cloud|fenster|window|sonne|sun|morgen|morning/i.test(text);
+ const water=/wasser|water|meer|sea|ocean|fluss|river|lake|see\b/i.test(text);
+ const night=/nacht|night|dunkel|dark|midnight/i.test(text);
+ const sceneType=forest?'forest':water?'water':city?'city':sky?'sky':'interior';
+ const svg=(tag,props,...children)=>el(tag,props,...children);
+ const trees=(count,base,scale,color)=>Array.from({length:count},(_,i)=>{
+  const x=((i*37+11)%105)-3, y=base+(i%4)*2, h=(10+i%5*2)*scale;
+  return svg('g',{key:color+i,transform:`translate(${x} ${y})`},
+   svg('path',{d:`M -1 1 L 0 -${h} L 1 1 Z`,fill:'#28333c'}),
+   svg('path',{d:`M 0 -${h+4} L -${h*.37} -${h*.20} L ${h*.37} -${h*.20} Z`,fill:color}),
+   svg('path',{d:`M 0 -${h*.83} L -${h*.48} -${h*.04} L ${h*.48} -${h*.04} Z`,fill:color}));
+ });
+ const buildings=Array.from({length:13},(_,i)=>{
+  const x=i*9-4,h=14+(i*17%23),y=67-h;
+  return svg('g',{key:i},svg('rect',{x,y,width:8.5,height:h,fill:i%3===0?'#26364b':'#1d3043'}),
+   ...Array.from({length:10},(_,j)=>svg('rect',{key:j,x:x+1+(j%2)*3,y:y+3+Math.floor(j/2)*4,width:1.2,height:1.5,fill:(i+j)%4===0?'#f5c17a':'#3d5366'})));
+ });
+ return el('div',{style:{position:'absolute',inset:0,background:night?'#091526':'#12283a',overflow:'hidden'}},
+  svg('svg',{viewBox:'0 0 100 100',preserveAspectRatio:'xMidYMid slice',style:{width:'100%',height:'100%',transform:`scale(${1.05+Math.min(.07,frame*.0008)}) translate(${Math.sin(t*.28)*.5}px,${Math.cos(t*.19)*.35}px)`}},
+   svg('defs',null,
+    svg('linearGradient',{id:'cinSky',x1:'0',y1:'0',x2:'0',y2:'1'},svg('stop',{offset:'0%',stopColor:night?'#071020':'#0b2138'}),svg('stop',{offset:'100%',stopColor:night?'#20334d':'#4a6670'}))),
+    svg('linearGradient',{id:'cinGround',x1:'0',y1:'0',x2:'0',y2:'1'},svg('stop',{offset:'0%',stopColor:'#344b46'}),svg('stop',{offset:'100%',stopColor:'#101d25'}))),
+   svg('rect',{width:100,height:100,fill:'url(#cinSky)'}),
+   svg('circle',{cx:78,cy:20,r:night?2.6:5,fill:night?'#c6d8dc':'#f2bb82',opacity:.85}),
+   ...Array.from({length:5},(_,i)=>svg('ellipse',{key:i,cx:((i*29+frame*.028)%130)-15,cy:17+i*5,rx:11+i%3*3,ry:2.3,fill:'#b8c4c4',opacity:.08+i*.025})),
+   sceneType==='forest'?svg('g',null,
+    svg('path',{d:'M0 62 L22 42 L37 57 L58 34 L82 54 L100 39 L100 100 L0 100 Z',fill:'#263e48'}),
+    ...trees(12,68,.75,'#2e5350'),
+    svg('path',{d:'M0 75 L100 71 L100 100 L0 100 Z',fill:'url(#cinGround)'}),
+    svg('path',{d:'M38 100 Q45 80 60 71 L66 71 Q51 87 55 100 Z',fill:'#6a665d'}),
+    svg('path',{d:'M49 72 L63 64 L76 71 L76 86 L49 86 Z',fill:'#344047',stroke:'#7e7a6b',strokeWidth:.6}),
+    svg('path',{d:'M45 72 L63 59 L80 72 Z',fill:'#202d37'}),
+    svg('rect',{x:61,y:73,width:6,height:6,fill:'#efc37d'}),
+    ...trees(11,93,1.2,'#1a3d38')):null,
+   sceneType==='city'?svg('g',null,...buildings,svg('path',{d:'M0 68 L100 68 L100 100 L0 100 Z',fill:'#202c39'}),
+    svg('path',{d:'M0 92 L100 76 L100 82 L0 100 Z',fill:'#4b4c4d'}),
+    svg('path',{d:'M0 96 L100 80',stroke:'#dfbd7e',strokeWidth:.5,strokeDasharray:'4 5'})):null,
+   sceneType==='water'?svg('g',null,svg('path',{d:'M0 52 Q28 49 53 52 T100 51 L100 100 L0 100 Z',fill:'#173d51'}),
+    ...Array.from({length:22},(_,i)=>svg('path',{key:i,d:`M${(i*19+frame*.13)%110-5} ${57+i*2} h${3+i%5}`,stroke:i%3===0?'#e5b983':'#6d9da4',strokeWidth:.22,opacity:.6}))):null,
+   (sceneType==='sky'||sceneType==='interior')?svg('g',null,
+    svg('path',{d:'M0 79 L100 72 L100 100 L0 100 Z',fill:'#1d3039'}),
+    svg('path',{d:'M0 67 L20 59 L42 66 L61 53 L100 64 L100 80 L0 82 Z',fill:'#344d56'}),
+    sceneType==='interior'?svg('g',null,svg('path',{d:'M12 29 L88 29 L88 79 L12 79 Z',fill:'#253744',stroke:'#a28c70',strokeWidth:2}),
+     svg('path',{d:'M16 33 L84 33 L84 75 L16 75 Z',fill:'#304e5d'}),
+     svg('path',{d:'M50 33 V75 M16 54 H84',stroke:'#a28c70',strokeWidth:1.6}),
+     svg('path',{d:'M0 79 L100 79 L100 100 L0 100 Z',fill:'#282d36'})):null):null,
+   svg('rect',{width:100,height:100,fill:'#07101b',opacity:.12})),
+  el('div',{style:{position:'absolute',inset:0,pointerEvents:'none',background:'radial-gradient(ellipse at center,transparent 35%,#0308118c 100%)'}}));
+}
 function VectorScene({scene,frame,mouthLevel=0}){
  // Apply one subtle 2D camera move to the entire illustrated world so the
  // actor, held props and environment remain spatially locked together.
@@ -346,7 +400,9 @@ function VectorScene({scene,frame,mouthLevel=0}){
  const panY=(eased-.5)*1.1;
  return el('div',{style:{position:'absolute',inset:0,overflow:'hidden'}},
   el('div',{style:{position:'absolute',inset:0,transform:`translate(${panX}%,${panY}%) scale(${zoom})`,transformOrigin:'50% 52%'}},
- scene.visualMode==='character'?el(React.Fragment,null,
+ scene.visualMode==='character'?el(CinematicEnvironment,{scene,frame}):el(MotionGraphic,{scene,frame})),
+ /* legacy character renderer disabled for cinematic reference mode */
+ /*
     el(Background,{place:scene.place,frame}),
     scene.action==='sit'?el(React.Fragment,null,
       Shape({x:42,y:49,w:7,h:24,color:'#79533d',r:5}),
@@ -354,7 +410,7 @@ function VectorScene({scene,frame,mouthLevel=0}){
       Shape({x:39,y:70,w:3,h:18,color:'#69442f',r:3}),
       Shape({x:58,y:70,w:3,h:18,color:'#69442f',r:3})):null,
     el(Person,{frame,action:scene.action,mouthLevel,holding:Boolean(scene.narrative?.heldObject)&&(scene.action!=='pick'||pickupPropPose(frame).grasp>.5)}),
-    el(Prop,{action:scene.action,frame,hasPhysicalInteraction:scene.narrative?.hasPhysicalInteraction===true,heldObject:scene.action==='pick'?null:scene.narrative?.heldObject,objects:scene.narrative?.interactionObject?[scene.narrative.interactionObject]:scene.narrative?.heldObject?[scene.narrative.heldObject]:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame})));
+    el(Prop,{action:scene.action,frame,hasPhysicalInteraction:scene.narrative?.hasPhysicalInteraction===true,heldObject:scene.action==='pick'?null:scene.narrative?.heldObject,objects:scene.narrative?.interactionObject?[scene.narrative.interactionObject]:scene.narrative?.heldObject?[scene.narrative.heldObject]:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame}))) */
 }
 // Reference-style 2D editorial diagrams: semantic visuals, not generic title cards.
 function ReferenceDiagram({scene,frame}){
