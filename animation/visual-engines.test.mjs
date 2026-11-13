@@ -77,3 +77,10 @@ test('rolling captions cap visible words in portrait and landscape',()=>{
  assert.match(source,/const start=Math\.max\(0,end-maxWords\)/);
  assert.match(source,/rollingCaption\(words,revealedWords,landscape\?11:7\)/);
 });
+
+test('short adaptive scene transitions wrap both AI and vector visuals',()=>{
+ assert.match(source,/export function shotTransitionOpacity\(local,duration,fps=24\)/);
+ assert.match(source,/Math\.floor\(duration\/5\)/);
+ assert.match(source,/opacity:shotTransitionOpacity\(local,duration,plan\.fps\)/);
+ assert.match(source,/aiImage\?el\(AiIllustration/);
+});
