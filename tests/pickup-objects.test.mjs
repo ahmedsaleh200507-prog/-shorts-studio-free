@@ -65,3 +65,15 @@ test('mentioning an object without pickup verbs does not animate a pickup',()=>{
   assert.equal(scene.narrative.heldObject,null,script);
  }
 });
+
+test('compound nouns do not become unrelated objects',()=>{
+ for(const [script,forbidden] of [
+  ['She walks into a bookstore.','book'],
+  ['She opens the cupboard.','cup'],
+  ['She looks at a pineapple.','apple'],
+  ['She takes her baggage.','bag']
+ ]){
+  const scene=makeScenePlan(script).scenes[0];
+  assert.ok(!scene.narrative.objects.includes(forbidden),script);
+ }
+});
