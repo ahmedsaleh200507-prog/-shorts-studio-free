@@ -231,3 +231,11 @@ test('compound sentences resolve the later pickup verb rather than a transport v
   assert.equal(scene.narrative.interactionObject,item,script);
  }
 });
+
+test('metro setting preserves explicit pickup instead of overriding it with travel',()=>{
+ const scene=makeScenePlan('She picks up a cup at the metro station.').scenes[0];
+ assert.equal(scene.place,'metro');
+ assert.equal(scene.action,'pick');
+ assert.equal(scene.narrative.interactionObject,'cup');
+ assert.equal(scene.narrative.hasPhysicalInteraction,true);
+});
