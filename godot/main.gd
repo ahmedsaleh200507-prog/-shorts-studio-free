@@ -1,6 +1,7 @@
 extends Node2D
 ## Native 2D renderer prototype. All objects are flat 2D geometry.
 const FPS := 24
+const TwoBoneIK = preload("res://two_bone_ik.gd")
 var frame_index := 0
 var total_frames := 72
 var action := "wake"
@@ -94,11 +95,17 @@ func _draw_character(t: float) -> void:
 	var shoulder := root + Vector2(sway, -30)
 	var left_ankle := hip + Vector2(-29 + gait, 185 - abs(gait) * 0.32)
 	var right_ankle := hip + Vector2(29 - gait, 185 - abs(gait) * 0.32)
+	var left_hip := hip + Vector2(-19, 0)
+	var right_hip := hip + Vector2(19, 0)
+	var left_knee: Vector2 = TwoBoneIK.solve(left_hip, left_ankle, 96.0, 96.0, 1.0)[0]
+	var right_knee: Vector2 = TwoBoneIK.solve(right_hip, right_ankle, 96.0, 96.0, -1.0)[0]
 	# Back leg, shoes and seams.
-	draw_line(hip + Vector2(-19, 0), left_ankle, outline, 36, true)
-	draw_line(hip + Vector2(-19, 0), left_ankle, trousers, 29, true)
-	draw_line(hip + Vector2(19, 0), right_ankle, outline, 36, true)
-	draw_line(hip + Vector2(19, 0), right_ankle, trousers, 29, true)
+	for leg in [[left_hip, left_knee, left_ankle], [right_hip, right_knee, right_ankle]]:
+		draw_line(leg[0], leg[1], outline, 37, true)
+		draw_line(leg[0], leg[1], trousers, 30, true)
+		draw_line(leg[1], leg[2], outline, 34, true)
+		draw_line(leg[1], leg[2], trousers, 27, true)
+		draw_circle(leg[1], 15, trousers)
 	for ankle in [left_ankle, right_ankle]:
 		draw_line(ankle + Vector2(-9, 3), ankle + Vector2(22, 4), outline, 18, true)
 		draw_line(ankle + Vector2(-7, 0), ankle + Vector2(19, 1), Color("#f4f1e8"), 11, true)
@@ -115,6 +122,15 @@ func _draw_character(t: float) -> void:
 		right_hand = Vector2(385, 538).lerp(Vector2(307, 494), reach)
 	elif action == "talk":
 		right_hand += Vector2(24, -35 + sin(t * 5.0) * 17)
+	# Two-bone IK maintains forearm/upper-arm lengths while tracking props.
+	var left_shoulder := shoulder + Vector2(-40, 0)
+	var right_shoulder := shoulder + Vector2(40, 0)
+	var left_pose: Array[Vector2] = TwoBoneIK.solve(left_shoulder, left_hand, 81.0, 81.0, -1.0)
+	var right_pose: Array[Vector2] = TwoBoneIK.solve(right_shoulder, right_hand, 81.0, 81.0, 1.0)
+	left_elbow = left_pose[0]
+	left_hand = left_pose[1]
+	right_elbow = right_pose[0]
+	right_hand = right_pose[1]
 	# Arms have jointed sleeves and visible hands.
 	for points in [[shoulder + Vector2(-40, 0), left_elbow, left_hand], [shoulder + Vector2(40, 0), right_elbow, right_hand]]:
 		draw_line(points[0], points[1], outline, 35, true)
