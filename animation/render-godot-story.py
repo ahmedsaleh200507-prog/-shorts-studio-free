@@ -39,6 +39,8 @@ def render_story(script, aspect, audio_dir, output):
         args = ["node", str(ROOT / "animation" / "export-godot-plan.mjs"), script, aspect]
         if audio_dir:
             audio_dir = audio_dir.resolve()
+            if not audio_dir.is_dir():
+                raise FileNotFoundError(audio_dir)
             audio_files = sorted(audio_dir.glob("job-*.mp3"), key=lambda p: int(p.stem.split("-")[-1]))
             if not audio_files:
                 raise ValueError("No narration MP3 files found")
