@@ -40,6 +40,8 @@ jobs:
           unzip -q /tmp/godot.zip -d /tmp/godot
           sudo install -m 755 /tmp/godot/Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
           godot --version
+      - name: Test articulated two-bone IK skeleton
+        run: godot --headless --path godot --script res://test_ik.gd
       - name: Install Blender 4.3 for Grease Pencil v3
         run: |
           curl -fL --retry 3 -o /tmp/blender.tar.xz https://download.blender.org/release/Blender4.3/blender-4.3.2-linux-x64.tar.xz
