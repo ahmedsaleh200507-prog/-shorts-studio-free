@@ -34,8 +34,6 @@ func _process(_delta: float) -> void:
 func _save_frame() -> void:
 	if frame_index >= total_frames: return
 	var image := get_viewport().get_texture().get_image()
-	if image.get_size() != render_size:
-		image.resize(render_size.x, render_size.y, Image.INTERPOLATE_LANCZOS)
 	if image.is_empty():
 		push_error("Empty rendered frame")
 		get_tree().quit(1)
