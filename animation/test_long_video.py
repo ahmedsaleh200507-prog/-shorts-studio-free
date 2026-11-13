@@ -94,6 +94,22 @@ class LongVideoTests(unittest.TestCase):
                 runpy.run_path(str(SCRIPT_FILE), run_name="__main__")
             self.assertIn("[null]", (tmpdir / "ai-scene-images.mjs").read_text())
 
+    def test_aspect_marker_before_vector_marker_never_calls_image_api(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = pathlib.Path(tmp)
+            original_resolve = pathlib.Path.resolve
+            def fake_resolve(path, *args, **kwargs):
+                if path == SCRIPT_FILE:
+                    return tmpdir / "generate-ai-scenes.py"
+                return original_resolve(path, *args, **kwargs)
+            env = {"SCRIPT": "[[ASPECT_16_9]]\\n[[VECTOR_2D]]\\nA child walks to school.",
+                   "POLLINATIONS_KEY": "sk_test", "ASPECT_RATIO": "9:16"}
+            with patch.dict(os.environ, env), patch.object(pathlib.Path, "resolve", fake_resolve), patch(
+                "urllib.request.urlopen", side_effect=AssertionError("Vector mode must never call AI image API")
+            ):
+                runpy.run_path(str(SCRIPT_FILE), run_name="__main__")
+            self.assertIn("[null]", (tmpdir / "ai-scene-images.mjs").read_text())
+
     def test_overlong_script_rejected(self):
         with patch.dict(os.environ, {"SCRIPT": "a" * 12001, "POLLINATIONS_KEY": "sk_test"}):
             with self.assertRaises(SystemExit):
