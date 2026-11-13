@@ -263,3 +263,10 @@ test('pickup selects first named object in the verb clause, not dictionary prior
   assert.equal(scene.narrative.interactionObject,expected,script);
  }
 });
+
+test('pickup pronoun resolves to held object rather than newly mentioned prop',()=>{
+ const scenes=makeScenePlan('She picks up a cup. She takes it beside an apple.').scenes;
+ assert.equal(scenes[0].narrative.heldObject,'cup');
+ assert.equal(scenes[1].narrative.heldObject,'cup');
+ assert.equal(scenes[1].action,'carry');
+});
