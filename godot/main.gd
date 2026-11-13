@@ -185,12 +185,17 @@ func _draw_reference_header() -> void:
 	var navy := Color("#0d132b")
 	var gold := Color("#d9ad5c")
 	# Header remains inside the safe region for 9:16 and 16:9.
-	draw_rect(Rect2(150, 42, 240, 35), navy)
-	draw_line(Vector2(150, 42), Vector2(390, 42), gold, 1.5, true)
-	draw_line(Vector2(150, 77), Vector2(390, 77), gold, 1.5, true)
-	draw_line(Vector2(150, 42), Vector2(150, 77), gold, 1.5, true)
-	draw_line(Vector2(390, 42), Vector2(390, 77), gold, 1.5, true)
-	draw_string(font, Vector2(169, 65), heading, HORIZONTAL_ALIGNMENT_CENTER, 204, 15, gold)
+	var reveal := smoothstep(0.0, 0.18, scene_progress)
+	var left := 150.0 + 18.0 * (1.0 - reveal)
+	var alpha := clampf(reveal, 0.0, 1.0)
+	navy.a = alpha
+	gold.a = alpha
+	draw_rect(Rect2(left, 42, 240, 35), navy)
+	draw_line(Vector2(left, 42), Vector2(left + 240, 42), gold, 1.5, true)
+	draw_line(Vector2(left, 77), Vector2(left + 240, 77), gold, 1.5, true)
+	draw_line(Vector2(left, 42), Vector2(left, 77), gold, 1.5, true)
+	draw_line(Vector2(left + 240, 42), Vector2(left + 240, 77), gold, 1.5, true)
+	draw_string(font, Vector2(left + 19, 65), heading, HORIZONTAL_ALIGNMENT_CENTER, 204, 15, gold)
 
 # Extendable documentary illustrations: all primitives are native 2D, with
 # animated positions and no hardcoded stock image or 3D asset.
