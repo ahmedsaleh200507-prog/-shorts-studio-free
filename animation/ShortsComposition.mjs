@@ -383,6 +383,13 @@ function EditorialHud({scene,sceneIndex,landscape}){
   el('div',{style:{position:'absolute',top:landscape?24:42,left:'50%',transform:'translateX(-50%)',border:'1px solid #c5a56d',borderRadius:4,padding:landscape?'5px 15px':'8px 18px',background:'#091326e8',color:'#e8c67f',fontSize:landscape?13:17,letterSpacing:3,fontWeight:800,whiteSpace:'nowrap',boxShadow:'0 0 12px #0009'}},
    `SCENE ${String(sceneIndex+1).padStart(2,'0')} · ${tag.slice(0,20)}`));
 }
+// Keep subtitles readable in both portrait and landscape: reveal a short
+// rolling phrase instead of accumulating the entire narration on screen.
+export function rollingCaption(words,revealedWords,maxWords=8){
+ const end=Math.min(words.length,Math.max(0,revealedWords));
+ const start=Math.max(0,end-maxWords);
+ return words.slice(start,end).join(' ');
+}
 // Reference-inspired editorial caption treatment: emphasize meaning, not every word.
 function CaptionWords({caption}){
  const tokens=caption.split(/(\s+)/);
@@ -411,7 +418,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  const driftY=direction*(focusAction?0.7:1.1)*(2*ease-1);
  const words=scene.text.trim().split(/\s+/).filter(Boolean);
  const revealedWords=narration?captionRevealCount(scene.text,local,duration,narrationWordTimings[sceneIndex],plan.fps):Math.max(1,Math.min(words.length,Math.ceil(progress*words.length)));
- const caption=words.slice(0,revealedWords).join(' ');
+ const caption=rollingCaption(words,revealedWords,landscape?11:7);
  // Short scenes need non-overlapping fade windows to avoid invalid interpolation ranges.
  const opacity=captionOpacity(local,duration);
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
