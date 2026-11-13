@@ -44,3 +44,10 @@ test('Sitting scenes draw an actual 2D chair behind the character',()=>{
  assert.match(source,/Shape\(\{x:37,y:67,w:26,h:5,color:'#9a6648'/);
  assert.match(source,/el\(Person,\{frame,action:scene\.action,mouthLevel\}\)/);
 });
+
+test('2D characters blink both eyes using deterministic frame timing',()=>{
+ assert.match(source,/const blinkPhase=\(\(frame\+17\)%89\+89\)%89/);
+ assert.match(source,/const eyeOpen=blinkPhase<3\?/);
+ assert.match(source,/cx:121,cy:146,rx:5,ry:7\*eyeOpen/);
+ assert.match(source,/cx:181,cy:146,rx:5,ry:7\*eyeOpen/);
+});
