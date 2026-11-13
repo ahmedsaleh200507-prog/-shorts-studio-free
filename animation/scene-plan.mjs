@@ -144,6 +144,9 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     // Do not replace an already-held prop with an unrelated inferred object.
     // Repeated references to the same item remain a single continuous hold.
     const alreadyHeld=Boolean(pickupItem&&heldObject===pickupItem);
+    // An already-held object cannot be picked up again: keep the carrying pose
+    // instead of triggering a second empty-handed reaching animation.
+    const effectiveAction=alreadyHeld?'carry':resolvedAction;
     if(pickupItem)heldObject=pickupItem;
     const carriedObject=heldObject;
     if(resolvedAction==='put')heldObject=null;
@@ -154,12 +157,13 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     narrative.interactionObject=resolvedAction==='put'?carriedObject:pickupItem;
 
     narrative.hasPhysicalInteraction=Boolean((pickupItem&&!alreadyHeld)||(resolvedAction==='put'&&carriedObject));
+    narrative.interaction=effectiveAction;
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
     const visualMode=(carriedObject&&['pick','put','walk','run','carry','sit','talk'].includes(resolvedAction))?'character':(['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(place)||['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(action)?'motion-graphic':'character');
     const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
-    return {id:`scene-${index+1}`,text,action:resolvedAction,place,props:resolvedProps,visualMode,keywords,characterId:'main',narrative,startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
+    return {id:`scene-${index+1}`,text,action:effectiveAction,place,props:resolvedProps,visualMode,keywords,characterId:'main',narrative,startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
   // Reject jobs beyond the currently supported 10-minute production target.
   if(cursor>fps*600) throw new RangeError('Video exceeds 10-minute limit');
