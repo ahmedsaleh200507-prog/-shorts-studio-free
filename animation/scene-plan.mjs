@@ -145,14 +145,14 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     // explicit pickup verb. Prefer a newly named object over earlier context.
     const pronounPickup=/\b(?:picks?\s+(?:it|them)\s+up|grabs?\s+(?:it|them)|takes?\s+(?:it|them)|lifts?\s+(?:it|them))\b|\b(?:nimmt|greift|hebt)\s+(?:es|sie|ihn)\b/i.test(text);
     const pickupTargets=[
-      ['apple',/\\b(?:apples?|apfel|äpfel)\\b/i],
-      ['banana',/\\b(?:bananas?|banane)\\b/i],
-      ['bottle',/\\b(?:bottles?|flasche)\\b/i],
-      ['cup',/\\b(?:cups?|tasse)\\b/i],
-      ['book',/\\b(?:books?|buch|bücher)\\b/i]
+      ['apple',/\b(?:apples?|apfel|äpfel)\b/i],
+      ['banana',/\b(?:bananas?|banane)\b/i],
+      ['bottle',/\b(?:bottles?|flasche)\b/i],
+      ['cup',/\b(?:cups?|tasse)\b/i],
+      ['book',/\b(?:books?|buch|bücher)\b/i]
     ];
-    const verbMatch=/\\b(?:picks?\\s+(?:(?:it|them)\\s+)?up|grabs?|takes?|lifts?|nimmt|greift|hebt)\\b/i.exec(text);
-    const targetClause=verbMatch?text.slice(verbMatch.index+verbMatch[0].length).split(/\\b(?:and|und|then|dann)\\b|[.!?;,]/i)[0]:'';
+    const verbMatch=/\b(?:picks?\s+(?:(?:it|them)\s+)?up|grabs?|takes?|lifts?|nimmt|greift|hebt)\b/i.exec(text);
+    const targetClause=verbMatch?text.slice(verbMatch.index+verbMatch[0].length).split(/\b(?:and|und|then|dann)\b|[.!?;,]/i)[0]:'';
     const targetedItem=pickupTargets.find(([,re])=>re.test(targetClause))?.[0]||null;
     const pickupItem=resolvedAction==='pick'?(targetedItem||(pronounPickup?previousObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o)):null)):null;
     // Do not replace an already-held prop with an unrelated inferred object.
