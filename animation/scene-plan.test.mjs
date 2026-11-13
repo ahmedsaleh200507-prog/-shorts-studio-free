@@ -164,6 +164,8 @@ test('German daily-life script preserves locations and cup instead of apple',()=
  assert.equal(scenes[1].narrative.interactionObject,'cup');
  assert.equal(scenes[2].place,'window');
  assert.equal(scenes[2].narrative.heldObject,'cup');
+ assert.equal(scenes[3].place,'window');
+ assert.equal(scenes[3].visualMode,'character');
 });
 test('English window and home settings are recognized',()=>{
  assert.equal(makeScenePlan('She looks through the window.').scenes[0].place,'window');
