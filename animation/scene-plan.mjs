@@ -133,7 +133,8 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     if(place!=='generic') previousPlace=place;
     // Metro determines the setting, not the character action. Preserve explicit
     // object manipulation (including a pickup on a train platform).
-    const resolvedAction=place==='metro'&&action!=='pick'&&action!=='put'?'travel':action;
+    const hasExplicitPickup=/(?:nimmt|greift|hebt|picks?\s+up|grabs?|lifts?)\b[^.!?]{0,55}\b(?:tasse|cup|flasche|bottle|buch|book|apfel|apple|banane|banana)\b/i.test(text);
+    const resolvedAction=place==='metro'&&action!=='pick'&&action!=='put'?'travel':action==='walk'&&hasExplicitPickup?'pick':action;
     const resolvedProps=[...new Set([...props,...(place==='metro'?['train','platform']:[]),...(place==='phone'?['phone-screen']:[])])].slice(0,8);
     const narrative=extractNarrative(text,resolvedAction,previousActor,previousObjects);
     previousActor=narrative.actor;
