@@ -1,6 +1,8 @@
 """Offline tests for the iPhone production renderer mode router."""
 import importlib.util
 import os
+import tempfile
+import subprocess
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -20,6 +22,17 @@ class ProductionModeTests(unittest.TestCase):
             for script in ("[[VECTOR_2D]]\n[[ASPECT_16_9]]\nEr geht.",
                            "[[ASPECT_16_9]]\n[[VECTOR_2D]]\nEr geht."):
                 self.assertEqual(production.normalize(script), ("Er geht.", True, "16:9"))
+
+    def test_failed_render_does_not_leave_previous_download(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / "output").mkdir()
+            stale = root / "output" / "final.mp4"
+            stale.write_bytes(b"old-successful-video")
+            with patch.object(production, "ROOT", root), patch.dict(os.environ, {"SCRIPT": "Neue Geschichte.", "ASPECT_RATIO": "9:16"}), patch.object(production.subprocess, "run", side_effect=subprocess.CalledProcessError(1, ["npx"])):
+                with self.assertRaises(subprocess.CalledProcessError):
+                    production.main()
+            self.assertFalse(stale.exists())
 
     def test_ai_illustration_keeps_remotion(self):
         with patch.dict(os.environ, {"ASPECT_RATIO": "9:16"}):
