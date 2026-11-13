@@ -50,6 +50,7 @@ jobs:
           npm install --no-audit --no-fund
           npm test
           python -m unittest discover -s . -p 'test_long_video.py' -v
+          python -m unittest discover -s . -p 'test_render_production.py' -v
           npx remotion browser ensure
       - name: Prepare real user script and synchronized narration
         env:
