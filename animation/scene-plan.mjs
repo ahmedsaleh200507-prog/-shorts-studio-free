@@ -25,7 +25,9 @@ const rules=[
 ];
 export function splitScript(script){
   if(typeof script!=='string') throw new TypeError('script must be a string');
-  return (script.match(/[^.!?\n]+[.!?]?/g)||[]).map(s=>s.trim()).filter(Boolean).slice(0,180);
+  const sentences=(script.match(/[^.!?\n]+[.!?]?/g)||[]).map(s=>s.trim()).filter(Boolean);
+  if(sentences.length>180) throw new RangeError('Script exceeds 180 scenes');
+  return sentences;
 }
 export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=null,aspectRatio="9:16"}={}){
   if(!Number.isInteger(fps)||fps<12||fps>60) throw new RangeError('fps must be 12–60');
