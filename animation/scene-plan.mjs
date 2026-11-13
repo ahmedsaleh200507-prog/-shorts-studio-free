@@ -67,7 +67,7 @@ function chooseContext(text, previousPlace){
   // Explicit warnings are the main subject only without a more concrete device.
   const subject=topics.find(([name])=>name==='radio') || topics.find(([name])=>name!=='alert') || topics[0];
   if(subject) return {place:subject[0],setting:false};
-  if(/^(?:er|sie|es|they|he|she|it|dann|danach|anschließend|then|afterwards|plötzlich|suddenly|dort|there)\b/i.test(text))
+  if(/^(?:er|sie|es|they|he|she|it|dann|danach|anschließend|then|afterwards|plötzlich|suddenly|dort|there|draußen|outside)\b/i.test(text))
     return {place:previousPlace,setting:false};
   return {place:'generic',setting:false};
 }
@@ -187,7 +187,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
-    const visualMode=carriedObject?'character':(['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(place)||['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(action)?'motion-graphic':'character');
+    const visualMode=(carriedObject||place==='window'||place==='house'||place==='kitchen')?'character':(['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(place)||['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(action)?'motion-graphic':'character');
     const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
     return {id:`scene-${index+1}`,text,action:effectiveAction,place,props:resolvedProps,visualMode,keywords,characterId:'main',narrative,startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
