@@ -152,7 +152,9 @@ function Prop({action,frame,objects=[],heldObject=null,hasPhysicalInteraction=fa
   // Keep the apple attached to the same grasp timeline as the hand rig.
   // The object stays on the shelf until contact, then follows the hand.
   const {x,y,grasp}=heldObject&&action!=='pick'&&action!=='put'?{x:53+Math.sin(frame*.24)*.5,y:48+Math.abs(Math.sin(frame*.24))*.5,grasp:1}:(action==='put'?putdownPropPose(frame):pickupPropPose(frame));
-  const item=['banana','bottle','cup','book','apple'].find(name=>name===heldObject||objects.includes(name))||null;
+  const supportedItems=['banana','bottle','cup','book','apple'];
+  // A held prop wins over incidental objects mentioned in the same shot.
+  const item=(supportedItems.includes(heldObject)?heldObject:null)||supportedItems.find(name=>objects.includes(name))||null;
   // Unknown props must not silently become apples in unrelated stories.
   if(!item)return el(React.Fragment,null,Shape({x,y,w:9,h:7,color:'#8795ad',r:3,style:{border:'2px solid #d9e2f2'}}));
   if(item==='banana')return el(React.Fragment,null,
