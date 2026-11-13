@@ -66,6 +66,21 @@ jobs:
           printf '["apple","tree","phone","house","car"]' > output/objects.json
           xvfb-run -a godot --path godot --rendering-driver opengl3 -- --action=talk --place=generic --frames=3 --objects-file="$PWD/output/objects.json" --out="$PWD/output/object-check"
           test -s output/object-check/frame_00001.png
+      - name: Render reference-style phone metro and radio scenes
+        run: |
+          for place in phone metro radio; do
+            mkdir -p "output/reference-$place"
+            xvfb-run -a godot --path godot --rendering-driver opengl3 -- --action=talk --place="$place" --frames=24 --out="$PWD/output/reference-$place"
+            test "$(find "output/reference-$place" -name 'frame_*.png' | wc -l)" -eq 24
+            cp "output/reference-$place/frame_00012.png" "output/reference-$place.png"
+          done
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          files=[Path(f"output/reference-{p}.png") for p in ("phone","metro","radio")]
+          assert len({hashlib.sha256(f.read_bytes()).hexdigest() for f in files})==3
+          print("Three distinct reference-inspired 2D scenes rendered")
+          PY
       - name: Verify real rendered animation changes between frames
         run: |
           python - <<'PY'
@@ -165,6 +180,9 @@ jobs:
             output/godot-talking.mp4
             output/godot-story.mp4
             output/godot-contact-sheet.png
+            output/reference-phone.png
+            output/reference-metro.png
+            output/reference-radio.png
             output/character-0.png
             output/character-1.png
             output/character-2.png
