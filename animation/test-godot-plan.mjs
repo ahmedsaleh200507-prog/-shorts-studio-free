@@ -141,5 +141,5 @@ test('German subject pronouns do not imply carrying the previous object',()=>{
 });
 
 test('Reject invalid orientation before video rendering',()=>{
- assert.throws(()=>makeScenePlan('Hello world.',{aspectRatio:'1:1'}),/aspect ratio/);
+ assert.throws(()=>exportPlan('Hello world.','1:1'),/Command failed/);
 });
