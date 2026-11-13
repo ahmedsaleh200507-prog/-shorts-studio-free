@@ -38,3 +38,8 @@ test('Narration frame durations control scene boundaries',()=>{
     assert.equal(plan.totalFrames,144);
   } finally {rmSync(dir,{recursive:true,force:true});}
 });
+
+test('Long scripts are rejected rather than silently truncated',()=>{
+  const script=Array.from({length:181},(_,i)=>'Scene '+i+'.').join(' ');
+  assert.throws(()=>exportPlan(script),/Command failed/);
+});
