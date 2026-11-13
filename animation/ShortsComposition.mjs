@@ -274,6 +274,11 @@ function AiIllustration({image,sceneIndex,progress}){
 function VectorScene({scene,frame,mouthLevel=0}){
  return scene.visualMode==='character'?el(React.Fragment,null,
     el(Background,{place:scene.place,frame}),
+    scene.action==='sit'?el(React.Fragment,null,
+      Shape({x:42,y:49,w:7,h:24,color:'#79533d',r:5}),
+      Shape({x:37,y:67,w:26,h:5,color:'#9a6648',r:8}),
+      Shape({x:39,y:70,w:3,h:18,color:'#69442f',r:3}),
+      Shape({x:58,y:70,w:3,h:18,color:'#69442f',r:3})):null,
     el(Person,{frame,action:scene.action,mouthLevel}),
     el(Prop,{action:scene.action,frame})):el(MotionGraphic,{scene,frame});
 }
