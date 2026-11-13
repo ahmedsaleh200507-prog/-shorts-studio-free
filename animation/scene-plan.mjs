@@ -175,7 +175,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const startFrame=cursor;
     const endFrame=cursor+(durationsFrames?durationsFrames[index]:Math.round(secondsPerScene*fps));
     cursor=endFrame;
-    const visualMode=(carriedObject&&['pick','put','walk','run','carry','sit','talk'].includes(resolvedAction))?'character':(['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(place)||['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(action)?'motion-graphic':'character');
+    const visualMode=(carriedObject&&['pick','put','walk','run','carry','sit','talk'].includes(effectiveAction))?'character':(['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(place)||['alert','phone','door','clock','space','science','nature','technology','number','map','history','radio','metro'].includes(action)?'motion-graphic':'character');
     const keywords=(text.match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=4).slice(0,7);
     return {id:`scene-${index+1}`,text,action:effectiveAction,place,props:resolvedProps,visualMode,keywords,characterId:'main',narrative,startFrame,endFrame,camera:{type:visualMode==='character'?'slow-push':'dynamic-push',from:1,to:1.07}};
   });
