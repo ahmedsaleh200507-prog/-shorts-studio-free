@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {characterPose,pickupPropPose} from '../animation/skeletal-motion.mjs';
+import {characterPose,pickupPropPose,putdownPropPose} from '../animation/skeletal-motion.mjs';
 
 test('picking starts at rest, reaches, then settles into a grasp',()=>{
  const start=characterPose('pick',0);
@@ -39,5 +39,22 @@ test('apple remains stationary until grasp and reaches a stable held position',(
   const p=pickupPropPose(frame);
   assert.ok(Number.isFinite(p.x)&&Number.isFinite(p.y));
   assert.ok(p.x>=53&&p.x<=72);
+ }
+});
+
+test('put-down trajectory reverses pickup and releases the prop',()=>{
+ const start=putdownPropPose(0),middle=putdownPropPose(24),end=putdownPropPose(48);
+ assert.equal(start.x,53);
+ assert.equal(start.held,true);
+ assert.ok(middle.x>53&&middle.x<72);
+ assert.equal(end.x,72);
+ assert.equal(end.grasp,0);
+ assert.equal(end.held,false);
+ assert.ok(characterPose('put',0).grasp>characterPose('put',24).grasp);
+ assert.equal(characterPose('put',48).grasp,0);
+ for(const fps of [12,24,30,60]){
+  const last=putdownPropPose(fps*2,fps);
+  assert.equal(last.x,72);
+  assert.equal(last.grasp,0);
  }
 });
