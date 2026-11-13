@@ -351,7 +351,7 @@ func _draw_character(t: float) -> void:
 		speech_envelope = clampf(float(mouth_levels[frame_index]), 0.0, 1.0)
 	elif mouth_levels.is_empty() and action == "talk":
 		speech_envelope = pow(maxf(0.0, sin(t * 11.0)), 1.5)
-	var mouth_open := action == "talk" and speech_envelope > 0.3
+	var mouth_open := speech_envelope > 0.3
 	if mouth_open:
 		draw_circle(head + Vector2(0, 29), 5.0 + 7.0 * speech_envelope, Color("#923f4a"))
 		draw_line(head + Vector2(-5, 32), head + Vector2(5, 32), Color("#f5b2aa"), 3, true)
