@@ -121,3 +121,13 @@ test('Documentary subjects survive ordinary narration verbs',()=>{
   ];
   for(const [script,place] of examples) assert.equal(exportPlan(script).scenes[0].place,place,script);
 });
+
+test('Narrative memory preserves actor and objects for follow-up shots',()=>{
+ const plan=exportPlan('Die Ärztin nimmt ein Handy. Danach zeigt sie es. Dann geht sie ins Krankenhaus.');
+ assert.equal(plan.scenes[0].narrative.actor,'doctor');
+ assert.deepEqual(plan.scenes[0].narrative.objects,['phone']);
+ assert.equal(plan.scenes[1].narrative.actor,'doctor');
+ assert.deepEqual(plan.scenes[1].narrative.objects,['phone']);
+ assert.equal(plan.scenes[2].place,'hospital');
+ assert.ok(plan.scenes.every(s=>s.narrative&&typeof s.narrative.interaction==='string'));
+});
