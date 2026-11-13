@@ -130,3 +130,11 @@ test('Carrying a suitcase triggers walking interaction without losing location',
  const plan=makeScenePlan('Er ist im Krankenhaus. Danach trägt er einen Koffer.');
  assert.equal(plan.scenes[1].place,'hospital');
 });
+
+
+test('Decimal values do not create phantom narration scenes',()=>{
+  assert.deepEqual(splitScript('Der Preis beträgt 16.83 Euro. Danach 3.5 Kilometer.'),[
+    'Der Preis beträgt 16.83 Euro.', 'Danach 3.5 Kilometer.'
+  ]);
+  assert.equal(makeScenePlan('The distance is 3.5 km. It grows to 4.25 km.').scenes.length,2);
+});
