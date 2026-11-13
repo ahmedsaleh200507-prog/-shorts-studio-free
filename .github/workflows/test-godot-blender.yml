@@ -117,11 +117,23 @@ jobs:
           test -s output/godot-story.mp4
           ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 output/godot-story.mp4 | grep -q h264
           ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 output/godot-story.mp4 | grep -q aac
+      - name: Simulate iPhone vector-mode request through production router
+        env:
+          SCRIPT: "[[VECTOR_2D]]\\nEr putzt die Zähne."
+          ASPECT_RATIO: "9:16"
+        run: |
+          mkdir -p animation/public/audio
+          cp output/test-narration.mp3 animation/public/audio/job-0.mp3
+          xvfb-run -a python animation/render-production.py
+          test -s output/final.mp4
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of csv=p=0 output/final.mp4 | grep -q 'h264,540,960'
+          ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 output/final.mp4 | grep -q aac
       - uses: actions/upload-artifact@v4
         with:
           name: godot-2d-demo-mp4
           path: |
             output/godot-demo.mp4
+            output/final.mp4
             output/godot-narrated.mp4
             output/godot-story.mp4
             output/godot-contact-sheet.png
