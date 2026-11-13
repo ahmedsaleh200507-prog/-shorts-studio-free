@@ -35,6 +35,17 @@ class AnimatedCaptionsTests(unittest.TestCase):
         fallback = story.caption_word_timings(scene, 5.0, bad)
         self.assertEqual(fallback[0][1], 5.0)
 
+    def test_punctuation_boundary_keeps_real_speech_timing(self):
+        scene = {"frames": 72, "text": "Hallo, Welt!"}
+        aligned = [
+            {"word": "Hallo", "start": 0.2, "end": 0.8},
+            {"word": ",", "start": 0.8, "end": 0.85},
+            {"word": "Welt", "start": 1.0, "end": 1.7},
+            {"word": "!", "start": 1.7, "end": 1.75},
+        ]
+        timed = story.caption_word_timings(scene, 0, aligned)
+        self.assertEqual(timed, [("Hallo,", 0.2, 0.85), ("Welt!", 1.0, 1.75)])
+
     def test_long_captions_split_into_readable_groups(self):
         scene = [{"frames": 120, "text": "Eine sehr lange Überschrift braucht eine klare gut lesbare Aufteilung"}]
         with tempfile.TemporaryDirectory() as folder:
