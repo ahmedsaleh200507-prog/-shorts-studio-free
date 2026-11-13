@@ -220,3 +220,14 @@ test('carrying a held prop keeps character mode in a technology-themed scene',()
  assert.equal(scenes[1].visualMode,'character');
  assert.equal(scenes[1].narrative.heldObject,'cup');
 });
+
+test('compound sentences resolve the later pickup verb rather than a transport verb',()=>{
+ for(const [script,item] of [
+  ['She takes a train and picks up a cup.','cup'],
+  ['He takes a seat and grabs a bottle.','bottle'],
+  ['She takes a bus and lifts a book.','book']
+ ]){
+  const scene=makeScenePlan(script).scenes[0];
+  assert.equal(scene.narrative.interactionObject,item,script);
+ }
+});
