@@ -6,6 +6,7 @@ var total_frames := 72
 var action := "wake"
 var place := "bedroom"
 var output_dir := "/tmp/shorts-godot-frames"
+var render_size := Vector2i(540, 960)
 
 func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
@@ -13,8 +14,11 @@ func _ready() -> void:
 		if arg.begins_with("--place="): place = arg.trim_prefix("--place=")
 		if arg.begins_with("--frames="): total_frames = clampi(int(arg.trim_prefix("--frames=")), 1, 2400)
 		if arg.begins_with("--out="): output_dir = arg.trim_prefix("--out=")
+		if arg.begins_with("--aspect="):
+			if arg.trim_prefix("--aspect=") == "16:9": render_size = Vector2i(960, 540)
 	DirAccess.make_dir_recursive_absolute(output_dir)
-	get_window().size = Vector2i(540, 960)
+	get_window().size = render_size
+	get_viewport().size = render_size
 	queue_redraw()
 	await RenderingServer.frame_post_draw
 	_save_frame()
@@ -30,6 +34,8 @@ func _process(_delta: float) -> void:
 func _save_frame() -> void:
 	if frame_index >= total_frames: return
 	var image := get_viewport().get_texture().get_image()
+	if image.get_size() != render_size:
+		image.resize(render_size.x, render_size.y, Image.INTERPOLATE_LANCZOS)
 	if image.is_empty():
 		push_error("Empty rendered frame")
 		get_tree().quit(1)
