@@ -462,6 +462,14 @@ func _draw_procedural_objects(t: float) -> void:
 		if font != null:
 			draw_string(font, center + Vector2(-23, 7), word, HORIZONTAL_ALIGNMENT_LEFT, 105, 16, Color.WHITE)
 
+func draw_ellipse_mouth(center: Vector2, half_width: float, half_height: float) -> void:
+	var vertices := PackedVector2Array()
+	for i in range(25):
+		var angle := TAU * float(i) / 24.0
+		vertices.append(center + Vector2(cos(angle) * half_width, sin(angle) * half_height))
+	draw_colored_polygon(vertices, Color("#923f4a"))
+	draw_line(center + Vector2(-half_width * 0.5, half_height * 0.55), center + Vector2(half_width * 0.5, half_height * 0.55), Color("#f5b2aa"), 2, true)
+
 func _draw_character(t: float) -> void:
 	# Layered vector character with articulated joints, clothing, hair, face and props.
 	var palettes := [
@@ -611,10 +619,11 @@ func _draw_character(t: float) -> void:
 		speech_envelope = clampf(float(mouth_levels[frame_index]), 0.0, 1.0)
 	elif mouth_levels.is_empty() and action == "talk":
 		speech_envelope = pow(maxf(0.0, sin(t * 11.0)), 1.5)
-	var mouth_open := speech_envelope > 0.3
-	if mouth_open:
-		draw_circle(head + Vector2(0, 29), 5.0 + 7.0 * speech_envelope, Color("#923f4a"))
-		draw_line(head + Vector2(-5, 32), head + Vector2(5, 32), Color("#f5b2aa"), 3, true)
+	# Audio-driven lip aperture scales continuously instead of snapping open/closed.
+	# This is amplitude lip motion, not phoneme-accurate lip synchronization.
+	if speech_envelope > 0.08:
+		var mouth_radius := 3.0 + 10.0 * speech_envelope
+		draw_ellipse_mouth(head + Vector2(0, 29), mouth_radius, 2.0 + 12.0 * speech_envelope)
 	else:
 		draw_arc(head + Vector2(0, 22), 15, 0.25, PI - 0.25, 12, Color("#9d5050"), 3, true)
 	if action == "brush":
