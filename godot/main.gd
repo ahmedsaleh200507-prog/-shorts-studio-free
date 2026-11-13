@@ -141,13 +141,92 @@ func _draw() -> void:
 	# Contact shadow keeps the character visually grounded.
 	var shadow_x := 270.0 + (lerpf(-78.0, 78.0, smoothstep(0.0, 1.0, scene_progress)) if action == "travel" or action == "carry" else 0.0)
 	draw_circle(Vector2(shadow_x, 755), 48, Color(0.12, 0.14, 0.20, 0.16))
-	_draw_character(float(frame_index) / FPS)
+	if place in ["space", "science", "nature", "technology", "phone", "clock", "alert", "map", "history", "infographic", "door"]:
+		_draw_topic_graphic(t)
+	else:
+		_draw_character(float(frame_index) / FPS)
 	# Subtle scene fade at clip boundaries; character animation remains continuous within the scene.
 	var fade_in := 1.0 - smoothstep(0.0, 0.10, scene_progress)
 	var fade_out := smoothstep(0.90, 1.0, scene_progress)
 	# Overlay uses the original viewport transform to avoid moving with the camera.
 	draw_set_transform(offset, 0.0, Vector2.ONE * scale_factor)
 	draw_rect(Rect2(0, 0, 540, 960), Color(0.04, 0.07, 0.12, maxf(fade_in, fade_out) * 0.65))
+
+# Extendable documentary illustrations: all primitives are native 2D, with
+# animated positions and no hardcoded stock image or 3D asset.
+func _draw_topic_graphic(t: float) -> void:
+	var pulse := 1.0 + 0.035 * sin(t * 2.4)
+	var navy := Color("#182a4a")
+	var cyan := Color("#60cbd6")
+	var gold := Color("#f4c65a")
+	draw_rect(Rect2(0, 0, 540, 960), Color("#111b36"))
+	for i in range(28):
+		var sx := float((i * 97 + 29) % 530)
+		var sy := float((i * 173 + 61) % 920)
+		draw_circle(Vector2(sx, sy), 1.5 + 0.6 * sin(t + float(i)), Color("#a9bedc"))
+	match place:
+		"space", "map":
+			var center := Vector2(270, 450)
+			draw_circle(center, 188 * pulse, Color("#253f83"))
+			for i in range(7):
+				var latitude := -130.0 + float(i) * 43.0
+				var half_width := sqrt(maxf(0.0, 188.0 * 188.0 - latitude * latitude))
+				draw_line(center + Vector2(-half_width, latitude), center + Vector2(half_width, latitude), Color("#5273b2"), 2.0, true)
+			for i in range(5):
+				var longitude := float(i) * 0.4 - 0.8
+				draw_arc(center, 188.0 * absf(longitude) + 10.0, -PI * 0.5, PI * 0.5, 36, Color("#5273b2"), 2.0, true)
+			draw_circle(center + Vector2(70 * sin(t * 0.7), -40), 14, gold)
+			if place == "space":
+				draw_circle(Vector2(100, 210), 40, gold)
+		"science":
+			var center := Vector2(270, 440)
+			for i in range(3):
+				draw_set_transform(Vector2.ZERO, t * 0.23 + float(i) * PI / 3.0, Vector2.ONE)
+				draw_arc(center, 150, 0, TAU, 90, cyan, 3.0, true)
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			draw_circle(center, 38 * pulse, gold)
+			for i in range(6):
+				var angle := t + float(i) * TAU / 6.0
+				draw_circle(center + Vector2(cos(angle), sin(angle)) * 155.0, 12, cyan)
+		"phone", "technology":
+			draw_rect(Rect2(108, 195, 324, 515), Color("#607da5"))
+			draw_rect(Rect2(120, 209, 300, 486), navy)
+			draw_rect(Rect2(150, 260, 240, 45), cyan)
+			for i in range(4):
+				var y := 350.0 + float(i) * 75.0
+				draw_rect(Rect2(150, y, 240, 45), Color("#344d79"))
+				draw_rect(Rect2(165, y + 12, 155 + 20 * sin(t + float(i)), 8), gold)
+		"clock", "infographic":
+			var center := Vector2(270, 445)
+			draw_circle(center, 175, Color("#253f64"))
+			draw_arc(center, 170, 0, TAU, 100, cyan, 6, true)
+			for i in range(12):
+				var angle := float(i) * TAU / 12.0
+				draw_line(center + Vector2(cos(angle), sin(angle)) * 143, center + Vector2(cos(angle), sin(angle)) * 157, gold, 4, true)
+			draw_line(center, center + Vector2(sin(t * 0.6), -cos(t * 0.6)) * 120, gold, 8, true)
+			draw_line(center, center + Vector2(sin(t * 0.1), -cos(t * 0.1)) * 80, cyan, 10, true)
+		"alert":
+			var points := PackedVector2Array([Vector2(270, 245), Vector2(465, 630), Vector2(75, 630)])
+			draw_colored_polygon(points, Color("#b44361"))
+			draw_line(Vector2(270, 365), Vector2(270, 505), Color.WHITE, 22, true)
+			draw_circle(Vector2(270, 555), 14, Color.WHITE)
+		"history":
+			draw_rect(Rect2(70, 190, 400, 550), Color("#d5c4a0"))
+			draw_rect(Rect2(95, 220, 350, 80), Color("#6b5545"))
+			for i in range(7):
+				draw_rect(Rect2(100, 340 + i * 48, 330 - (i % 3) * 60, 9), Color("#8a785e"))
+			draw_circle(Vector2(365, 610), 45 * pulse, Color("#b94e55"))
+		"nature":
+			draw_circle(Vector2(420, 230), 72, gold)
+			for i in range(5):
+				var x := 75.0 + float(i) * 100.0
+				draw_line(Vector2(x, 710), Vector2(x, 440), Color("#684d3e"), 26, true)
+				draw_circle(Vector2(x, 410 + 9 * sin(t + i)), 78, Color("#3c9474"))
+		"door":
+			draw_rect(Rect2(110, 150, 320, 650), Color("#8b6c58"))
+			draw_rect(Rect2(130, 170, 280, 610), Color("#b58d68"))
+			draw_rect(Rect2(160, 200, 220, 245), Color("#9c7459"))
+			draw_circle(Vector2(365, 510), 13, gold)
 
 func _draw_character(t: float) -> void:
 	# Layered vector character with articulated joints, clothing, hair, face and props.
