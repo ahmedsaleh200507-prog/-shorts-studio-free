@@ -144,6 +144,57 @@ func _draw() -> void:
 			draw_rect(Rect2(x, 230, 115, 470), Color("#8b5e43"))
 			for y in [270, 390, 510]:
 				draw_rect(Rect2(x + 12, y, 90, 14), Color("#f1cc69"))
+	# Distinctive foreground props make each location readable even without captions.
+	if place == "hospital":
+		# Heart-rate monitor with animated ECG, bedside cabinet and red cross.
+		draw_rect(Rect2(300, 235, 190, 128), Color("#18394a"))
+		draw_rect(Rect2(309, 244, 172, 110), Color("#102b35"))
+		for i in range(9):
+			var x := 315.0 + float(i) * 20.0
+			var beat := -28.0 if i == 4 else 17.0 if i == 5 else 0.0
+			var y := 299.0 + beat + sin(t * 2.0 + float(i)) * 2.0
+			if i > 0:
+				var prev_beat := -28.0 if i - 1 == 4 else 17.0 if i - 1 == 5 else 0.0
+				draw_line(Vector2(x - 20, 299 + prev_beat + sin(t * 2.0 + float(i - 1)) * 2), Vector2(x, y), Color("#6ee6b1"), 3.0, true)
+		draw_rect(Rect2(410, 400, 65, 65), Color("#f3f8f8"))
+		draw_rect(Rect2(436, 410, 13, 45), Color("#d94e63"))
+		draw_rect(Rect2(420, 426, 45, 13), Color("#d94e63"))
+	elif place == "school":
+		# Chalkboard diagrams and colorful learning materials.
+		for i in range(4):
+			var x := 77.0 + float(i) * 55.0
+			draw_circle(Vector2(x, 343), 16.0 + 3.0 * sin(t * 1.3 + i), Color("#e9c873"))
+			draw_line(Vector2(x, 366), Vector2(x + 28, 394), Color("#e3efe7"), 3.0, true)
+		draw_rect(Rect2(83, 580, 105, 32), Color("#416f9d"))
+		draw_rect(Rect2(100, 564, 95, 20), Color("#d4a94e"))
+	elif place == "supermarket":
+		# Animated checkout conveyor and stocked shelves.
+		for i in range(3):
+			var xx := 39.0 + float(i) * 28.0
+			draw_rect(Rect2(xx, 313, 19, 46), Color("#d65d58"))
+			draw_rect(Rect2(xx, 428, 19, 44), Color("#5bba90"))
+		for i in range(3):
+			var xx := 414.0 + float(i) * 27.0
+			draw_rect(Rect2(xx, 313, 19, 46), Color("#e9bb63"))
+			draw_rect(Rect2(xx, 428, 19, 44), Color("#75a9d6"))
+		draw_rect(Rect2(115, 650, 305, 42), Color("#334a62"))
+		var belt_x := 150.0 + 165.0 * scene_progress
+		draw_circle(Vector2(belt_x, 633), 17, Color("#db514e"))
+		draw_line(Vector2(belt_x - 7, 619), Vector2(belt_x + 6, 619), Color("#79b85c"), 5, true)
+	elif place == "bedroom":
+		# Window, curtains and an animated morning sun.
+		draw_rect(Rect2(350, 215, 155, 220), Color("#f8f4e9"))
+		draw_rect(Rect2(363, 230, 128, 190), Color("#91cce2"))
+		draw_circle(Vector2(420 + 9 * scene_progress, 287), 32, Color("#f5d37b"))
+		draw_rect(Rect2(350, 215, 18, 220), Color("#6581a6"))
+		draw_rect(Rect2(486, 215, 19, 220), Color("#6581a6"))
+	elif place == "bathroom":
+		# Sink faucet and wall mirror.
+		draw_rect(Rect2(310, 215, 175, 220), Color("#f4f7f9"))
+		draw_rect(Rect2(322, 228, 150, 193), Color("#8bc4d7"))
+		draw_rect(Rect2(335, 610, 145, 25), Color("#f9fbfb"))
+		draw_line(Vector2(405, 610), Vector2(405, 578), Color("#849daa"), 9, true)
+		draw_line(Vector2(405, 578), Vector2(439, 578), Color("#849daa"), 9, true)
 	if action == "sit":
 		draw_rect(Rect2(192, 655, 156, 18), Color("#80624b"))
 		draw_rect(Rect2(200, 670, 12, 96), Color("#58453c"))
