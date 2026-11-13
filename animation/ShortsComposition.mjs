@@ -356,6 +356,46 @@ function VectorScene({scene,frame,mouthLevel=0}){
     el(Person,{frame,action:scene.action,mouthLevel,holding:Boolean(scene.narrative?.heldObject)&&(scene.action!=='pick'||pickupPropPose(frame).grasp>.5)}),
     el(Prop,{action:scene.action,frame,hasPhysicalInteraction:scene.narrative?.hasPhysicalInteraction===true,heldObject:scene.action==='pick'?null:scene.narrative?.heldObject,objects:scene.narrative?.interactionObject?[scene.narrative.interactionObject]:scene.narrative?.heldObject?[scene.narrative.heldObject]:scene.narrative?.objects||[]})):el(MotionGraphic,{scene,frame})));
 }
+// Reference-style 2D editorial diagrams: semantic visuals, not generic title cards.
+function ReferenceDiagram({scene,frame}){
+ const text=scene.text||'';
+ const social=/sozial|social|netzwerk|network|internet|verbind|connect|kommunik/i.test(text);
+ const crowd=/menschen|people|bevölkerung|population|millionen|millions|frauen|women|gruppe|group/i.test(text);
+ const city=/stadt|city|kilometer|\\bkm\\b|entfernung|distance|weg|route/i.test(text);
+ const garment=/jacke|jacket|mantel|coat|kleidung|clothing/i.test(text);
+ const t=frame/24;
+ const root={position:'absolute',inset:0,pointerEvents:'none'};
+ if(social){
+  const points=Array.from({length:9},(_,i)=>({x:50+32*Math.cos(i*Math.PI*2/9),y:45+23*Math.sin(i*Math.PI*2/9)}));
+  return el('div',{style:root},
+   el('svg',{viewBox:'0 0 100 100',preserveAspectRatio:'none',style:{position:'absolute',inset:0,width:'100%',height:'100%'}},
+    ...points.map((p,i)=>el('line',{key:'l'+i,x1:p.x,y1:p.y,x2:points[(i+1)%points.length].x,y2:points[(i+1)%points.length].y,stroke:'#5489d8',strokeWidth:.24,opacity:.8})),
+    ...points.map((p,i)=>el('circle',{key:'c'+i,cx:p.x,cy:p.y,r:1.6+Math.sin(t*2+i)*.25,fill:i===Math.floor(t)%9?'#ff607b':'#0e244b',stroke:'#73b3ff',strokeWidth:.35})),
+    el('circle',{cx:50,cy:45,r:1.5,fill:'#ffd166',style:{filter:'drop-shadow(0 0 5px #ffd166)'}})));
+ }
+ if(crowd){
+  return el('div',{style:{...root,display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:'1.5%',left:'14%',right:'14%',top:'29%',bottom:'30%',alignContent:'center'}},
+   ...Array.from({length:48},(_,i)=>el('div',{key:i,style:{height:37,position:'relative',opacity:Math.min(1,Math.max(.15,(frame-i*1.5)/12)),transform:`translateY(${Math.max(0,16-frame+i*1.5)}px)`}},
+    el('div',{style:{position:'absolute',left:'31%',top:0,width:'38%',height:'42%',borderRadius:'50%',background:i%9===0?'#fa6178':'#6e7ca9'}}),
+    el('div',{style:{position:'absolute',left:'12%',bottom:0,width:'76%',height:'57%',borderRadius:'50% 50% 8% 8%',background:i%9===0?'#b34d67':'#4b557c'}}))));
+ }
+ if(city){
+  return el('div',{style:root},
+   el('svg',{viewBox:'0 0 100 100',preserveAspectRatio:'none',style:{width:'100%',height:'100%'}},
+    ...Array.from({length:6},(_,i)=>el('rect',{key:i,x:14+i*12,y:40-(i%3)*4,width:8,height:14+(i%3)*4,fill:'#334576'})),
+    el('path',{d:'M 18 75 Q 48 70 53 49 T 84 28',stroke:'#ffd166',strokeWidth:.6,fill:'none',strokeDasharray:'2 1'}),
+    el('circle',{cx:18,cy:75,r:1.5,fill:'#ff607b'}),
+    el('circle',{cx:84,cy:28,r:1.5,fill:'#ffd166'})));
+ }
+ if(garment){
+  return el('div',{style:root},
+   el('svg',{viewBox:'0 0 100 100',preserveAspectRatio:'none',style:{width:'100%',height:'100%'}},
+    el('path',{d:'M 38 29 L 46 24 Q 50 28 54 24 L 62 29 L 72 40 L 64 46 L 61 41 L 61 72 L 39 72 L 39 41 L 36 46 L 28 40 Z',fill:'#a27651',stroke:'#d5a77e',strokeWidth:.6}),
+    el('path',{d:'M 46 24 L 50 38 L 54 24 M 50 38 L 50 72',fill:'none',stroke:'#e6c19c',strokeWidth:.5}),
+    ...[44,52,60].map(y=>el('circle',{key:y,cx:52,cy:y,r:.55,fill:'#332d32'}))));
+ }
+ return null;
+}
 function MotionGraphic({scene,frame}){
  const t=frame/24, pulse=1+0.035*Math.sin(t*5), slide=Math.min(0, -90+frame*12);
  const title=(scene.keywords||[]).slice(0,3).join(' ').toUpperCase() || scene.action.toUpperCase();
@@ -369,7 +409,8 @@ function MotionGraphic({scene,frame}){
  el(CinematicWorld,{scene,frame}),
  el(DocumentaryScene,{scene,frame}),
  el(EditorialGraphic,{scene,frame}),
- ['phone','door','clock','alert'].includes(scene.action)?el(StoryObject,{action:scene.action,frame,accent,text:scene.text}):['space','nature','science','map','history','talk','number','technology'].includes(scene.action)?null:el('div',{style:panel},
+ el(ReferenceDiagram,{scene,frame}),
+ ['phone','door','clock','alert'].includes(scene.action)?el(StoryObject,{action:scene.action,frame,accent,text:scene.text}):(['space','nature','science','map','history','talk','number','technology'].includes(scene.action)||/sozial|social|netzwerk|network|menschen|people|bevölkerung|population|millionen|frauen|women|stadt|city|kilometer|\\bkm\\b|jacke|jacket|mantel|coat/i.test(scene.text))?null:el('div',{style:panel},
   el('div',{style:{fontSize:145,color:accent,fontWeight:900,lineHeight:1}},label),
   el('div',{style:{fontSize:50,color:'#fff',fontWeight:900,textAlign:'center',maxWidth:'90%',overflowWrap:'anywhere',letterSpacing:2}},title)),
  el('div',{style:{position:'absolute',left:'12%',right:'12%',top:'72%',height:7,borderRadius:10,background:'#ffffff24'}},
