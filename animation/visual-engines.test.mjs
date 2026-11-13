@@ -92,3 +92,9 @@ test('long-form rendering memoizes the scene plan and uses binary timeline looku
  assert.match(source,/frame>=plan\.scenes\[mid\]\.endFrame/);
  assert.doesNotMatch(source,/plan\.scenes\.find\(s=>frame/);
 });
+
+test('reference diagram animates network connections and exports without debug scene labels',()=>{
+ assert.match(source,/function ReferenceDiagram\(\{scene,frame\}\)/);
+ assert.match(source,/strokeDashoffset:-frame\*\.07/);
+ assert.doesNotMatch(source,/el\(EditorialHud,\{scene,sceneIndex,landscape\}\)/);
+});
