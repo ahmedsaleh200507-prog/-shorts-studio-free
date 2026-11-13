@@ -251,6 +251,11 @@ func _draw_topic_graphic(t: float) -> void:
 			draw_circle(Vector2(166, notification_y + 27), 12, Color("#b34c52"))
 			draw_rect(Rect2(190, notification_y + 17, 176, 7), navy)
 			draw_rect(Rect2(190, notification_y + 31, 120, 5), Color("#6a593c"))
+			# Touch feedback: expanding cyan ring appears exactly at the notification tap.
+			var tap := smoothstep(0.55, 0.68, scene_progress)
+			if scene_progress > 0.55 and scene_progress < 0.94:
+				var ring_radius := 8.0 + 53.0 * smoothstep(0.55, 0.94, scene_progress)
+				draw_arc(Vector2(322, notification_y + 27), ring_radius, 0.0, TAU, 48, Color(0.40, 0.95, 1.0, 0.85 * (1.0 - tap)), 4.0, true)
 			# A second articulated finger joint and palm make the touch readable.
 			var touch_ease := smoothstep(0.12, 0.66, scene_progress)
 			var wrist := Vector2(540.0 - 95.0 * touch_ease, 880.0 - 115.0 * touch_ease)
@@ -281,12 +286,14 @@ func _draw_topic_graphic(t: float) -> void:
 			draw_rect(Rect2(272 + opening, 445, 104, 235), Color("#546d88"))
 			draw_line(Vector2(271 - opening, 450), Vector2(271 - opening, 680), gold, 4, true)
 			draw_line(Vector2(272 + opening, 450), Vector2(272 + opening, 680), gold, 4, true)
-			# A waiting passenger and platform warning stripes add visual storytelling.
-			var passenger_x := 112.0 + 58.0 * smoothstep(0.2, 0.9, scene_progress)
+			# Passenger approaches the opening with a planted-step walk cycle.
+			var boarding := smoothstep(0.18, 0.94, scene_progress)
+			var passenger_x := 100.0 + 175.0 * boarding
+			var step_phase := sin(t * 10.0) * (1.0 - smoothstep(0.86, 1.0, scene_progress))
 			draw_circle(Vector2(passenger_x, 492), 25, Color("#d8a07c"))
 			draw_rect(Rect2(passenger_x - 24, 521, 48, 85), Color("#d6a54e"))
 			for dx in [-12.0, 12.0]:
-				draw_line(Vector2(passenger_x + dx, 604), Vector2(passenger_x + dx, 672), Color("#1c2d47"), 15, true)
+				draw_line(Vector2(passenger_x + dx, 604), Vector2(passenger_x + dx + step_phase * (1.0 if dx < 0.0 else -1.0) * 17.0, 672), Color("#1c2d47"), 15, true)
 			draw_line(Vector2(passenger_x - 24, 540), Vector2(passenger_x - 45, 583), Color("#d8a07c"), 13, true)
 			draw_rect(Rect2(0, 720, 540, 28), Color("#d9ad5c"))
 			for i in range(12):
@@ -312,6 +319,10 @@ func _draw_topic_graphic(t: float) -> void:
 			if scene_progress > 0.56:
 				var tune_angle := 0.45 * sin((scene_progress - 0.56) * 9.0)
 				draw_line(Vector2(398, 516), Vector2(398 + 17 * cos(tune_angle), 516 + 17 * sin(tune_angle)), Color("#f4dfae"), 4, true)
+			# Broadcast waves visibly radiate from the aerial tip.
+			for wave in range(3):
+				var wave_phase := fmod(scene_progress * 2.0 + float(wave) / 3.0, 1.0)
+				draw_arc(Vector2(345, 220), 24.0 + wave_phase * 115.0, -PI * 0.85, -PI * 0.15, 40, Color(0.38, 0.85, 0.94, (1.0 - wave_phase) * 0.7), 3.0, true)
 			# Animated pointer and sound bars make the broadcast state legible.
 			for i in range(5):
 				var bar_height := 8.0 + 18.0 * absf(sin(t * 3.0 + float(i) * 0.75))
