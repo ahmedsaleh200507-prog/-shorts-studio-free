@@ -114,6 +114,8 @@ function Background({place,frame}){
 function Prop({action,frame,objects=[],heldObject=null}){
  const bob=Math.sin(frame/4)*2;
  if(action==='brush')return null; // Toothbrush is attached to the character's animated hand in Person.
+ // A release without a previously held object must never invent an apple.
+ if(action==='put'&&!heldObject)return null;
  if(action==='pick'||action==='put'||heldObject){
   // The same deterministic pickup trajectory is reversed for put-down.
   // Keep the apple attached to the same grasp timeline as the hand rig.
