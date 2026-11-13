@@ -113,7 +113,10 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
   // Explicit locations override generic verbs such as 'works' or 'goes'.
   const scenes=sentences.map((text,index)=>{
     const explicitPut=/\b(?:puts? down|sets? down|drops?|places?)\b|\b(?:legt|stellt|setzt)\b[^.!?]{0,45}\b(?:ab|hin|auf)\b|\b(?:ablegen|abstellen)\b/i.test(text);
-    const match=explicitPut?rules.find(([name])=>name==='put'):rules.find(([,regex])=>regex.test(text));
+    // Object nouns alone must not trigger pickup (e.g. "She reads a book").
+    const explicitPickup=/\b(?:picks?\s+up|grabs?|takes?|lifts?)\b|\b(?:nimmt|greift|hebt)\b/i.test(text);
+    const match=explicitPut?rules.find(([name])=>name==='put'):
+      rules.find(([name,regex])=>regex.test(text)&&(name!=='pick'||explicitPickup));
     const [action,rulePlace,props]=match?[match[0],match[2],match[3]]:['talk','generic',[]];
     const context=chooseContext(text,previousPlace);
     const place=(context.place==='generic'||(context.place===previousPlace && rulePlace!=='generic' && rulePlace!==previousPlace && !context.setting))?rulePlace:context.place;
