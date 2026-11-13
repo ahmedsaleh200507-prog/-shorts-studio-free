@@ -156,7 +156,7 @@ func _draw() -> void:
 		_draw_topic_graphic(t)
 	else:
 		_draw_character(float(frame_index) / FPS)
-	if place not in ["space", "science", "nature", "technology", "phone", "clock", "alert", "map", "history", "infographic", "door"]:
+	if place not in ["space", "science", "nature", "technology", "phone", "clock", "alert", "map", "history", "infographic", "door", "metro", "radio"]:
 		_draw_procedural_objects(t)
 	_draw_reference_header()
 	# Subtle scene fade at clip boundaries; character animation remains continuous within the scene.
@@ -231,6 +231,13 @@ func _draw_topic_graphic(t: float) -> void:
 				draw_rect(Rect2(150, y, 240, 45), Color("#344d79"))
 				draw_rect(Rect2(165, y + 12, 155 + 20 * sin(t + float(i)), 8), gold)
 				draw_rect(Rect2(165, y + 28, 110, 5), Color("#9bb2c5"))
+			# A fingertip follows an eased touch gesture onto the notification.
+			var touch_progress := smoothstep(0.12, 0.66, scene_progress)
+			var finger_tip := Vector2(487.0 - 165.0 * touch_progress, 760.0 - 145.0 * touch_progress)
+			draw_line(finger_tip + Vector2(62, 105), finger_tip + Vector2(14, 23), Color("#c78766"), 29, true)
+			draw_circle(finger_tip, 17, Color("#e3a585"))
+			if scene_progress > 0.60 and scene_progress < 0.83:
+				draw_arc(finger_tip, 27.0 + 12.0 * (scene_progress - 0.6), 0, TAU, 40, Color("#e7bd64", 0.75), 3, true)
 			var notification_y := 580.0 - 30.0 * smoothstep(0.2, 0.75, scene_progress)
 			draw_rect(Rect2(135, notification_y, 270, 54), Color("#e4b75f"))
 			draw_circle(Vector2(166, notification_y + 27), 12, Color("#b34c52"))
@@ -269,6 +276,11 @@ func _draw_topic_graphic(t: float) -> void:
 			for i in range(12):
 				var xx := 122.0 + float(i) * 18.0
 				draw_line(Vector2(xx, 412), Vector2(xx, 545), Color("#a7b9c4"), 3, true)
+			# Animated pointer and sound bars make the broadcast state legible.
+			for i in range(5):
+				var bar_height := 8.0 + 18.0 * absf(sin(t * 3.0 + float(i) * 0.75))
+				draw_rect(Rect2(135.0 + float(i) * 37.0, 490.0 - bar_height, 14.0, bar_height), Color("#e5c37a"))
+			draw_line(Vector2(397, 441), Vector2(397 + 17 * cos(t * 0.6), 441 + 17 * sin(t * 0.6)), Color("#e5c37a"), 4, true)
 			for i in range(2):
 				draw_circle(Vector2(398, 440 + i * 76), 29, Color("#25364c"))
 				draw_arc(Vector2(398, 440 + i * 76), 24, 0, TAU, 32, gold, 3, true)
