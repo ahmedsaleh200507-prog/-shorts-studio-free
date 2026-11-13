@@ -10,6 +10,7 @@ on:
       - 'animation/export-godot-plan.mjs'
       - 'animation/test-godot-plan.mjs'
       - 'animation/render-godot-story.py'
+      - 'animation/test_godot_story.py'
       - '.github/workflows/test-godot-blender.yml'
 permissions:
   contents: read
@@ -26,6 +27,8 @@ jobs:
         run: node --test animation/test-godot-plan.mjs
       - name: Run fast renderer unit tests
         run: python -m unittest discover -s animation -p 'test_godot_render.py' -v
+      - name: Run offline story subtitle and audio validation tests
+        run: python -m unittest discover -s animation -p 'test_godot_story.py' -v
       - name: Install FFmpeg and Blender
         run: |
           sudo apt-get update
