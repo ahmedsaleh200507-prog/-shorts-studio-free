@@ -26,7 +26,7 @@ test('Door animation has sequential approach, grip, open and exit phases',()=>{
 });
 
 test('Narrated 2D characters have animated mouth without 3D transforms',()=>{
- assert.match(source,/function Person\(\{frame,action,mouthLevel=0\}\)/);
+ assert.match(source,/function Person\(\{frame,action,mouthLevel=0,holding=false\}\)/);
  assert.match(source,/mouthLevel>\.035\?svg\('ellipse'/);
  assert.match(source,/mouthLevel:narration\?speechMouthLevel/);
  assert.doesNotMatch(source,/rotateY\(/);
@@ -42,7 +42,7 @@ test('Wake-up and toothbrush are character-attached 2D actions',()=>{
 test('Sitting scenes draw an actual 2D chair behind the character',()=>{
  assert.match(source,/scene\.action==='sit'\?el\(React\.Fragment/);
  assert.match(source,/Shape\(\{x:37,y:67,w:26,h:5,color:'#9a6648'/);
- assert.match(source,/el\(Person,\{frame,action:scene\.action,mouthLevel\}\)/);
+ assert.match(source,/el\(Person,\{frame,action:scene\.action,mouthLevel,holding:/);
 });
 
 test('2D characters blink both eyes using deterministic frame timing',()=>{
