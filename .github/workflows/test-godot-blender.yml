@@ -9,6 +9,7 @@ on:
       - 'animation/test_godot_render.py'
       - 'animation/export-godot-plan.mjs'
       - 'animation/test-godot-plan.mjs'
+      - 'animation/render-godot-story.py'
       - '.github/workflows/test-godot-blender.yml'
 permissions:
   contents: read
@@ -76,12 +77,18 @@ jobs:
           ffmpeg -hide_banner -loglevel error -y -f lavfi -i sine=frequency=440:duration=2 -c:a libmp3lame output/test-narration.mp3
           xvfb-run -a python animation/render-godot-video.py --action=brush --place=bathroom --seconds=2 --audio=output/test-narration.mp3 --out=output/godot-narrated.mp4
           ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 output/godot-narrated.mp4 | grep -q aac
+      - name: Render three-scene German story with captions
+        run: |
+          xvfb-run -a python animation/render-godot-story.py --script "Er wacht auf. Er putzt die Zähne. Er nimmt einen Apfel." --out output/godot-story.mp4
+          test -s output/godot-story.mp4
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 output/godot-story.mp4 | grep -q h264
       - uses: actions/upload-artifact@v4
         with:
           name: godot-2d-demo-mp4
           path: |
             output/godot-demo.mp4
             output/godot-narrated.mp4
+            output/godot-story.mp4
           if-no-files-found: error
           retention-days: 3
       - uses: actions/upload-artifact@v4
