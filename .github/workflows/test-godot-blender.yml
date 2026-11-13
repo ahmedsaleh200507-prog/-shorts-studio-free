@@ -7,6 +7,8 @@ on:
       - 'blender/**'
       - 'animation/render-godot-video.py'
       - 'animation/test_godot_render.py'
+      - 'animation/export-godot-plan.mjs'
+      - 'animation/test-godot-plan.mjs'
       - '.github/workflows/test-godot-blender.yml'
 permissions:
   contents: read
@@ -16,6 +18,11 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test German and English scene-plan bridge
+        run: node --test animation/test-godot-plan.mjs
       - name: Run fast renderer unit tests
         run: python -m unittest discover -s animation -p 'test_godot_render.py' -v
       - name: Install FFmpeg and Blender
