@@ -60,6 +60,12 @@ jobs:
           xvfb-run -a godot --path godot --rendering-driver opengl3 -- --action=brush --place=bathroom --frames=48 --out="$PWD/output/godot-frames"
           test "$(find output/godot-frames -name 'frame_*.png' | wc -l)" -eq 48
           file output/godot-frames/frame_00000.png
+      - name: Render sentence-specific procedural 2D objects
+        run: |
+          mkdir -p output/object-check
+          printf '["apple","tree","phone","house","car"]' > output/objects.json
+          xvfb-run -a godot --path godot --rendering-driver opengl3 -- --action=talk --place=generic --frames=3 --objects-file="$PWD/output/objects.json" --out="$PWD/output/object-check"
+          test -s output/object-check/frame_00001.png
       - name: Verify real rendered animation changes between frames
         run: |
           python - <<'PY'
