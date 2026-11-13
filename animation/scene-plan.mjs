@@ -161,7 +161,7 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const pickupVerbs=/\b(?:picks?\s+(?:(?:it|them)\s+)?up|grabs?|takes?|lifts?|nimmt|greift|hebt)\b/gi;
     const targetedItem=Array.from(text.matchAll(pickupVerbs)).map(match=>{
       const clause=text.slice(match.index+match[0].length).split(/\b(?:and|und|then|dann)\b|[.!?;,]/i)[0];
-      return pickupTargets.find(([,re])=>re.test(clause))?.[0]||null;
+      return pickupTargets.map(([name,re])=>({name,index:clause.search(re)})).filter(hit=>hit.index>=0).sort((a,b)=>a.index-b.index)[0]?.name||null;
     }).find(Boolean)||null;
     const pickupItem=resolvedAction==='pick'?(targetedItem||(pronounPickup?previousObjects.find(o=>['apple','banana','bottle','cup','book'].includes(o)):null)):null;
     // Do not replace an already-held prop with an unrelated inferred object.
