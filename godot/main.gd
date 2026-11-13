@@ -253,15 +253,33 @@ func _draw_procedural_objects(t: float) -> void:
 		var hue := fmod(float(seed_value % 997) / 997.0, 1.0)
 		var ink := Color.from_hsv(hue, 0.55, 0.9)
 		draw_rect(Rect2(center - Vector2(88, 40), Vector2(176, 86)), Color("#1d3150"))
-		match seed_value % 4:
-			0:
-				draw_circle(center + Vector2(-55, -4), 20, ink)
-			1:
-				draw_rect(Rect2(center + Vector2(-73, -23), Vector2(38, 38)), ink)
-			2:
-				draw_colored_polygon(PackedVector2Array([center + Vector2(-70, 18), center + Vector2(-50, -24), center + Vector2(-30, 18)]), ink)
-			_:
-				draw_line(center + Vector2(-74, -20), center + Vector2(-37, 19), ink, 8, true)
+		var noun := word.to_lower()
+		if noun in ["apple", "apfel", "planet", "erde", "earth", "moon", "mond", "sun", "sonne"]:
+			draw_circle(center + Vector2(-54, -2), 24, Color("#d95b56") if noun in ["apple", "apfel"] else Color("#4f9ed3"))
+			draw_arc(center + Vector2(-54, -2), 27, 0, TAU, 32, ink, 3, true)
+		elif noun in ["tree", "baum", "forest", "wald", "flower", "blume"]:
+			draw_line(center + Vector2(-53, 24), center + Vector2(-53, -12), Color("#88634a"), 9, true)
+			draw_circle(center + Vector2(-53, -20), 22, Color("#65bb82"))
+		elif noun in ["phone", "smartphone", "handy", "screen", "computer", "laptop"]:
+			draw_rect(Rect2(center + Vector2(-76, -29), Vector2(46, 53)), ink)
+			draw_rect(Rect2(center + Vector2(-71, -23), Vector2(36, 37)), Color("#1a3e61"))
+		elif noun in ["house", "haus", "home", "building", "gebäude"]:
+			draw_rect(Rect2(center + Vector2(-74, -11), Vector2(44, 35)), ink)
+			draw_colored_polygon(PackedVector2Array([center + Vector2(-80, -11), center + Vector2(-52, -36), center + Vector2(-24, -11)]), Color("#db9b61"))
+		elif noun in ["car", "auto", "bus", "train", "zug"]:
+			draw_rect(Rect2(center + Vector2(-78, -12), Vector2(52, 28)), ink)
+			draw_circle(center + Vector2(-67, 18), 8, Color("#0a172e"))
+			draw_circle(center + Vector2(-37, 18), 8, Color("#0a172e"))
+		else:
+			match seed_value % 4:
+				0:
+					draw_circle(center + Vector2(-55, -4), 20, ink)
+				1:
+					draw_rect(Rect2(center + Vector2(-73, -23), Vector2(38, 38)), ink)
+				2:
+					draw_colored_polygon(PackedVector2Array([center + Vector2(-70, 18), center + Vector2(-50, -24), center + Vector2(-30, 18)]), ink)
+				_:
+					draw_line(center + Vector2(-74, -20), center + Vector2(-37, 19), ink, 8, true)
 		if font != null:
 			draw_string(font, center + Vector2(-23, 7), word, HORIZONTAL_ALIGNMENT_LEFT, 105, 16, Color.WHITE)
 
