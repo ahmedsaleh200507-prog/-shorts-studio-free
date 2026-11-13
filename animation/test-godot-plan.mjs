@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
+import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
 const exportPlan=(script,aspect='9:16')=>JSON.parse(execFileSync(process.execPath,['animation/export-godot-plan.mjs',script,aspect],{encoding:'utf8'}));
 test('German story maps to distinct native 2D actions',()=>{
@@ -21,4 +24,17 @@ test('Unknown actions degrade to talk without losing sentences',()=>{
   assert.equal(plan.scenes.length,2);
   assert.ok(plan.scenes.every(s=>s.action==='talk'));
   assert.ok(plan.scenes.every(s=>s.frames>0));
+});
+
+test('Narration frame durations control scene boundaries',()=>{
+  const dir=mkdtempSync(join(tmpdir(),'godot-plan-'));
+  try {
+    const durations=join(dir,'durations.json');
+    writeFileSync(durations,JSON.stringify([48,96]));
+    const plan=JSON.parse(execFileSync(process.execPath,
+      ['animation/export-godot-plan.mjs','Er wacht auf. Er putzt die Zähne.','9:16',durations],
+      {encoding:'utf8'}));
+    assert.deepEqual(plan.scenes.map(s=>s.frames),[48,96]);
+    assert.equal(plan.totalFrames,144);
+  } finally {rmSync(dir,{recursive:true,force:true});}
 });
