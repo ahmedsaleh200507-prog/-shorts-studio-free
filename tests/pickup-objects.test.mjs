@@ -102,3 +102,16 @@ test('known pickup target still produces physical interaction',()=>{
   assert.equal(scene.narrative.hasPhysicalInteraction,true);
  }
 });
+
+test('places as a noun does not trigger object release',()=>{
+ for(const script of ['She visits many places.','They discover new places.']){
+  const scene=makeScenePlan(script).scenes[0];
+  assert.notEqual(scene.action,'put',script);
+ }
+});
+test('explicit placement and release verbs still work',()=>{
+ for(const script of ['She places the book.','She puts it down.','He sets the cup down.']){
+  const scene=makeScenePlan(script).scenes[0];
+  assert.equal(scene.action,'put',script);
+ }
+});
