@@ -70,11 +70,26 @@ jobs:
         run: |
           python animation/generate-ai-scenes.py
           test -s animation/ai-scene-images.mjs
-      - name: Render actual Remotion 2D video
-        working-directory: animation
+      - name: Install native Godot renderer for vector 2D mode
+        if: contains(inputs.script, '[[VECTOR_2D]]')
         run: |
-          mkdir -p ../output
-          npx remotion render job-entry.mjs ShortsJob ../output/final.mp4 --codec h264 --crf 26 --concurrency 1 --scale 0.5
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg xvfb unzip
+          curl -fL --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          sudo install -m 755 /tmp/godot/Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+      - name: Render selected 2D engine with narration
+        env:
+          SCRIPT: ${{ inputs.script }}
+          ASPECT_RATIO: ${{ inputs.aspect_ratio }}
+        run: |
+          mkdir -p output
+          if [[ "$SCRIPT" == *'[[VECTOR_2D]]'* ]]; then
+            xvfb-run -a python animation/render-production.py
+          else
+            python animation/render-production.py
+          fi
       - name: Validate real MP4 file
         run: |
           test -s output/final.mp4
