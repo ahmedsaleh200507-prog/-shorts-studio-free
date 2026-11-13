@@ -289,6 +289,14 @@ func _draw_topic_graphic(t: float) -> void:
 			for i in range(12):
 				var xx := 122.0 + float(i) * 18.0
 				draw_line(Vector2(xx, 412), Vector2(xx, 545), Color("#a7b9c4"), 3, true)
+			# A hand reaches the tuning dial, then turns it with a short pause.
+			var dial_reach := smoothstep(0.12, 0.56, scene_progress)
+			var dial_hand := Vector2(515.0 - 112.0 * dial_reach, 630.0 - 111.0 * dial_reach)
+			draw_line(Vector2(530, 685), dial_hand, Color("#a56a50"), 26, true)
+			draw_circle(dial_hand, 19, Color("#e2a580"))
+			if scene_progress > 0.56:
+				var tune_angle := 0.45 * sin((scene_progress - 0.56) * 9.0)
+				draw_line(Vector2(398, 516), Vector2(398 + 17 * cos(tune_angle), 516 + 17 * sin(tune_angle)), Color("#f4dfae"), 4, true)
 			# Animated pointer and sound bars make the broadcast state legible.
 			for i in range(5):
 				var bar_height := 8.0 + 18.0 * absf(sin(t * 3.0 + float(i) * 0.75))
