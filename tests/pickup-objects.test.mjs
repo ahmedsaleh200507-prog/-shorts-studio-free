@@ -77,3 +77,14 @@ test('compound nouns do not become unrelated objects',()=>{
   assert.ok(!scene.narrative.objects.includes(forbidden),script);
  }
 });
+
+test('release without a held prop does not invent a physical interaction',()=>{
+ const scenes=makeScenePlan('She puts down the cup. She picks up a bottle. Then she puts it down.').scenes;
+ assert.equal(scenes[0].action,'put');
+ assert.equal(scenes[0].narrative.releaseObject,null);
+ assert.equal(scenes[0].narrative.hasPhysicalInteraction,false);
+ assert.equal(scenes[1].narrative.heldObject,'bottle');
+ assert.equal(scenes[1].narrative.hasPhysicalInteraction,true);
+ assert.equal(scenes[2].narrative.releaseObject,'bottle');
+ assert.equal(scenes[2].narrative.hasPhysicalInteraction,true);
+});
