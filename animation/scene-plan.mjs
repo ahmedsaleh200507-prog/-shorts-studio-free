@@ -8,11 +8,11 @@ const rules=[
   ['walk', /\b(?:walks?|walking|strolls?)\b|\b(?:geht|gehen|spaziert|spazieren)\b/i, 'generic', ['path']],
   ['brush', /zähne|zahn|putzt|brush(?:es|ing)?|teeth|tooth/i, 'bathroom', ['toothbrush','sink']],
   ['checkout', /kasse|bezahl|checkout|cashier|\bpays?\b/i, 'supermarket', ['register','payment-card']],
+  ['put', /\b(?:puts? down|places?|sets? down|drops?)\b|\b(?:legt|stellt|setzt)\s+(?:es|sie|ihn|das|den|die|eine[nrsm]?|ein)\b|\bablegen\b|\babstellen\b/i, 'generic', ['surface']],
   ['pick', /\b(?:bananas?|books?|bottles?|cups?)\b|banane|buch|flasche|tasse|\b(?:picks? up|grabs?|takes?)\s+(?:a |an |the )?(?:object|item)\b|\b(?:nimmt|greift)\s+(?:ein(?:e|en|em|er|es)? |das |den )?(?:banane|buch|flasche|tasse|gegenstand)/i, 'generic', ['object','hand']],
   ['pick', /apfel|apple|picks? (?:up )?(?:an? )?apple|nimmt (?:einen |eine |das |den )?(?:apfel|gegenstand)|takes? (?:an? |the )?(?:apple|object)/i, 'supermarket', ['apple','shelf']],
   ['wake', /\bwach(?:e|st|t|en)?\b[^.!?]{0,90}\bauf\b|aufwach|\berwach(?:e|st|t|en)?\b|wake(?:s)? up|woke up|\b(?:steht|stand)\s+auf\b|aufgestanden|\b(?:gets?|got)\s+up\b|\bbed\b|bett/i, 'bedroom', ['bed']],
   ['travel', /\bbus\b|\bzug\b|train|station|bahnhof/i, 'transport', ['vehicle']],
-  ['put', /\b(?:puts? down|places?|sets? down|drops?)\b|\b(?:legt|stellt|setzt)\s+(?:es|sie|ihn|das|den|die|eine[nrsm]?|ein)\b|\bablegen\b|\babstellen\b/i, 'generic', ['surface']],
   ['carry', /trägt (?:den |die |das |einen |eine )?(?:koffer|tasche|rucksack)|carri(?:es|ed|y) (?:a |the )?(?:bag|suitcase|backpack)|mit (?:einem |dem )?koffer/i, 'generic', ['bag','hand']],
   ['alert', /warnung|warnmeldung|alarm|gefahr|notfall|emergency|warning|alert|achtung|sirene/i, 'alert', ['warning-panel','alert-icon']],
   ['phone', /handy|smartphone|telefon|phone|nachricht|message|notification|benachrichtigung|textnachricht|sms|bildschirm|screen/i, 'phone', ['phone-screen','notification']],
@@ -112,7 +112,8 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
   let heldObject=null;
   // Explicit locations override generic verbs such as 'works' or 'goes'.
   const scenes=sentences.map((text,index)=>{
-    const match=rules.find(([,regex])=>regex.test(text));
+    const explicitPut=/\b(?:puts? down|sets? down|drops?|places?)\b|\b(?:legt|stellt|setzt)\b[^.!?]{0,45}\b(?:ab|hin|auf)\b|\b(?:ablegen|abstellen)\b/i.test(text);
+    const match=explicitPut?rules.find(([name])=>name==='put'):rules.find(([,regex])=>regex.test(text));
     const [action,rulePlace,props]=match?[match[0],match[2],match[3]]:['talk','generic',[]];
     const context=chooseContext(text,previousPlace);
     const place=(context.place==='generic'||(context.place===previousPlace && rulePlace!=='generic' && rulePlace!==previousPlace && !context.setting))?rulePlace:context.place;
