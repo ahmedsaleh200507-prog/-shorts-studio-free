@@ -444,6 +444,14 @@ func _draw_character(t: float) -> void:
 	draw_colored_polygon(inner, shirt)
 	draw_line(shoulder + Vector2(-26, 8), hip + Vector2(-25, -18), Color("#5aa0cc"), 5, true)
 	draw_line(hip + Vector2(-37, -4), hip + Vector2(37, -4), shirt_dark, 9, true)
+	# Tailoring details: jacket seam, buttons, collar and fabric folds.
+	draw_colored_polygon(PackedVector2Array([shoulder + Vector2(-31, -9), shoulder + Vector2(-8, 28), shoulder + Vector2(0, 8)]), shirt_dark)
+	draw_colored_polygon(PackedVector2Array([shoulder + Vector2(31, -9), shoulder + Vector2(8, 28), shoulder + Vector2(0, 8)]), shirt_dark)
+	draw_line(shoulder + Vector2(0, 16), hip + Vector2(0, -7), shirt_dark, 3, true)
+	for button_y in [58.0, 91.0]:
+		draw_circle(shoulder + Vector2(6, button_y), 3.0, Color("#d6c3a5"))
+	draw_line(hip + Vector2(-28, -30), hip + Vector2(-8, -42), shirt_dark, 2, true)
+	draw_line(hip + Vector2(28, -30), hip + Vector2(8, -42), shirt_dark, 2, true)
 	# Neck, ears, head and hairstyle, all 2D vector primitives.
 	var head := root + Vector2(sway * 0.4, -110)
 	draw_line(shoulder + Vector2(0, -15), head + Vector2(0, 37), outline, 27, true)
