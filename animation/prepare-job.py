@@ -20,7 +20,15 @@ async def main():
     if aspect not in ('9:16','16:9'): raise ValueError('Invalid aspect ratio')
     if not script or len(script)>12000: raise ValueError('Script must contain 1–12000 characters')
     if lang not in ('de','en'): raise ValueError('Unsupported language')
-    sentences=[s.strip() for s in re.findall(r'[^.!?\n]+[.!?]?',script) if s.strip()]
+    # Reuse the exact scene splitter used by both video engines. Independent
+    # regexes previously disagreed on decimals such as 3.14 or 2.5.
+    splitter = ("import {splitScript} from './scene-plan.mjs';"
+                "let input='';for await(const part of process.stdin)input+=part;"
+                "process.stdout.write(JSON.stringify(splitScript(input)));")
+    result=subprocess.run(['node','--input-type=module','-e',splitter],
+                          input=script,text=True,capture_output=True,check=True,
+                          cwd=ROOT,timeout=30)
+    sentences=json.loads(result.stdout)
     if not sentences or len(sentences)>180: raise ValueError('Invalid number of scenes')
     voice={'de':'de-DE-KatjaNeural','en':'en-US-JennyNeural'}[lang]
     offline=os.environ.get('TTS_ENGINE','edge')=='piper'
