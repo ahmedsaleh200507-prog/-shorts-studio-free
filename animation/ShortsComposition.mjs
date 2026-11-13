@@ -80,6 +80,17 @@ function Background({place,frame}){
   floor,Shape({x:4,y:66,w:57,h:11,color:'#f6eee5',r:18}),
   Shape({x:7,y:59,w:17,h:10,color:'#fff',r:18}),
   Shape({x:4,y:75,w:5,h:15,color:'#604737'}));
+ if(place==='kitchen')return el(React.Fragment,null,
+  Shape({x:0,y:0,w:100,h:72,color:'#e6e3d9'}),
+  Shape({x:8,y:12,w:35,h:30,color:'#b5d9e6',r:3,style:{border:'9px solid #f7f7ef'}}),
+  Shape({x:24,y:12,w:1,h:30,color:'#f7f7ef'}),
+  Shape({x:8,y:26,w:35,h:1,color:'#f7f7ef'}),
+  Shape({x:0,y:59,w:100,h:13,color:'#d4a27e'}),
+  Shape({x:0,y:72,w:100,h:28,color:'#a9a49a'}),
+  Shape({x:2,y:72,w:96,h:3,color:'#f6ead7'}),
+  ...[3,31,59].map(x=>Shape({x,y:75,w:25,h:19,color:'#d6c2a5',r:3,style:{border:'3px solid #a38b73'}})),
+  Shape({x:72,y:42,w:18,h:17,color:'#b7c2c9',r:7}),
+  Shape({x:77,y:38,w:7,h:5,color:'#e6eef0',r:3}));
  if(place==='bathroom')return el(React.Fragment,null,
   Shape({x:0,y:0,w:100,h:72,color:'#c4e5e8'}),
   ...Array.from({length:6},(_,i)=>Shape({x:i*18,y:0,w:0.5,h:72,color:'#a2d2d7'})),
