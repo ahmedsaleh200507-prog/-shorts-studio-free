@@ -15,7 +15,7 @@ if(!['9:16','16:9'].includes(aspectRatio)) {
 const durationsFile=process.argv[4];
 const durationsFrames=durationsFile?JSON.parse(readFileSync(durationsFile,'utf8')):null;
 const plan=makeScenePlan(script,{aspectRatio,durationsFrames});
-const supportedActions=new Set(['wake','brush','pick','travel','carry','talk']);
+const supportedActions=new Set(['wake','brush','pick','travel','carry','talk','run','sit','walk']);
 const supportedPlaces=new Set(['bedroom','bathroom','supermarket','transport','hospital','school','generic','space','science','nature','technology','phone','clock','alert','map','history','infographic','door','restaurant','office']);
 const graphicTopics=new Set(['space','science','nature','technology','phone','clock','alert','map','history','infographic','door']);
 const scenes=plan.scenes.map((scene)=>{
