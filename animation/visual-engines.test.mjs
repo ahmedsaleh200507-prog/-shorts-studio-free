@@ -71,3 +71,9 @@ test('reference-style HUD overlays vector or AI scenes without hiding narration 
  assert.match(source,/el\(CaptionWords,\{caption,landscape\}\)/);
  assert.doesNotMatch(source,/'SHORTS STUDIO'\)/);
 });
+
+test('rolling captions cap visible words in portrait and landscape',()=>{
+ assert.match(source,/export function rollingCaption\(words,revealedWords,maxWords=8\)/);
+ assert.match(source,/const start=Math\.max\(0,end-maxWords\)/);
+ assert.match(source,/rollingCaption\(words,revealedWords,landscape\?11:7\)/);
+});
