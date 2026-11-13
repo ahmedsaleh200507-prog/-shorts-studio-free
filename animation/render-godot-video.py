@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FPS = 24
-ACTIONS = {"wake", "brush", "pick", "travel", "carry", "talk"}
+ACTIONS = {"wake", "brush", "pick", "travel", "carry", "talk", "run", "sit", "walk"}
 PLACES = {"bedroom", "bathroom", "supermarket", "transport", "generic", "hospital", "school", "space", "science", "nature", "technology", "phone", "clock", "alert", "map", "history", "infographic", "door", "restaurant", "office"}
 
 def run(args, timeout=600):
