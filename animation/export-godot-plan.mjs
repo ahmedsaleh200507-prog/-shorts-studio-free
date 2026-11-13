@@ -1,5 +1,6 @@
 // Convert the Remotion scene plan into Godot-compatible actions.
 import {makeScenePlan} from './scene-plan.mjs';
+import {readFileSync} from 'node:fs';
 
 const script=process.argv[2];
 const aspectRatio=process.argv[3]||'9:16';
@@ -11,7 +12,9 @@ if(!['9:16','16:9'].includes(aspectRatio)) {
   console.error('Unsupported aspect ratio');
   process.exit(2);
 }
-const plan=makeScenePlan(script,{aspectRatio});
+const durationsFile=process.argv[4];
+const durationsFrames=durationsFile?JSON.parse(readFileSync(durationsFile,'utf8')):null;
+const plan=makeScenePlan(script,{aspectRatio,durationsFrames});
 const supportedActions=new Set(['wake','brush','pick','travel','carry','talk']);
 const supportedPlaces=new Set(['bedroom','bathroom','supermarket','transport','generic']);
 const scenes=plan.scenes.map((scene)=>{
