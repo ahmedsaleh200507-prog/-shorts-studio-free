@@ -128,12 +128,15 @@ export function makeScenePlan(script,{fps=24,secondsPerScene=3,durationsFrames=n
     const resolvedProps=[...new Set([...props,...(place==='metro'?['train','platform']:[]),...(place==='phone'?['phone-screen']:[])])].slice(0,8);
     const narrative=extractNarrative(text,resolvedAction,previousActor,previousObjects);
     previousActor=narrative.actor;
-    if(narrative.objects.length) previousObjects=narrative.objects;
+    // Keep the most recent explicitly named object for later pronouns.
+    // Pronoun-only sentences must not replace memory with inferred objects.
+    const namedObjects=objectPatterns.filter(([,re])=>re.test(text)).map(([name])=>name);
+    if(namedObjects.length) previousObjects=namedObjects;
     // Persist the item between shots, and clear it only after an explicit release.
     // A new pickup must be the object mentioned in this sentence, not stale pronoun memory.
     // Resolve a pickup from the current sentence only; pronoun context may
     // describe a different previously seen item and must not create a new grab.
-    const currentObjects=objectPatterns.filter(([,re])=>re.test(text)).map(([name])=>name);
+    const currentObjects=namedObjects;
     // A pronoun can refer to a previously named item, but only after an
     // explicit pickup verb. Prefer a newly named object over earlier context.
     const pronounPickup=/\b(?:picks?\s+(?:it|them)\s+up|grabs?\s+(?:it|them)|takes?\s+(?:it|them)|lifts?\s+(?:it|them))\b|\b(?:nimmt|greift|hebt)\s+(?:es|sie|ihn)\b/i.test(text);
