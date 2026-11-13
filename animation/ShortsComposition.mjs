@@ -375,6 +375,14 @@ function MotionGraphic({scene,frame}){
  el('div',{style:{position:'absolute',left:'12%',right:'12%',top:'72%',height:7,borderRadius:10,background:'#ffffff24'}},
   el('div',{style:{width:Math.min(100,frame/Math.max(1,scene.endFrame-scene.startFrame)*100)+'%',height:'100%',background:accent,borderRadius:10}})));
 }
+// Subtle documentary HUD overlay based on the supplied 2D reference.
+function EditorialHud({scene,sceneIndex,landscape}){
+ const tag=(scene.place&&scene.place!=='generic'?scene.place:scene.action).toUpperCase();
+ return el(React.Fragment,null,
+  el('div',{style:{position:'absolute',inset:0,pointerEvents:'none',opacity:.13,backgroundImage:'linear-gradient(#7390bf 1px,transparent 1px),linear-gradient(90deg,#7390bf 1px,transparent 1px)',backgroundSize:landscape?'48px 48px':'38px 38px',maskImage:'linear-gradient(to bottom,transparent 0%,black 18%,black 78%,transparent 100%)'}}),
+  el('div',{style:{position:'absolute',top:landscape?24:42,left:'50%',transform:'translateX(-50%)',border:'1px solid #c5a56d',borderRadius:4,padding:landscape?'5px 15px':'8px 18px',background:'#091326e8',color:'#e8c67f',fontSize:landscape?13:17,letterSpacing:3,fontWeight:800,whiteSpace:'nowrap',boxShadow:'0 0 12px #0009'}},
+   `SCENE ${String(sceneIndex+1).padStart(2,'0')} · ${tag.slice(0,20)}`));
+}
 // Reference-inspired editorial caption treatment: emphasize meaning, not every word.
 function CaptionWords({caption}){
  const tokens=caption.split(/(\s+)/);
@@ -409,7 +417,7 @@ export function ShortsComposition({script='Ein Mann wacht morgens auf.',narratio
  return el(AbsoluteFill,{style:{background:'#14253b',fontFamily:'Arial,sans-serif',overflow:'hidden'}},
   aiImage?el(AiIllustration,{image:aiImage,sceneIndex,progress}):el('div',{style:{position:'absolute',inset:0,transform:`scale(${zoom}) translate(${driftX}%,${driftY}%)`}},el(VectorScene,{scene,frame:local,mouthLevel:narration?speechMouthLevel(local,narrationWordTimings[sceneIndex],plan.fps):0})),
   narration?plan.scenes.map((s,i)=>el(Sequence,{key:s.id,from:s.startFrame,durationInFrames:s.endFrame-s.startFrame},el(Audio,{src:narrationAudio[i]}))):null,
-  el('div',{style:{position:'absolute',top:landscape?42:85,left:landscape?70:65,color:'#fff',fontSize:landscape?26:34,fontWeight:800,letterSpacing:3,textShadow:'0 3px 8px #0009'}},'SHORTS STUDIO'),
-  el('div',{style:{position:'absolute',bottom:landscape?58:140,left:landscape?'15%':45,right:landscape?'15%':45,opacity,background:'#14253bd9',borderRadius:landscape?18:30,padding:landscape?'18px 24px':'32px 26px',color:'white',fontSize:landscape?35:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},el(CaptionWords,{caption,landscape}))
+  el(EditorialHud,{scene,sceneIndex,landscape}),
+  el('div',{style:{position:'absolute',bottom:landscape?58:140,left:landscape?'15%':45,right:landscape?'15%':45,opacity,background:'linear-gradient(180deg,#07102000,#071020d9 35%,#071020ed)',borderRadius:landscape?8:12,padding:landscape?'14px 20px':'24px 18px',color:'white',fontSize:landscape?35:49,fontWeight:800,lineHeight:1.25,textAlign:'center',textShadow:'0 2px 8px #0007'}},el(CaptionWords,{caption,landscape}))
  );
 }
