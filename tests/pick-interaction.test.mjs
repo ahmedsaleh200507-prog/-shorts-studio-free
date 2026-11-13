@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {characterPose} from '../animation/skeletal-motion.mjs';
+import {characterPose,pickupPropPose} from '../animation/skeletal-motion.mjs';
 
 test('picking starts at rest, reaches, then settles into a grasp',()=>{
  const start=characterPose('pick',0);
@@ -22,5 +22,22 @@ test('2D skeletal poses stay finite for long video frames',()=>{
    for(const [key,value] of Object.entries(pose))
     assert.ok(Number.isFinite(value),action+' '+key+' '+frame);
   }
+ }
+});
+
+test('apple remains stationary until grasp and reaches a stable held position',()=>{
+ const shelf=pickupPropPose(0);
+ const before=pickupPropPose(10);
+ const middle=pickupPropPose(16);
+ const held=pickupPropPose(48);
+ assert.deepEqual({x:shelf.x,y:shelf.y,grasp:shelf.grasp},{x:72,y:57,grasp:0});
+ assert.equal(before.x,72,'apple cannot move before hand makes contact');
+ assert.ok(middle.x<72 && middle.x>53,'apple moves smoothly during transfer');
+ assert.equal(held.x,53,'apple reaches held x coordinate');
+ assert.equal(held.held,true);
+ for(const frame of [0,1,12,24,240,14400]){
+  const p=pickupPropPose(frame);
+  assert.ok(Number.isFinite(p.x)&&Number.isFinite(p.y));
+  assert.ok(p.x>=53&&p.x<=72);
  }
 });
