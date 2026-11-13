@@ -50,3 +50,10 @@ test('held objects keep character rendering until explicit release',()=>{
  assert.equal(scenes[2].visualMode,'character');
  assert.equal(scenes[2].narrative.releaseObject,'bottle');
 });
+
+test('put-down verbs override object name pickup detection',()=>{
+ for(const script of ['She puts down the cup.','He places the book.','Er legt die Flasche ab.']){
+  const scene=makeScenePlan(script).scenes[0];
+  assert.equal(scene.action,'put',script);
+ }
+});
