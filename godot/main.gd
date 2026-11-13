@@ -236,6 +236,12 @@ func _draw_topic_graphic(t: float) -> void:
 			draw_circle(Vector2(166, notification_y + 27), 12, Color("#b34c52"))
 			draw_rect(Rect2(190, notification_y + 17, 176, 7), navy)
 			draw_rect(Rect2(190, notification_y + 31, 120, 5), Color("#6a593c"))
+			# A second articulated finger joint and palm make the touch readable.
+			var touch_ease := smoothstep(0.12, 0.66, scene_progress)
+			var wrist := Vector2(540.0 - 95.0 * touch_ease, 880.0 - 115.0 * touch_ease)
+			var knuckle := Vector2(512.0 - 133.0 * touch_ease, 808.0 - 136.0 * touch_ease)
+			draw_line(wrist, knuckle, Color("#a96952"), 43, true)
+			draw_circle(knuckle, 21, Color("#e3a585"))
 			# A fingertip follows an eased touch gesture onto the notification.
 			var touch_progress := smoothstep(0.12, 0.66, scene_progress)
 			var finger_tip := Vector2(487.0 - 165.0 * touch_progress, 760.0 - 145.0 * touch_progress)
@@ -255,6 +261,13 @@ func _draw_topic_graphic(t: float) -> void:
 				draw_rect(Rect2(wx + 8, 321, 69, 104), Color("#74afc6"))
 				for j in range(3):
 					draw_line(Vector2(wx + 12, 350 + j * 25), Vector2(wx + 72, 350 + j * 25), Color("#9ed0d7"), 2, true)
+			# A waiting passenger and platform warning stripes add visual storytelling.
+			var passenger_x := 112.0 + 58.0 * smoothstep(0.2, 0.9, scene_progress)
+			draw_circle(Vector2(passenger_x, 492), 25, Color("#d8a07c"))
+			draw_rect(Rect2(passenger_x - 24, 521, 48, 85), Color("#d6a54e"))
+			for dx in [-12.0, 12.0]:
+				draw_line(Vector2(passenger_x + dx, 604), Vector2(passenger_x + dx, 672), Color("#1c2d47"), 15, true)
+			draw_line(Vector2(passenger_x - 24, 540), Vector2(passenger_x - 45, 583), Color("#d8a07c"), 13, true)
 			var opening := 72.0 * smoothstep(0.15, 0.8, scene_progress)
 			draw_rect(Rect2(167 - opening, 445, 104, 235), Color("#546d88"))
 			draw_rect(Rect2(272 + opening, 445, 104, 235), Color("#546d88"))
