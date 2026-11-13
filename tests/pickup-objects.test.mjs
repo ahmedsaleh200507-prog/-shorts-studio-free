@@ -213,3 +213,10 @@ test('pickup targets the object following the verb, not a previously mentioned p
   assert.equal(scene.narrative.interactionObject,expected,script);
  }
 });
+
+test('carrying a held prop keeps character mode in a technology-themed scene',()=>{
+ const scenes=makeScenePlan('She picks up a cup. Then she picks up the cup beside a computer.').scenes;
+ assert.equal(scenes[1].action,'carry');
+ assert.equal(scenes[1].visualMode,'character');
+ assert.equal(scenes[1].narrative.heldObject,'cup');
+});
