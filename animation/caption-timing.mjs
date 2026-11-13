@@ -9,6 +9,8 @@ export function captionRevealCount(text,localFrame,durationFrames,alignment=null
  for(const entry of alignment){
   if(!entry||typeof entry!=='object')return fallback();
   const word=String(entry.word??'').trim();
+  // Missing/null timestamp fields must not silently coerce to zero.
+  if(entry.start==null||entry.end==null||typeof entry.start==='boolean'||typeof entry.end==='boolean')return fallback();
   const start=Number(entry.start),end=Number(entry.end);
   if(!word||!Number.isFinite(start)||!Number.isFinite(end)||start<0||end<=start||end>durationFrames/fps+.05)return fallback();
   if(!clean(word)&&tokens.length){tokens[tokens.length-1]={...tokens[tokens.length-1],word:tokens[tokens.length-1].word+word,end};}
