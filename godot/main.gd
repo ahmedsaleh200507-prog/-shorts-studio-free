@@ -252,7 +252,7 @@ func _draw_topic_graphic(t: float) -> void:
 			draw_rect(Rect2(190, notification_y + 17, 176, 7), navy)
 			draw_rect(Rect2(190, notification_y + 31, 120, 5), Color("#6a593c"))
 			# Touch feedback: expanding cyan ring appears exactly at the notification tap.
-			var tap := smoothstep(0.55, 0.68, scene_progress)
+			var tap := smoothstep(0.55, 0.94, scene_progress)
 			if scene_progress > 0.55 and scene_progress < 0.94:
 				var ring_radius := 8.0 + 53.0 * smoothstep(0.55, 0.94, scene_progress)
 				draw_arc(Vector2(322, notification_y + 27), ring_radius, 0.0, TAU, 48, Color(0.40, 0.95, 1.0, 0.85 * (1.0 - tap)), 4.0, true)
